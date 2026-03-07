@@ -3,22 +3,15 @@
 @section('title', 'Đăng nhập')
 
 @section('content')
+    @if (session('success'))
+        <div class="badge badge-success" style="width: 100%; justify-content: center; padding: var(--space-3); margin-bottom: var(--space-6);">
+            <span class="material-icons" style="font-size: 16px; margin-right: var(--space-2);">check_circle</span>
+            {{ session('success') }}
+        </div>
+    @endif
+
     <h2>Chào mừng trở lại</h2>
     <p class="auth-subtitle">Khám phá thế giới tri thức cùng Modtra Books</p>
-
-    {{-- Social Login --}}
-    <div class="social-login">
-        <button type="button" class="btn btn-outline" id="btn-google-login">
-            <span class="material-icons">g_translate</span>
-            Google
-        </button>
-        <button type="button" class="btn btn-outline" id="btn-facebook-login">
-            <span class="material-icons">facebook</span>
-            Facebook
-        </button>
-    </div>
-
-    <div class="divider">hoặc đăng nhập bằng email</div>
 
     {{-- Login Form --}}
     <form method="POST" action="{{ url('/login') }}" id="login-form">

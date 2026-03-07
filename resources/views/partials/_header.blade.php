@@ -10,7 +10,7 @@
         {{-- Navigation --}}
         <nav class="nav-links" id="main-nav">
             <a href="{{ url('/products') }}" class="{{ request()->is('products') ? 'active' : '' }}">Sách mới</a>
-            <a href="{{ url('/products?sort=bestseller') }}" class="{{ request()->is('products') && request('sort') == 'bestseller' ? 'active' : '' }}">Bán chạy</a>
+
             <a href="{{ url('/products?view=categories') }}">Thể loại</a>
             <a href="{{ url('/blog') }}" class="{{ request()->is('blog*') ? 'active' : '' }}">Blog</a>
             <a href="{{ url('/contact') }}" class="{{ request()->is('contact') ? 'active' : '' }}">Liên hệ</a>
@@ -34,9 +34,18 @@
             @guest
                 <a href="{{ url('/login') }}" class="btn btn-primary btn-sm" id="btn-login">Đăng nhập</a>
             @else
+                <span style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-right: var(--space-2);">
+                    Xin chào, <strong>{{ Auth::user()->ho_ten }}</strong>
+                </span>
                 <a href="{{ url('/profile') }}" class="icon-btn" id="btn-profile" title="Tài khoản">
                     <span class="material-icons">person</span>
                 </a>
+                <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                    @csrf
+                    <button type="submit" class="icon-btn" id="btn-logout" title="Đăng xuất" style="background: none; border: none; cursor: pointer;">
+                        <span class="material-icons">logout</span>
+                    </button>
+                </form>
             @endguest
         </div>
     </div>

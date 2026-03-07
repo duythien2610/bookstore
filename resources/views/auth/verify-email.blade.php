@@ -10,10 +10,32 @@
 
         <h2>Xác thực email</h2>
         <p class="auth-subtitle" style="max-width: 360px; margin: 0 auto var(--space-8);">
-            Chúng tôi đã gửi mã xác thực đến email <strong>{{ $email ?? 'your@email.com' }}</strong>. Vui lòng nhập mã bên dưới.
+            Chúng tôi đã gửi mã xác thực đến email <strong>{{ Auth::user()->email }}</strong>. Vui lòng nhập mã bên dưới.
         </p>
 
-        <form method="POST" action="{{ url('/verify-email') }}" id="verify-email-form">
+        {{-- Flash messages --}}
+        @if (session('success'))
+            <div class="badge badge-success" style="width: 100%; justify-content: center; padding: var(--space-3); margin-bottom: var(--space-4);">
+                <span class="material-icons" style="font-size: 16px; margin-right: var(--space-2);">check_circle</span>
+                {{ session('success') }}
+            </div>
+        @endif
+
+        @if (session('resend_success'))
+            <div class="badge badge-success" style="width: 100%; justify-content: center; padding: var(--space-3); margin-bottom: var(--space-4);">
+                <span class="material-icons" style="font-size: 16px; margin-right: var(--space-2);">check_circle</span>
+                {{ session('resend_success') }}
+            </div>
+        @endif
+
+        @if (session('resend_error'))
+            <div class="badge badge-danger" style="width: 100%; justify-content: center; padding: var(--space-3); margin-bottom: var(--space-4);">
+                <span class="material-icons" style="font-size: 16px; margin-right: var(--space-2);">error</span>
+                {{ session('resend_error') }}
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('verification.verify') }}" id="verify-email-form">
             @csrf
 
             <div class="otp-inputs">
@@ -39,7 +61,7 @@
             </a>
         </p>
 
-        <form id="resend-form" method="POST" action="{{ url('/verify-email/resend') }}" style="display: none;">
+        <form id="resend-form" method="POST" action="{{ route('verification.resend') }}" style="display: none;">
             @csrf
         </form>
     </div>
@@ -47,9 +69,12 @@
 
 @push('scripts')
 <script>
-    // Auto-focus next OTP input
+    // Auto-focus next OTP input + chỉ cho nhập số
     document.querySelectorAll('.otp-inputs input').forEach((input, index, inputs) => {
         input.addEventListener('input', (e) => {
+            // Chỉ cho phép nhập số
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+
             if (e.target.value.length === 1 && index < inputs.length - 1) {
                 inputs[index + 1].focus();
             }
@@ -58,6 +83,19 @@
             if (e.key === 'Backspace' && !e.target.value && index > 0) {
                 inputs[index - 1].focus();
             }
+        });
+        // Hỗ trợ paste mã 6 số
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+            pastedData.split('').forEach((char, i) => {
+                if (inputs[index + i]) {
+                    inputs[index + i].value = char;
+                }
+            });
+            // Focus ô cuối cùng đã điền
+            const lastIndex = Math.min(index + pastedData.length - 1, inputs.length - 1);
+            inputs[lastIndex].focus();
         });
     });
 </script>

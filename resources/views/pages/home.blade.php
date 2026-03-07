@@ -89,15 +89,49 @@
         </div>
     </section>
 
-    {{-- Membership CTA --}}
-    <section class="section" id="membership">
+    {{-- Why Choose Us --}}
+    <section class="section" id="why-choose-us">
         <div class="container">
-            <div class="membership-cta">
-                <div>
-                    <h2>Gói thành viên Modtra</h2>
-                    <p style="margin-top: var(--space-3);">Đọc không giới hạn hàng ngàn đầu sách với gói thành viên ưu đãi. Chỉ từ 99.000đ/tháng.</p>
+            <div class="section-header" style="text-align: center; display: block; margin-bottom: var(--space-8);">
+                <h2>Tại sao chọn Modtra Books?</h2>
+                <p style="color: var(--color-text-muted); margin-top: var(--space-3); max-width: 540px; margin-left: auto; margin-right: auto;">Chúng tôi cam kết mang đến trải nghiệm mua sách trực tuyến tốt nhất cho bạn</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-6);">
+                {{-- Free Shipping --}}
+                <div class="card" id="feature-shipping" style="text-align: center; padding: var(--space-8) var(--space-5);">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(var(--color-primary-rgb), 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                        <span class="material-icons" style="font-size: 28px; color: var(--color-primary);">local_shipping</span>
+                    </div>
+                    <div class="card-title" style="margin-bottom: var(--space-2);">Miễn phí vận chuyển</div>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Miễn phí ship cho đơn hàng từ 300.000đ trên toàn quốc</p>
                 </div>
-                <a href="#" class="btn btn-lg" id="btn-membership">Đăng ký ngay</a>
+
+                {{-- Easy Returns --}}
+                <div class="card" id="feature-returns" style="text-align: center; padding: var(--space-8) var(--space-5);">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(76, 175, 80, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                        <span class="material-icons" style="font-size: 28px; color: #4caf50;">autorenew</span>
+                    </div>
+                    <div class="card-title" style="margin-bottom: var(--space-2);">Đổi trả dễ dàng</div>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Đổi trả miễn phí trong 7 ngày nếu sách bị lỗi</p>
+                </div>
+
+                {{-- Authentic Books --}}
+                <div class="card" id="feature-authentic" style="text-align: center; padding: var(--space-8) var(--space-5);">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(255, 152, 0, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                        <span class="material-icons" style="font-size: 28px; color: #ff9800;">verified</span>
+                    </div>
+                    <div class="card-title" style="margin-bottom: var(--space-2);">Sách chính hãng</div>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">100% sách chính hãng từ các nhà xuất bản uy tín</p>
+                </div>
+
+                {{-- Secure Payment --}}
+                <div class="card" id="feature-payment" style="text-align: center; padding: var(--space-8) var(--space-5);">
+                    <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(33, 150, 243, 0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-4);">
+                        <span class="material-icons" style="font-size: 28px; color: #2196f3;">lock</span>
+                    </div>
+                    <div class="card-title" style="margin-bottom: var(--space-2);">Thanh toán an toàn</div>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Bảo mật thông tin với nhiều phương thức thanh toán</p>
+                </div>
             </div>
         </div>
     </section>

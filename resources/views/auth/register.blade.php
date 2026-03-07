@@ -3,22 +3,15 @@
 @section('title', 'Đăng ký')
 
 @section('content')
+    @if ($errors->any())
+        <div class="badge badge-danger" style="width: 100%; justify-content: center; padding: var(--space-3); margin-bottom: var(--space-6);">
+            <span class="material-icons" style="font-size: 16px; margin-right: var(--space-2);">error</span>
+            Vui lòng kiểm tra lại thông tin đăng ký.
+        </div>
+    @endif
+
     <h2>Tạo tài khoản mới</h2>
     <p class="auth-subtitle">Tham gia cộng đồng đọc sách Modtra Books</p>
-
-    {{-- Social Login --}}
-    <div class="social-login">
-        <button type="button" class="btn btn-outline" id="btn-google-register">
-            <span class="material-icons">g_translate</span>
-            Google
-        </button>
-        <button type="button" class="btn btn-outline" id="btn-facebook-register">
-            <span class="material-icons">facebook</span>
-            Facebook
-        </button>
-    </div>
-
-    <div class="divider">hoặc đăng ký bằng email</div>
 
     {{-- Register Form --}}
     <form method="POST" action="{{ url('/register') }}" id="register-form">

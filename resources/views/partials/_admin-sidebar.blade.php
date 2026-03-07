@@ -10,7 +10,7 @@
             <span class="material-icons">dashboard</span>
             Dashboard
         </a>
-        <a href="{{ url('/admin/inventory') }}" class="{{ request()->is('admin/inventory*') ? 'active' : '' }}" id="nav-inventory">
+        <a href="{{ url('/admin/inventory') }}" class="{{ request()->is('admin/inventory*') || request()->is('admin/books*') ? 'active' : '' }}" id="nav-inventory">
             <span class="material-icons">inventory_2</span>
             Quản lý sách
         </a>
@@ -18,6 +18,24 @@
             <span class="material-icons">receipt_long</span>
             Đơn hàng
         </a>
+
+        {{-- Danh mục --}}
+        <div style="padding: var(--space-3) var(--space-4) var(--space-1); font-size: 10px; font-weight: var(--font-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: var(--space-2);">
+            Danh mục
+        </div>
+        <a href="{{ route('admin.the-loai.index') }}" class="{{ request()->is('admin/the-loai*') ? 'active' : '' }}" id="nav-the-loai">
+            <span class="material-icons">category</span>
+            Thể loại
+        </a>
+        <a href="{{ route('admin.partners') }}" class="{{ request()->is('admin/partners*') || request()->is('admin/tac-gia*') || request()->is('admin/nha-xuat-ban*') || request()->is('admin/nha-cung-cap*') ? 'active' : '' }}" id="nav-partners">
+            <span class="material-icons">handshake</span>
+            Đối tác
+        </a>
+
+        {{-- Hệ thống --}}
+        <div style="padding: var(--space-3) var(--space-4) var(--space-1); font-size: 10px; font-weight: var(--font-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: var(--space-2);">
+            Hệ thống
+        </div>
         <a href="{{ url('/admin/users') }}" id="nav-users">
             <span class="material-icons">group</span>
             Khách hàng

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreatePasswordResetsTable extends Migration
+class AddMaGiamGiaToDonHangTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,10 @@ class CreatePasswordResetsTable extends Migration
      */
     public function up()
     {
-        Schema::create('password_resets', function (Blueprint $table) {
-            $table->string('email')->index();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
+        Schema::table('don_hang', function (Blueprint $table) {
+            //
+            $table->foreignId('ma_giam_gia_id')->nullable()->after('id')
+              ->constrained('ma_giam_gia')->nullOnDelete();
         });
     }
 
@@ -27,6 +27,9 @@ class CreatePasswordResetsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('password_resets');
+        Schema::table('don_hang', function (Blueprint $table) {
+            //
+            
+        });
     }
 }
