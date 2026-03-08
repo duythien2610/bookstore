@@ -29,7 +29,6 @@
             </a>
             <a href="{{ url('/cart') }}" class="icon-btn" id="btn-cart" title="Giỏ hàng">
                 <span class="material-icons">shopping_cart</span>
-                <span class="badge">3</span>
             </a>
             @guest
                 <a href="{{ url('/login') }}" class="btn btn-primary btn-sm" id="btn-login">Đăng nhập</a>

@@ -22,6 +22,8 @@
 
     @include('partials._footer')
 
+    @include('partials._chatbot')
+
     @stack('scripts')
 </body>
 </html>

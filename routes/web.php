@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -88,6 +90,9 @@ Route::get('/contact', function () {
     return view('pages.contact');
 })->name('contact');
 
+// ─── Chatbot AI ──────────────────────────────────────────────────────────
+Route::post('/chatbot/send', [ChatbotController::class, 'chat'])->name('chatbot.send');
+
 
 // ─── Admin Routes (chỉ admin mới vào được) ───────────────────────────────
 Route::prefix('admin')->middleware('admin')->group(function () {
@@ -130,4 +135,9 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/the-loai', [App\Http\Controllers\TheLoaiController::class, 'index'])->name('admin.the-loai.index');
     Route::get('/the-loai/create', [App\Http\Controllers\TheLoaiController::class, 'create'])->name('admin.the-loai.create');
     Route::post('/the-loai', [App\Http\Controllers\TheLoaiController::class, 'store'])->name('admin.the-loai.store');
+
+    // Quản lý người dùng
+    Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+    Route::put('/users/{user}/role', [UserController::class, 'updateRole'])->name('admin.users.updateRole');
+    Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 });

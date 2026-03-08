@@ -85,7 +85,7 @@ class AuthController extends Controller
             'email'         => $validated['email'],
             'so_dien_thoai' => $validated['phone'] ?? null,
             'password'      => Hash::make($validated['password']),
-            'role_id'       => $userRole ? $userRole->id : 1,
+            'role_id'       => $userRole ? $userRole->id : 2,
         ]);
 
         Auth::login($user);
