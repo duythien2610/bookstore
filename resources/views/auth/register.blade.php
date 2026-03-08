@@ -14,7 +14,7 @@
     <p class="auth-subtitle">Tham gia cộng đồng đọc sách Modtra Books</p>
 
     {{-- Register Form --}}
-    <form method="POST" action="{{ url('/register') }}" id="register-form">
+    <form method="POST" action="{{ route('register') }}" id="register-form">
         @csrf
 
         <div class="form-group">
@@ -72,6 +72,6 @@
     </form>
 
     <p class="auth-footer" style="border: none; padding: 0; margin-top: var(--space-6);">
-        Đã có tài khoản? <a href="{{ url('/login') }}">Đăng nhập</a>
+        Đã có tài khoản? <a href="{{ route('login') }}">Đăng nhập</a>
     </p>
 @endsection

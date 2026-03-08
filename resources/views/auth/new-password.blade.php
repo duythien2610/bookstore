@@ -36,7 +36,7 @@
     </form>
 
     <div style="text-align: center; margin-top: var(--space-6);">
-        <a href="{{ url('/login') }}" style="display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+        <a href="{{ route('login') }}" style="display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--font-size-sm); color: var(--color-text-secondary);">
             <span class="material-icons" style="font-size: 18px;">arrow_back</span>
             Quay lại Đăng nhập
         </a>

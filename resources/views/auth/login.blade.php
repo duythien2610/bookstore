@@ -14,7 +14,7 @@
     <p class="auth-subtitle">Khám phá thế giới tri thức cùng Modtra Books</p>
 
     {{-- Login Form --}}
-    <form method="POST" action="{{ url('/login') }}" id="login-form">
+    <form method="POST" action="{{ route('login') }}" id="login-form">
         @csrf
 
         <div class="form-group">
@@ -40,14 +40,14 @@
                 <input type="checkbox" id="remember" name="remember" {{ old('remember') ? 'checked' : '' }}>
                 <label for="remember">Ghi nhớ đăng nhập</label>
             </div>
-            <a href="{{ url('/forgot-password') }}" style="font-size: var(--font-size-sm); font-weight: var(--font-medium);">Quên mật khẩu?</a>
+            <a href="{{ route('auth.forgot-password') }}" style="font-size: var(--font-size-sm); font-weight: var(--font-medium);">Quên mật khẩu?</a>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block btn-lg" id="btn-login-submit">Đăng nhập</button>
     </form>
 
     <p class="auth-footer" style="border: none; padding: 0; margin-top: var(--space-6);">
-        Chưa có tài khoản? <a href="{{ url('/register') }}">Đăng ký ngay</a>
+        Chưa có tài khoản? <a href="{{ route('register') }}">Đăng ký ngay</a>
     </p>
 
     <p style="text-align: center; font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: var(--space-4);">

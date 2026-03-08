@@ -31,7 +31,7 @@
                 <span class="material-icons">shopping_cart</span>
             </a>
             @guest
-                <a href="{{ url('/login') }}" class="btn btn-primary btn-sm" id="btn-login">Đăng nhập</a>
+                <a href="{{ route('login') }}" class="btn btn-primary btn-sm" id="btn-login">Đăng nhập</a>
             @else
                 <span style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-right: var(--space-2);">
                     Xin chào, <strong>{{ Auth::user()->ho_ten }}</strong>
