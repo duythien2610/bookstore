@@ -18,9 +18,9 @@
         <div class="profile-grid" id="profile-content">
             {{-- Profile Sidebar --}}
             <div class="profile-sidebar">
-                <div class="profile-avatar">N</div>
-                <h4 style="margin-bottom: var(--space-1);">Nguyễn Văn A</h4>
-                <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-6);">member@email.com</p>
+                <div class="profile-avatar">{{ strtoupper(mb_substr(auth()->user()->ho_ten, 0, 1)) }}</div>
+                <h4 style="margin-bottom: var(--space-1);">{{ auth()->user()->ho_ten }}</h4>
+                <p style="font-size: var(--font-size-sm); color: var(--color-text-muted); margin-bottom: var(--space-6);">{{ auth()->user()->email }}</p>
 
                 <nav class="profile-nav">
                     <a href="#" class="active" id="nav-profile-info">
@@ -54,6 +54,12 @@
             <div class="profile-content" id="profile-form-section">
                 <h3 style="margin-bottom: var(--space-6);">Thông tin cá nhân</h3>
 
+                @if(session('success'))
+                    <div class="alert alert-success" style="margin-bottom: var(--space-4); padding: var(--space-3) var(--space-4); background: #d1fae5; color: #065f46; border-radius: var(--radius-md);">
+                        {{ session('success') }}
+                    </div>
+                @endif
+
                 <form method="POST" action="{{ url('/profile') }}" id="profile-form">
                     @csrf
                     @method('PUT')
@@ -61,11 +67,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
                         <div class="form-group">
                             <label for="profile-name" class="form-label">Họ và tên</label>
-                            <input type="text" id="profile-name" name="name" class="form-control" value="Nguyễn Văn A">
+                            <input type="text" id="profile-name" name="ho_ten" class="form-control"
+                                   value="{{ old('ho_ten', auth()->user()->ho_ten) }}">
                         </div>
                         <div class="form-group">
                             <label for="profile-email" class="form-label">Email</label>
-                            <input type="email" id="profile-email" name="email" class="form-control" value="member@email.com" disabled>
+                            <input type="email" id="profile-email" name="email" class="form-control"
+                                   value="{{ auth()->user()->email }}" disabled>
                             <div class="form-text">Email không thể thay đổi</div>
                         </div>
                     </div>
@@ -73,11 +81,13 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">
                         <div class="form-group">
                             <label for="profile-phone" class="form-label">Số điện thoại</label>
-                            <input type="tel" id="profile-phone" name="phone" class="form-control" value="0912 345 678">
+                            <input type="tel" id="profile-phone" name="so_dien_thoai" class="form-control"
+                                   value="{{ old('so_dien_thoai', auth()->user()->so_dien_thoai) }}">
                         </div>
                         <div class="form-group">
                             <label for="profile-dob" class="form-label">Ngày sinh</label>
-                            <input type="date" id="profile-dob" name="dob" class="form-control" value="1990-01-01">
+                            <input type="date" id="profile-dob" name="ngay_sinh" class="form-control"
+                                   value="{{ old('ngay_sinh', auth()->user()->ngay_sinh ? auth()->user()->ngay_sinh->format('Y-m-d') : '') }}">
                         </div>
                     </div>
 
@@ -85,15 +95,18 @@
                         <label for="profile-gender" class="form-label">Giới tính</label>
                         <div style="display: flex; gap: var(--space-6);">
                             <div class="form-check">
-                                <input type="radio" id="gender-male" name="gender" value="male" checked>
+                                <input type="radio" id="gender-male" name="gioi_tinh" value="male"
+                                       {{ old('gioi_tinh', auth()->user()->gioi_tinh) === 'male' ? 'checked' : '' }}>
                                 <label for="gender-male">Nam</label>
                             </div>
                             <div class="form-check">
-                                <input type="radio" id="gender-female" name="gender" value="female">
+                                <input type="radio" id="gender-female" name="gioi_tinh" value="female"
+                                       {{ old('gioi_tinh', auth()->user()->gioi_tinh) === 'female' ? 'checked' : '' }}>
                                 <label for="gender-female">Nữ</label>
                             </div>
                             <div class="form-check">
-                                <input type="radio" id="gender-other" name="gender" value="other">
+                                <input type="radio" id="gender-other" name="gioi_tinh" value="other"
+                                       {{ old('gioi_tinh', auth()->user()->gioi_tinh) === 'other' ? 'checked' : '' }}>
                                 <label for="gender-other">Khác</label>
                             </div>
                         </div>
@@ -101,7 +114,8 @@
 
                     <div class="form-group">
                         <label for="profile-address" class="form-label">Địa chỉ mặc định</label>
-                        <input type="text" id="profile-address" name="address" class="form-control" value="123 Đường ABC, Quận 1, TP.HCM">
+                        <input type="text" id="profile-address" name="dia_chi" class="form-control"
+                               value="{{ old('dia_chi', auth()->user()->dia_chi) }}">
                     </div>
 
                     <div style="display: flex; gap: var(--space-4); justify-content: flex-end;">

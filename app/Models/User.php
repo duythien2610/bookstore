@@ -17,8 +17,10 @@ class User extends Authenticatable
     protected $fillable = [
         'ho_ten',
         'email',
-        'password',         
+        'password',
         'so_dien_thoai',
+        'ngay_sinh',
+        'gioi_tinh',
         'dia_chi',
         'role_id',
         'trang_thai',
@@ -43,6 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'trang_thai'        => 'boolean',
+        'ngay_sinh'         => 'date',
     ];
 
     // ===== Relationships =====
