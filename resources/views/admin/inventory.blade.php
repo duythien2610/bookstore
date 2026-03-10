@@ -156,6 +156,20 @@
         </div>
     @endif
 
+    @if($errors->any())
+        <div style="padding: var(--space-4) var(--space-5); border-radius: var(--radius-lg); font-size: var(--font-size-sm); margin-bottom: var(--space-6); background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+                <span class="material-icons" style="font-size: 20px;">error</span>
+                <strong>Thông báo lỗi:</strong>
+            </div>
+            <ul style="padding-left: 28px; list-style: disc; font-size: 13px;">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- ═══════════ BỘ LỌC ═══════════ --}}
     <div class="filter-panel">
         <div class="filter-toggle" id="filter-toggle">
