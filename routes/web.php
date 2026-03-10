@@ -78,13 +78,18 @@ Route::middleware('verified')->group(function () {
     })->name('profile');
 });
 
-Route::get('/blog', function () {
-    return view('pages.blog-listing');
+Route::get('/blog', function (\Illuminate\Http\Request $request) {
+    $query = \App\Models\Post::where('status', 'published');
+    
+    if ($request->has('category') && $request->category !== 'Tất cả') {
+        $query->where('category', $request->category);
+    }
+    
+    $posts = $query->orderBy('created_at', 'desc')->paginate(10);
+    $currentCategory = $request->get('category', 'Tất cả');
+    
+    return view('pages.blog-listing', compact('posts', 'currentCategory'));
 })->name('blog.index');
-
-Route::get('/blog/{slug}', function ($slug = null) {
-    return view('pages.blog-detail');
-})->name('blog.show');
 
 Route::get('/contact', function () {
     return view('pages.contact');
@@ -140,4 +145,22 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
     Route::put('/users/{user}/role', [UserController::class, 'updateRole'])->name('admin.users.updateRole');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+
+    // Quản lý Blog
+    Route::get('/blogs', [\App\Http\Controllers\PostController::class, 'adminIndex'])->name('admin.blogs.index');
+    Route::put('/blogs/{post}/approve', [\App\Http\Controllers\PostController::class, 'approve'])->name('admin.blogs.approve');
+    Route::put('/blogs/{post}/reject', [\App\Http\Controllers\PostController::class, 'reject'])->name('admin.blogs.reject');
 });
+
+// ─── Blog Management (User) ──────────────────────────────────────────────
+Route::middleware('auth')->group(function () {
+    Route::get('/blog/create', [\App\Http\Controllers\PostController::class, 'create'])->name('blog.create');
+    Route::post('/blog/store', [\App\Http\Controllers\PostController::class, 'store'])->name('blog.store');
+    Route::post('/blog/upload-image', [\App\Http\Controllers\PostController::class, 'uploadImage'])->name('blog.upload-image');
+});
+
+// Chú ý: Route chứa tham số động {slug} phải nằm dưới các route tĩnh (như /blog/create)
+Route::get('/blog/{slug}', function ($slug) {
+    $post = \App\Models\Post::where('slug', $slug)->where('status', 'published')->firstOrFail();
+    return view('pages.blog-detail', compact('post'));
+})->name('blog.show');

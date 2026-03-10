@@ -19,41 +19,32 @@
         <article style="max-width: 800px; margin: 0 auto;" id="blog-article">
             {{-- Article Header --}}
             <div style="text-align: center; margin-bottom: var(--space-8);">
-                <span class="badge badge-primary" style="margin-bottom: var(--space-4);">Review sách</span>
-                <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-4);">10 cuốn sách thay đổi tư duy bạn nên đọc trong năm 2026</h1>
+                <h1 style="font-size: var(--font-size-4xl); margin-bottom: var(--space-4);">{{ $post->title }}</h1>
                 <div style="display: flex; align-items: center; justify-content: center; gap: var(--space-4); font-size: var(--font-size-sm); color: var(--color-text-muted);">
                     <div style="display: flex; align-items: center; gap: var(--space-2);">
-                        <div class="author-avatar" style="width: 32px; height: 32px; font-size: var(--font-size-xs);">M</div>
-                        <span>Modtra Books</span>
+                        <div class="author-avatar" style="width: 32px; height: 32px; font-size: var(--font-size-xs);">{{ substr($post->user->ho_ten ?? 'M', 0, 1) }}</div>
+                        <span>{{ $post->user->ho_ten ?? 'Modtra Books' }}</span>
                     </div>
                     <span>·</span>
-                    <span>01/03/2026</span>
+                    <span>{{ $post->created_at->format('d/m/Y') }}</span>
+                    
+                    @if($post->status === 'pending')
                     <span>·</span>
-                    <span>5 phút đọc</span>
+                    <span style="color: #f39c12; font-weight: bold;">[Đang chờ duyệt]</span>
+                    @endif
                 </div>
             </div>
 
             {{-- Featured Image --}}
-            <div style="background: var(--color-bg-alt); border-radius: var(--radius-xl); height: 400px; display: flex; align-items: center; justify-content: center; margin-bottom: var(--space-8);">
-                <span class="material-icons" style="font-size: 80px; color: var(--color-text-muted);">image</span>
+            @if($post->image)
+            <div style="border-radius: var(--radius-xl); overflow: hidden; height: 400px; margin-bottom: var(--space-8);">
+                <img src="{{ asset($post->image) }}" alt="{{ $post->title }}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
+            @endif
 
             {{-- Article Content --}}
-            <div style="font-size: var(--font-size-lg); line-height: 1.8; color: var(--color-text-secondary);">
-                <p style="margin-bottom: var(--space-6);">Đọc sách không chỉ là một thói quen tốt mà còn là một hành trình khám phá bản thân. Mỗi cuốn sách mở ra một thế giới mới, giúp bạn nhìn nhận cuộc sống từ những góc độ khác nhau.</p>
-
-                <h2 style="color: var(--color-text); margin: var(--space-8) 0 var(--space-4); font-size: var(--font-size-2xl);">1. Tư duy nhanh và chậm</h2>
-                <p style="margin-bottom: var(--space-6);">Daniel Kahneman đã dành cả sự nghiệp để nghiên cứu về cách con người ra quyết định. Cuốn sách này sẽ giúp bạn hiểu rõ hơn về hai hệ thống tư duy trong não bộ.</p>
-
-                <h2 style="color: var(--color-text); margin: var(--space-8) 0 var(--space-4); font-size: var(--font-size-2xl);">2. Sapiens: Lược sử loài người</h2>
-                <p style="margin-bottom: var(--space-6);">Yuval Noah Harari đưa chúng ta vào một cuộc hành trình xuyên suốt lịch sử nhân loại, từ khi loài Homo sapiens xuất hiện đến thời đại công nghệ hiện đại.</p>
-
-                <blockquote style="border-left: 4px solid var(--color-primary); padding: var(--space-4) var(--space-6); margin: var(--space-8) 0; background: var(--color-primary-light); border-radius: 0 var(--radius-lg) var(--radius-lg) 0; font-style: italic;">
-                    "Một cuốn sách hay là cánh cửa mở ra thế giới mới, nơi trí tưởng tượng không có giới hạn."
-                </blockquote>
-
-                <h2 style="color: var(--color-text); margin: var(--space-8) 0 var(--space-4); font-size: var(--font-size-2xl);">3. Atomic Habits</h2>
-                <p style="margin-bottom: var(--space-6);">James Clear chia sẻ những phương pháp khoa học để xây dựng thói quen tốt và loại bỏ thói quen xấu. Cuốn sách này đã thay đổi cuộc sống của hàng triệu người.</p>
+            <div class="blog-content-body" style="font-size: var(--font-size-lg); line-height: 1.8; color: var(--color-text-secondary);">
+                {!! $post->content !!}
             </div>
 
             {{-- Share --}}

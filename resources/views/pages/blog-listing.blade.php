@@ -33,43 +33,64 @@
         </div>
 
         {{-- Category Filter --}}
+        @php
+            $categories = ['Tất cả', 'Review sách', 'Tác giả', 'Kiến thức', 'Sự kiện', 'Lifestyle', 'Khác'];
+        @endphp
+        
         <div style="display: flex; gap: var(--space-3); margin-bottom: var(--space-8); flex-wrap: wrap;" id="blog-categories">
-            <button class="btn btn-primary btn-sm">Tất cả</button>
-            <button class="btn btn-ghost btn-sm">Review sách</button>
-            <button class="btn btn-ghost btn-sm">Kiến thức</button>
-            <button class="btn btn-ghost btn-sm">Tác giả</button>
-            <button class="btn btn-ghost btn-sm">Sự kiện</button>
-            <button class="btn btn-ghost btn-sm">Lifestyle</button>
+            @foreach($categories as $cat)
+                <a href="{{ route('blog.index', ['category' => $cat]) }}" 
+                   class="btn btn-sm {{ $currentCategory === $cat ? 'btn-primary' : 'btn-ghost' }}"
+                   style="text-decoration: none;">
+                    {{ $cat }}
+                </a>
+            @endforeach
         </div>
 
         {{-- Blog Grid --}}
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2 style="font-size: 1.5rem;">Tất cả bài viết</h2>
+            @auth
+            <a href="{{ route('blog.create') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                <span class="material-icons">add</span> Viết bài mới
+            </a>
+            @endauth
+        </div>
+
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-6);" id="blog-grid">
-            @for ($i = 1; $i <= 6; $i++)
-            <div class="card blog-card" id="blog-post-{{ $i }}">
-                <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
-                    <span class="material-icons" style="font-size: 48px; color: var(--color-text-muted);">article</span>
+            @forelse ($posts as $post)
+            <div class="card blog-card">
+                <div class="card-img" style="display: flex; align-items: center; justify-content: center; height: 200px; overflow: hidden; background: #f8f9fa;">
+                    @if($post->image)
+                        <img src="{{ asset($post->image) }}" alt="{{ $post->title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    @else
+                        <span class="material-icons" style="font-size: 48px; color: var(--color-text-muted);">article</span>
+                    @endif
                 </div>
                 <div class="card-body">
                     <div class="card-meta">
-                        <span class="badge badge-primary" style="font-size: 10px;">Review sách</span>
-                        <span>{{ rand(1, 28) }}/02/2026</span>
-                        <span>·</span>
-                        <span>{{ rand(3, 10) }} phút đọc</span>
+                        <span class="badge badge-primary" style="font-size: 10px;">{{ $post->user->ho_ten ?? 'Modtra' }}</span>
+                        <span>{{ $post->created_at->format('d/m/Y') }}</span>
                     </div>
-                    <div class="card-title" style="margin-bottom: var(--space-2);">Bài viết blog mẫu {{ $i }}</div>
-                    <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.6;">Mô tả ngắn gọn về bài viết blog, giúp thu hút người đọc vào nội dung chính...</p>
+                    <a href="{{ route('blog.show', $post->slug) }}" style="text-decoration: none; color: inherit;">
+                        <div class="card-title" style="margin-bottom: var(--space-2);">{{ \Illuminate\Support\Str::limit($post->title, 60) }}</div>
+                    </a>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-secondary); line-height: 1.6;">
+                        {{ \Illuminate\Support\Str::limit(strip_tags($post->content), 100) }}
+                    </p>
                 </div>
             </div>
-            @endfor
+            @empty
+            <div style="grid-column: span 3; text-align: center; padding: 4rem 0;">
+                <span class="material-icons" style="font-size: 48px; color: #ccc;">article</span>
+                <p style="margin-top: 1rem; color: #666;">Chưa có bài viết nào được đăng.</p>
+            </div>
+            @endforelse
         </div>
 
         {{-- Pagination --}}
-        <div class="pagination">
-            <a href="#"><span class="material-icons">chevron_left</span></a>
-            <span class="active">1</span>
-            <a href="#">2</a>
-            <a href="#">3</a>
-            <a href="#"><span class="material-icons">chevron_right</span></a>
+        <div style="margin-top: 3rem;">
+            {{ $posts->links('pagination::bootstrap-4') }}
         </div>
     </div>
 @endsection
