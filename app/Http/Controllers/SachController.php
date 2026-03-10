@@ -221,4 +221,131 @@ class SachController extends Controller
             ->route('admin.inventory')
             ->with('success', 'Cập nhật sách "' . $validated['tieu_de'] . '" thành công!');
     }
+
+    /**
+     * Nhập sách từ file JSON.
+     */
+    public function importJson(Request $request)
+    {
+        $request->validate([
+            'json_files' => 'required|array',
+            'json_files.*' => 'file|mimes:json,txt',
+        ], [
+            'json_files.required' => 'Vui lòng chọn ít nhất một file JSON.',
+            'json_files.*.mimes'    => 'Các file phải có định dạng .json hoặc .txt',
+        ]);
+
+        $successCount = 0;
+        $duplicateCount = 0;
+        $errors = [];
+        
+        $cachedTheLoais = TheLoai::all();
+
+        foreach ($request->file('json_files') as $file) {
+            $fileName = $file->getClientOriginalName();
+            $content = file_get_contents($file->getRealPath());
+            $data = json_decode($content, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $errors[] = "File '$fileName' không hợp lệ: " . json_last_error_msg();
+                continue;
+            }
+
+            $items = isset($data[0]) ? $data : [$data];
+
+            foreach ($items as $index => $item) {
+                try {
+                    // 1. Kiểm tra format
+                    if (empty($item['tieu_de'])) {
+                        $errors[] = "File '$fileName' - Dòng " . ($index + 1) . ": Sai định dạng (Thiếu tên sách).";
+                        continue;
+                    }
+
+                    // 2. Kiểm tra trùng lặp
+                    if (Sach::where('tieu_de', $item['tieu_de'])->orWhere('isbn', $item['isbn'] ?? '---')->exists()) {
+                        $duplicateCount++;
+                        continue; 
+                    }
+
+                    // 3. Giải quyết Tác giả, NXB, NCC
+                    foreach ([
+                        ['name' => 'ten_tac_gia', 'id' => 'tac_gia_id', 'model' => TacGia::class, 'col' => 'ten_tac_gia'],
+                        ['name' => 'ten_nxb', 'id' => 'nha_xuat_ban_id', 'model' => NhaXuatBan::class, 'col' => 'ten_nxb'],
+                        ['name' => 'ten_ncc', 'id' => 'nha_cung_cap_id', 'model' => NhaCungCap::class, 'col' => 'ten_ncc'],
+                    ] as $entity) {
+                        $val = $item[$entity['name']] ?? ($item[$entity['id']] ?? null);
+                        if ($val && !is_numeric($val)) {
+                            $obj = $entity['model']::firstOrCreate([$entity['col'] => trim($val)]);
+                            $item[$entity['id']] = $obj->id;
+                        }
+                    }
+
+                    // 4. Giải quyết Thể loại (Fuzzy Match)
+                    $tlVal = $item['ten_the_loai'] ?? ($item['the_loai_id'] ?? null);
+                    if ($tlVal && !is_numeric($tlVal)) {
+                        $inputNorm = $this->normalizeString($tlVal);
+                        $match = null;
+                        foreach ($cachedTheLoais as $tl) {
+                            $dbNorm = $this->normalizeString($tl->ten_the_loai);
+                            if ($dbNorm === $inputNorm || strpos($dbNorm, $inputNorm) !== false || strpos($inputNorm, $dbNorm) !== false) {
+                                $match = $tl;
+                                break;
+                            }
+                        }
+                        if ($match) {
+                            $item['the_loai_id'] = $match->id;
+                        } else {
+                            $newTl = TheLoai::create(['ten_the_loai' => trim($tlVal)]);
+                            $item['the_loai_id'] = $newTl->id;
+                            $cachedTheLoais->push($newTl);
+                        }
+                    }
+
+                    // Clean-up IDs
+                    foreach(['tac_gia_id', 'nha_xuat_ban_id', 'nha_cung_cap_id', 'the_loai_id'] as $f) {
+                        if (isset($item[$f]) && !is_numeric($item[$f])) $item[$f] = null;
+                    }
+
+                    // Gán giá trị mặc định cho các trường số
+                    if (!isset($item['gia_ban'])) $item['gia_ban'] = 0;
+                    if (!isset($item['so_luong_ton'])) $item['so_luong_ton'] = 0;
+                    if (!isset($item['loai_sach'])) $item['loai_sach'] = 'trong_nuoc';
+
+                    Sach::create($item);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "File '$fileName' - Dòng " . ($index + 1) . ": Lỗi hệ thống (" . $e->getMessage() . ")";
+                }
+            }
+        }
+
+        $msg = "Hoàn tất: Đã thêm mới " . $successCount . " cuốn từ các file.";
+        if ($duplicateCount > 0) {
+            $msg .= " (Phát hiện " . $duplicateCount . " cuốn đã tồn tại trong hệ thống).";
+        }
+
+        if ($successCount > 0 || $duplicateCount > 0) {
+            return redirect()->route('admin.inventory')->with('success', $msg)->withErrors($errors);
+        }
+
+        return back()->withErrors($errors ?: ['Không có dữ liệu hợp lệ để nhập.']);
+    }
+
+    /**
+     * Chuẩn hóa chuỗi (Xóa dấu, chuyển thường, xóa ký tự đặc biệt) để so sánh.
+     */
+    private function normalizeString($str)
+    {
+        $str = mb_strtolower($str, 'UTF-8');
+        $str = preg_replace('/(à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ)/', 'a', $str);
+        $str = preg_replace('/(è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ)/', 'e', $str);
+        $str = preg_replace('/(ì|í|ị|ỉ|ĩ)/', 'i', $str);
+        $str = preg_replace('/(ò|ó|ọ|ỏ|ã|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ)/', 'o', $str);
+        $str = preg_replace('/(ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ)/', 'u', $str);
+        $str = preg_replace('/(ỳ|ý|ỵ|ỷ|ỹ)/', 'y', $str);
+        $str = preg_replace('/(đ)/', 'd', $str);
+        // Xóa các ký tự đặc biệt, gạch ngang, khoảng trắng thừa
+        $str = preg_replace('/[^a-z0-9]/', '', $str);
+        return $str;
+    }
 }
