@@ -1,0 +1,7 @@
+
+In database.php line 63:
+                    
+  Class 'Pdo\Mysql  
+  ' not found       
+                    
+
