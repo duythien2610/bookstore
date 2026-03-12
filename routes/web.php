@@ -23,6 +23,10 @@ Route::get('/register', [AuthController::class, 'showRegister'])->name('register
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Google Auth
+Route::get('auth/google', [\App\Http\Controllers\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('auth/google/callback', [\App\Http\Controllers\GoogleController::class, 'handleGoogleCallback']);
+
 // Email Verification (yêu cầu đăng nhập — Security Lớp 1)
 Route::middleware('auth')->group(function () {
     Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
