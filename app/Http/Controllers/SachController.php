@@ -7,61 +7,104 @@ use App\Models\TacGia;
 use App\Models\NhaXuatBan;
 use App\Models\NhaCungCap;
 use App\Models\TheLoai;
+use App\Models\DanhGia;
 use Illuminate\Http\Request;
 
 class SachController extends Controller
 {
-    /**
-     * Hiển thị danh sách sách (có bộ lọc).
-     */
+    // =========================================================================
+    //  PUBLIC FACING — Danh sách sách (có filter, sort, paginate)
+    // =========================================================================
+
+    public function indexPublic(Request $request)
+    {
+        $filters = $request->only([
+            'search', 'the_loai_id', 'loai_sach', 'gia_min', 'gia_max'
+        ]);
+
+        $sortType = $request->input('sort', 'moi_nhat');
+
+        $sachs = Sach::with(['tacGia', 'theLoai', 'nhaXuatBan'])
+            ->where('so_luong_ton', '>', 0)
+            ->filter($filters)
+            ->sortType($sortType)
+            ->paginate(12)
+            ->withQueryString();
+
+        // Sidebar: thể loại phân cấp (dùng biến đã có từ AppServiceProvider)
+        // Thông tin thể loại đang active (fór breadcrumb và tiêu đề)
+        $activeCategory = null;
+        if ($request->filled('the_loai_id')) {
+            $activeCategory = TheLoai::find($request->the_loai_id);
+        }
+
+        return view('pages.product-listing', compact('sachs', 'activeCategory'));
+    }
+
+    // =========================================================================
+    //  PUBLIC FACING — Chi tiết sách
+    // =========================================================================
+
+    public function showPublic($id)
+    {
+        $sach = Sach::with(['tacGia', 'nhaXuatBan', 'nhaCungCap', 'theLoai'])->findOrFail($id);
+
+        // Sách liên quan: cùng thể loại, khác id hiện tại
+        $sachLienQuan = Sach::with('tacGia')
+            ->where('the_loai_id', $sach->the_loai_id)
+            ->where('id', '!=', $sach->id)
+            ->where('so_luong_ton', '>', 0)
+            ->orderByDesc('created_at')
+            ->limit(4)
+            ->get();
+
+        // Đánh giá của sách (chỉ duyệt)
+        $danhGias = DanhGia::with('user')
+            ->where('sach_id', $sach->id)
+            ->where('trang_thai', 1)
+            ->orderByDesc('created_at')
+            ->get();
+
+        $diemTrungBinh = $danhGias->avg('so_sao') ?? 0;
+
+        // Phân phối sao
+        $phanPhoiSao = [];
+        for ($i = 5; $i >= 1; $i--) {
+            $phanPhoiSao[$i] = $danhGias->where('so_sao', $i)->count();
+        }
+
+        // Kiểm tra user đã mua sách này chưa (để cho phép đánh giá)
+        $daMua = false;
+        $daGuiDanhGia = false;
+        if (auth()->check()) {
+            $userId = auth()->id();
+            $daMua = \App\Models\DonHangChiTiet::whereHas('donHang', function($q) use ($userId) {
+                $q->where('user_id', $userId)->whereIn('trang_thai', ['da_giao','dang_giao','dang_xu_ly','cho_xac_nhan']);
+            })->where('sach_id', $sach->id)->exists();
+
+            $daGuiDanhGia = DanhGia::where('user_id', $userId)->where('sach_id', $sach->id)->exists();
+        }
+
+        return view('pages.product-detail', compact('sach', 'sachLienQuan', 'danhGias', 'diemTrungBinh', 'phanPhoiSao', 'daMua', 'daGuiDanhGia'));
+    }
+
+    // =========================================================================
+    //  ADMIN — Hiển thị danh sách sách (có bộ lọc)
+    // =========================================================================
+
     public function index(Request $request)
     {
-        $query = Sach::with(['tacGia', 'theLoai']);
+        $filters = $request->only([
+            'search', 'the_loai_id', 'trang_thai', 'gia_min', 'gia_max'
+        ]);
 
-        // Tìm kiếm theo tên sách
-        if ($request->filled('search')) {
-            $query->where('tieu_de', 'like', '%' . $request->search . '%');
-        }
+        $sortType = $request->input('sap_xep', 'moi_nhat');
 
-        // Lọc theo thể loại
-        if ($request->filled('the_loai_id')) {
-            $query->where('the_loai_id', $request->the_loai_id);
-        }
+        $sachs = Sach::with(['tacGia', 'theLoai'])
+                    ->filter($filters)
+                    ->sortType($sortType)
+                    ->get();
 
-        // Lọc theo trạng thái tồn kho
-        if ($request->filled('trang_thai')) {
-            if ($request->trang_thai === 'con_hang') {
-                $query->where('so_luong_ton', '>', 0);
-            } elseif ($request->trang_thai === 'het_hang') {
-                $query->where('so_luong_ton', 0);
-            }
-        }
-
-        // Lọc theo khoảng giá
-        if ($request->filled('gia_min')) {
-            $query->where('gia_ban', '>=', $request->gia_min);
-        }
-        if ($request->filled('gia_max')) {
-            $query->where('gia_ban', '<=', $request->gia_max);
-        }
-
-        // Sắp xếp
-        switch ($request->input('sap_xep', 'moi_nhat')) {
-            case 'gia_tang':
-                $query->orderBy('gia_ban', 'asc');
-                break;
-            case 'gia_giam':
-                $query->orderBy('gia_ban', 'desc');
-                break;
-            case 'ten_az':
-                $query->orderBy('tieu_de', 'asc');
-                break;
-            default: // moi_nhat
-                $query->orderByDesc('created_at');
-                break;
-        }
-
-        $sachs = $query->get();
         $theLoais = TheLoai::orderBy('ten_the_loai')->get();
 
         // Đếm tổng (không filter) cho tabs

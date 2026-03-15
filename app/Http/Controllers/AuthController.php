@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -37,18 +39,70 @@ class AuthController extends Controller
 
         $remember = $request->boolean('remember');
 
+        // BẢO VỆ BRUTE FORCE TRÊN ACCOUNT (Quá 5 lần sai -> Khóa 15 phút)
+        $throttleKey = Str::transliterate(Str::lower($request->input('email')) . '|' . $request->ip());
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+            $minutes = ceil($seconds / 60);
+            return back()->withErrors([
+                'email' => "Tài khoản của bạn đã bị khóa tạm thời do nhập sai quá nhiều lần. Vui lòng thử lại sau {$minutes} phút."
+            ])->onlyInput('email');
+        }
+
         if (Auth::attempt($credentials, $remember)) {
+            RateLimiter::clear($throttleKey);
+
             $request->session()->regenerate();
 
-            if (is_null(Auth::user()->email_verified_at)) {
+            // Đăng xuất và vô hiệu hóa tất cả các phiên đăng nhập khác của tài khoản này
+            Auth::logoutOtherDevices($request->input('password'));
+
+            $user = Auth::user();
+
+            // Load Cart from DB into session
+            $gioHang = \App\Models\GioHang::with('chiTiets.sach.tacGia')->where('user_id', $user->id)->first();
+            if ($gioHang && $gioHang->chiTiets->count() > 0) {
+                $cart = [];
+                foreach ($gioHang->chiTiets as $ct) {
+                    if ($ct->sach) {
+                        $cart[(string)$ct->sach_id] = [
+                            'sach_id'    => $ct->sach_id,
+                            'tieu_de'    => $ct->sach->tieu_de,
+                            'ten_tac_gia'=> $ct->sach->tacGia->ten_tac_gia ?? 'Không rõ',
+                            'gia_ban'    => (int) $ct->don_gia,
+                            'gia_goc'    => (int) ($ct->sach->gia_goc ?? 0),
+                            'anh_bia'    => $ct->sach->file_anh_bia ?? $ct->sach->link_anh_bia,
+                            'so_luong'   => (int) $ct->so_luong,
+                            'ton_kho'    => (int) $ct->sach->so_luong_ton,
+                        ];
+                    }
+                }
+                session(['cart' => $cart]);
+            }
+
+            // Load Wishlist from DB into session
+            $wishlists = \App\Models\Wishlist::where('user_id', $user->id)->pluck('sach_id');
+            if ($wishlists->count() > 0) {
+                $list = [];
+                foreach ($wishlists as $sId) {
+                    $list[(string)$sId] = true;
+                }
+                session(['wishlist' => $list]);
+            }
+
+            if (is_null($user->email_verified_at)) {
                 return redirect()->route('verification.notice');
             }
 
             return redirect()->intended('/');
         }
 
+        // Đếm số lần sai, khóa 15 phút (900 giây) nếu quá 5 lần
+        RateLimiter::hit($throttleKey, 900);
+        $attemptsLeft = RateLimiter::retriesLeft($throttleKey, 5);
+
         return back()->withErrors([
-            'email' => 'Email hoặc mật khẩu không chính xác.',
+            'email' => "Email hoặc mật khẩu không chính xác. Bạn còn {$attemptsLeft} lần thử trước khi bị khóa tạm thời.",
         ])->onlyInput('email');
     }
 
@@ -167,6 +221,7 @@ class AuthController extends Controller
         }
 
         // ✅ Xác thực thành công
+        /** @var \App\Models\User $user */
         $user->email_verified_at = now();
         $user->save();
         DB::table('email_verifications')->where('user_id', $user->id)->delete();
@@ -375,6 +430,9 @@ class AuthController extends Controller
         $user = User::where('email', $email)->first();
         $user->password = Hash::make($request->password);
         $user->save();
+
+        // Xóa tất cả các thiết bị/phiên làm việc cũ khi đổi mật khẩu (bắt buộc đăng nhập lại)
+        DB::table('sessions')->where('user_id', $user->id)->delete();
 
         // Xóa session
         $request->session()->forget(['password_reset_email', 'password_reset_verified']);

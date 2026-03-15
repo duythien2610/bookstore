@@ -10,6 +10,13 @@
         </div>
     @endif
 
+    @if (session('error'))
+        <div class="badge badge-danger" style="width: 100%; justify-content: center; padding: var(--space-3); margin-bottom: var(--space-6);">
+            <span class="material-icons" style="font-size: 16px; margin-right: var(--space-2);">error</span>
+            {{ session('error') }}
+        </div>
+    @endif
+
     <h2>Chào mừng trở lại</h2>
     <p class="auth-subtitle">Khám phá thế giới tri thức cùng Modtra Books</p>
 
