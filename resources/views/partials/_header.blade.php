@@ -9,18 +9,89 @@
 
         {{-- Navigation --}}
         <nav class="nav-links" id="main-nav">
-            <a href="{{ url('/products') }}" class="{{ request()->is('products') ? 'active' : '' }}">Sách mới</a>
+            <a href="{{ url('/products') }}" class="{{ request()->is('products') && !request()->has('loai_sach') ? 'active' : '' }}">Sách mới</a>
 
-            <a href="{{ url('/products?view=categories') }}">Thể loại</a>
+            {{-- Thể loại - Multilevel Dropdown --}}
+            <div class="nav-dropdown">
+                <a href="{{ url('/products') }}" class="nav-dropbtn {{ request()->has('loai_sach') || request()->has('the_loai_id') ? 'active' : '' }}">
+                    Thể loại <span class="material-icons" style="font-size: 16px; vertical-align: middle;">expand_more</span>
+                </a>
+                <ul class="dropdown-content">
+                    {{-- Sách trong nước --}}
+                    <li class="dropdown-submenu">
+                        <a href="{{ url('/products?loai_sach=trong_nuoc') }}" class="submenu-btn">
+                            Sách trong nước <span class="material-icons" style="font-size: 16px; float: right;">chevron_right</span>
+                        </a>
+                        <ul class="submenu-content">
+                            @foreach($menuCategoriesTrongNuoc as $parent)
+                                <li class="{{ $parent->children->isNotEmpty() ? 'dropdown-submenu-nested' : '' }}">
+                                    <a href="{{ url('/products?loai_sach=trong_nuoc&the_loai_id=' . $parent->id) }}">
+                                        {{ $parent->ten_the_loai }}
+                                        @if($parent->children->isNotEmpty())
+                                            <span class="material-icons" style="font-size: 16px; float: right;">chevron_right</span>
+                                        @endif
+                                    </a>
+                                    @if($parent->children->isNotEmpty())
+                                        <ul class="submenu-content-nested">
+                                            @foreach($parent->children as $child)
+                                                <li>
+                                                    <a href="{{ url('/products?loai_sach=trong_nuoc&the_loai_id=' . $child->id) }}">{{ $child->ten_the_loai }}</a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                    
+                    {{-- Sách nước ngoài --}}
+                    <li class="dropdown-submenu">
+                        <a href="{{ url('/products?loai_sach=nuoc_ngoai') }}" class="submenu-btn">
+                            Sách nước ngoài <span class="material-icons" style="font-size: 16px; float: right;">chevron_right</span>
+                        </a>
+                        <ul class="submenu-content">
+                            @foreach($menuCategoriesNuocNgoai as $parent)
+                                <li class="{{ $parent->children->isNotEmpty() ? 'dropdown-submenu-nested' : '' }}">
+                                    <a href="{{ url('/products?loai_sach=nuoc_ngoai&the_loai_id=' . $parent->id) }}">
+                                        {{ $parent->ten_the_loai }}
+                                        @if($parent->children->isNotEmpty())
+                                            <span class="material-icons" style="font-size: 16px; float: right;">chevron_right</span>
+                                        @endif
+                                    </a>
+                                    @if($parent->children->isNotEmpty())
+                                        <ul class="submenu-content-nested">
+                                            @foreach($parent->children as $child)
+                                                <li>
+                                                    <a href="{{ url('/products?loai_sach=nuoc_ngoai&the_loai_id=' . $child->id) }}">{{ $child->ten_the_loai }}</a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
             <a href="{{ url('/blog') }}" class="{{ request()->is('blog*') ? 'active' : '' }}">Blog</a>
             <a href="{{ url('/contact') }}" class="{{ request()->is('contact') ? 'active' : '' }}">Liên hệ</a>
         </nav>
 
-        {{-- Search --}}
-        <div class="header-search" id="search-bar">
-            <span class="material-icons search-icon">search</span>
-            <input type="text" placeholder="Tìm kiếm sách, tác giả..." aria-label="Tìm kiếm">
-        </div>
+        {{-- Search Bar (functional: redirect to /products?search=...) --}}
+        <form action="{{ route('products.index') }}" method="GET" class="header-search" id="search-bar" role="search">
+            <span class="material-icons search-icon" style="cursor: pointer;" onclick="this.closest('form').submit()">search</span>
+            <input
+                type="text"
+                name="search"
+                id="header-search-input"
+                placeholder="Tìm sách, tác giả, NXB, NCC..."
+                aria-label="Tìm kiếm"
+                value="{{ request()->is('products') ? request('search') : '' }}"
+                autocomplete="off"
+            >
+        </form>
 
         {{-- Actions --}}
         <div class="header-actions">

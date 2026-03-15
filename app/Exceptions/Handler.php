@@ -37,5 +37,19 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+
+        $this->renderable(function (\Illuminate\Session\TokenMismatchException $e, $request) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Hết phiên làm việc (10 phút). Vui lòng tải lại trang và đăng nhập lại!'], 419);
+            }
+            return redirect()->route('login')->with('error', 'Hết phiên làm việc (10 phút). Vui lòng tải lại trang và đăng nhập lại!');
+        });
+
+        $this->renderable(function (\Illuminate\Auth\AuthenticationException $e, $request) {
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Hết phiên làm việc (10 phút). Vui lòng đăng nhập lại!'], 401);
+            }
+            return redirect()->route('login')->with('error', 'Hết phiên làm việc (10 phút). Vui lòng đăng nhập lại!');
+        });
     }
 }

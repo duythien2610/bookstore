@@ -46,10 +46,10 @@ Dữ liệu sách hiện có trong cửa hàng:
 {$bookContext}
 PROMPT;
 
-        // ── Gọi Gemma 3 27B IT API ─────────────────────────────────
+        // ── Gọi Gemini Flash Lates API ─────────────────────────────────
         try {
-            $response = Http::timeout(30)->post(
-                "https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key={$apiKey}",
+            $response = Http::withoutVerifying()->timeout(30)->post(
+                "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={$apiKey}",
                 [
                     'system_instruction' => [
                         'parts' => [['text' => $systemPrompt]],

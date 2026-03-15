@@ -18,6 +18,10 @@
             <span class="material-icons">receipt_long</span>
             Đơn hàng
         </a>
+        <a href="{{ route('admin.coupons.index') }}" class="{{ request()->is('admin/coupons*') ? 'active' : '' }}" id="nav-coupons">
+            <span class="material-icons">local_offer</span>
+            Mã giảm giá
+        </a>
 
         {{-- Danh mục --}}
         <div style="padding: var(--space-3) var(--space-4) var(--space-1); font-size: 10px; font-weight: var(--font-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: var(--space-2);">
@@ -43,6 +47,10 @@
         <a href="{{ route('admin.blogs.index') }}" class="{{ request()->is('admin/blogs*') ? 'active' : '' }}" id="nav-blog">
             <span class="material-icons">article</span>
             Blog
+        </a>
+        <a href="{{ route('admin.banners.index') }}" class="{{ request()->is('admin/banners*') ? 'active' : '' }}" id="nav-banners">
+            <span class="material-icons">view_carousel</span>
+            Quản lý Banner
         </a>
         <a href="{{ url('/admin/settings') }}" id="nav-settings">
             <span class="material-icons">settings</span>
