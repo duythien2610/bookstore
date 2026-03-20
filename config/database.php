@@ -59,7 +59,8 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                1012 => env('MYSQL_ATTR_SSL_CA'), // PDO::MYSQL_ATTR_SSL_CA equivalent, using 1012 prevents IDE errors
+                1012 => env('MYSQL_ATTR_SSL_CA'),
+                 // PDO::MYSQL_ATTR_SSL_CA equivalent, using 1012 prevents IDE errors
             ]) : [],
         ],
 
