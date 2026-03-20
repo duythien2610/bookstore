@@ -1,15 +1,71 @@
-# Modtrabook-version1.0
-## Các chức năng cần cải tiến
-### Trang chủ 
-- khuyến mãi 
-    -  Làm các mã khuyến mãi để áp dụng vào sách 
-- Sách nổi bật ( số lượng đơn hàng nhiều)
-- Tìm kiếm trên trang chủ khi gõ chữ vào thì hiển thị những cuốn sách tương ứng ( kiểu như tự động tương thích)
-- Giao diện (trí) 
-- Chỉnh lại trang chủ bỏ cái bộ lọc đi vì trang chủ thường để những sách nổi bật dựa vào chỗ sách nổi bật 
+# 📚 Website Quản Lý Nhà Sách (Modtrabook) 
+Đây là một dự án **Website Nhà Sách** đơn giản, cho phép người dùng quản lý và tương tác với danh sách sách.
 
-### Admin
-- Setting -> hiển thị ra 1 số setting để tượng trưng các mục kh cần phải bấm vào các mục đó để thực hiện chức năng 
-- Quản lý sách -> Thể loại (có thể chọn nhiều thể loại hơn (hiện tải chỉ chọn được một thể loại)
-- Mã giảm giá -> Thiết kế để có thể nhập vào là 1 file chứ kh để nhập tay (file có cấu trúc dữ vào db)
-- Khách hàng chỉ hiện thị danh sách khách hàng không hiển thị danh sách admin  -> tạo thêm 1 mục Admin bên trên mục khách hàng để quản lý admin 
+## 🚀 Chức năng chính
+- Hiển thị danh sách sách  
+- Thêm sách mới  
+- Xóa sách  
+- Quản lý thông tin sách (tên, tác giả, thể loại)  
+
+## 🛠️ Công nghệ sử dụng
+- HTML, CSS, JavaScript  
+- (Thêm vào nếu có: React / Node.js / Database)  
+- Git & GitHub  
+
+🏠 Trang chủ (Home Page)
+
+Khuyến mãi
+
+Xây dựng hệ thống mã khuyến mãi áp dụng cho từng sách
+
+Cho phép người dùng nhập mã khi mua hàng
+
+Sách nổi bật
+
+Hiển thị các sách có số lượng đơn hàng cao
+
+Sắp xếp theo mức độ phổ biến
+
+Tìm kiếm thông minh
+
+Hỗ trợ tìm kiếm realtime (autocomplete)
+
+Khi nhập từ khóa → hiển thị các sách tương ứng ngay lập tức
+
+Giao diện (UI/UX)
+
+Cải thiện thiết kế trực quan, hiện đại hơn
+
+Tối ưu trải nghiệm người dùng
+
+Bộ lọc
+
+Loại bỏ bộ lọc khỏi trang chủ
+
+Trang chủ chỉ nên tập trung hiển thị sách nổi bật
+
+⚙️ Trang quản trị (Admin)
+
+Cài đặt (Settings)
+
+Thiết kế trang Settings tổng hợp
+
+Hiển thị các tùy chọn chính mà không cần truy cập nhiều mục con
+
+Quản lý sách
+
+Cho phép chọn nhiều thể loại cho một cuốn sách (hiện tại chỉ chọn được 1)
+
+Mã giảm giá
+
+Hỗ trợ import mã giảm giá từ file (CSV/Excel)
+
+Tự động lưu vào database thay vì nhập thủ công
+
+Quản lý người dùng
+
+Trang "Khách hàng" chỉ hiển thị danh sách khách hàng
+
+Tách riêng mục Admin để quản lý quản trị viên
+
+Cải thiện giao diện để dễ nhìn và dễ sử dụng hơn
