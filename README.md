@@ -1,6 +1,6 @@
-Modtrabook-version1.0
-# Các chức năng cần cải tiến
-- Trang chủ 
+# Modtrabook-version1.0
+## Các chức năng cần cải tiến
+### Trang chủ 
 - khuyến mãi 
     -  Làm các mã khuyến mãi để áp dụng vào sách 
 - Sách nổi bật ( số lượng đơn hàng nhiều)
@@ -8,7 +8,7 @@ Modtrabook-version1.0
 - Giao diện (trí) 
 - Chỉnh lại trang chủ bỏ cái bộ lọc đi vì trang chủ thường để những sách nổi bật dựa vào chỗ sách nổi bật 
 
-Admin
+### Admin
 - Setting -> hiển thị ra 1 số setting để tượng trưng các mục kh cần phải bấm vào các mục đó để thực hiện chức năng 
 - Quản lý sách -> Thể loại (có thể chọn nhiều thể loại hơn (hiện tải chỉ chọn được một thể loại)
 - Mã giảm giá -> Thiết kế để có thể nhập vào là 1 file chứ kh để nhập tay (file có cấu trúc dữ vào db)
