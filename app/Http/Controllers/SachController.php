@@ -221,4 +221,113 @@ class SachController extends Controller
             ->route('admin.inventory')
             ->with('success', 'Cập nhật sách "' . $validated['tieu_de'] . '" thành công!');
     }
+
+    /**
+     * Tìm kiếm sách bằng AJAX (Live search).
+     */
+    public function searchAjax(Request $request)
+    {
+        $queryText = $request->input('q');
+
+        if (empty($queryText)) {
+            return response()->json([]);
+        }
+
+        // Tìm kiếm sách theo tên hoặc tên tác giả
+        $sachs = Sach::with('tacGia')
+            ->where(function($q) use ($queryText) {
+                $q->where('tieu_de', 'like', '%' . $queryText . '%')
+                  ->orWhereHas('tacGia', function($sq) use ($queryText) {
+                      $sq->where('ten_tac_gia', 'like', '%' . $queryText . '%');
+                  });
+            })
+            ->orderByRaw("CASE 
+                WHEN tieu_de LIKE ? THEN 1 
+                ELSE 2 
+            END", [$queryText . '%'])
+            ->orderBy('tieu_de', 'asc')
+            ->limit(10)
+            ->get();
+
+        // Chuẩn hóa dữ liệu trả về để JS dễ xử lý
+        $results = $sachs->map(function($book) {
+            return [
+                'id' => $book->id,
+                'tieu_de' => $book->tieu_de,
+                'ten_tac_gia' => $book->tacGia ? $book->tacGia->ten_tac_gia : 'Chưa cập nhật',
+                'file_anh_bia' => $book->file_anh_bia,
+                'link_anh_bia' => $book->link_anh_bia,
+                'gia_ban' => $book->gia_ban,
+            ];
+        });
+
+        return response()->json($results);
+    }
+
+    /**
+     * Hiển thị danh sách sách phía người dùng (có tìm kiếm và lọc).
+     */
+    public function list(Request $request)
+    {
+        $queryText = $request->input('search');
+        
+        $query = Sach::with(['tacGia', 'theLoai']);
+
+        // Tìm kiếm theo tên sách hoặc tên tác giả
+        if (!empty($queryText)) {
+            $query->where(function($q) use ($queryText) {
+                $q->where('tieu_de', 'like', '%' . $queryText . '%')
+                  ->orWhereHas('tacGia', function($sq) use ($queryText) {
+                      $sq->where('ten_tac_gia', 'like', '%' . $queryText . '%');
+                  });
+            });
+            // Ưu tiên khớp từ đầu trong sắp xếp
+            $query->orderByRaw("CASE 
+                WHEN tieu_de LIKE ? THEN 1 
+                ELSE 2 
+            END", [$queryText . '%']);
+        }
+
+        // Lọc theo thể loại (nếu có)
+        if ($request->filled('category')) {
+            $query->whereHas('theLoai', function($q) use ($request) {
+                $q->whereIn('ten_the_loai', (array)$request->category);
+            });
+        }
+
+        // Lọc theo khoảng giá
+        if ($request->filled('gia_min')) {
+            $query->where('gia_ban', '>=', $request->gia_min);
+        }
+        if ($request->filled('gia_max')) {
+            $query->where('gia_ban', '<=', $request->gia_max);
+        }
+
+        // Sắp xếp
+        switch ($request->input('sap_xep', 'moi_nhat')) {
+            case 'gia_tang':
+                $query->orderBy('gia_ban', 'asc');
+                break;
+            case 'gia_giam':
+                $query->orderBy('gia_ban', 'desc');
+                break;
+            default: // moi_nhat
+                $query->orderByDesc('created_at');
+                break;
+        }
+
+        $sachs = $query->paginate(12)->withQueryString();
+        
+        $theLoais = TheLoai::whereNull('parent_id')->get();
+
+        return view('pages.product-listing', compact('sachs', 'theLoais', 'queryText'));
+    }
+
+    public function featured()
+    {
+        // Lấy top 15 sách nổi bật (sử dụng scope trong Model)
+        $sachs = Sach::mostSold(15)->with(['tacGia', 'theLoai'])->get();
+
+        return view('pages.featured-books', compact('sachs'));
+    }
 }

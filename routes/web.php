@@ -13,7 +13,10 @@ use App\Http\Controllers\UserController;
 
 // ─── Homepage ────────────────────────────────────────────────────────────
 Route::get('/', function () {
-    return view('pages.home');
+    // Lấy 8 cuốn sách bán chạy nhất sử dụng scope đã viết trong Model
+    $sachNoiBat = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
+
+    return view('pages.home', compact('sachNoiBat'));
 })->name('home');
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
@@ -43,9 +46,8 @@ Route::get('/new-password', [AuthController::class, 'showNewPassword'])->name('p
 Route::post('/new-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
 // ─── Public Pages ────────────────────────────────────────────────────────
-Route::get('/products', function () {
-    return view('pages.product-listing');
-})->name('products.index');
+Route::get('/products', [App\Http\Controllers\SachController::class, 'list'])->name('products.index');
+Route::get('/featured-books', [App\Http\Controllers\SachController::class, 'featured'])->name('products.featured');
 
 Route::get('/products/{id}', function ($id = null) {
     return view('pages.product-detail');
@@ -53,13 +55,13 @@ Route::get('/products/{id}', function ($id = null) {
 
 // Các route yêu cầu đăng nhập + đã xác thực email
 Route::middleware('verified')->group(function () {
-    Route::get('/cart', function () {
-        return view('pages.cart');
-    })->name('cart');
+    Route::get('/cart', [App\Http\Controllers\GioHangController::class, 'index'])->name('cart');
+    Route::post('/cart/add', [App\Http\Controllers\GioHangController::class, 'add'])->name('cart.add');
+    Route::post('/cart/update/{id}', [App\Http\Controllers\GioHangController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove/{id}', [App\Http\Controllers\GioHangController::class, 'destroy'])->name('cart.remove');
 
-    Route::get('/checkout', function () {
-        return view('pages.checkout');
-    })->name('checkout');
+    Route::get('/checkout', [App\Http\Controllers\GioHangController::class, 'showCheckout'])->name('checkout');
+    Route::post('/checkout', [App\Http\Controllers\GioHangController::class, 'processCheckout'])->name('checkout.process');
 
     Route::get('/order-success', function () {
         return view('pages.order-success');
@@ -199,3 +201,6 @@ Route::get('/blog/{slug}', function ($slug) {
 
     return view('pages.blog-detail', compact('post', 'relatedPosts'));
 })->name('blog.show');
+
+// Live search AJAX
+Route::get('/api/search', [App\Http\Controllers\SachController::class, 'searchAjax'])->name('api.search');

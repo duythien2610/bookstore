@@ -18,100 +18,129 @@
         <div class="listing-layout">
             {{-- Filter Sidebar --}}
             <aside class="filter-sidebar" id="filter-sidebar">
-                <div class="filter-group">
-                    <h4>Thể loại</h4>
-                    @php $cats = ['Tâm lý', 'Kinh doanh', 'Khoa học', 'Tiểu thuyết', 'Thiếu nhi', 'Giáo dục']; @endphp
-                    @foreach ($cats as $cat)
-                    <div class="form-check" style="margin-bottom: var(--space-2);">
-                        <input type="checkbox" id="cat-{{ $loop->index }}" name="category[]" value="{{ $cat }}">
-                        <label for="cat-{{ $loop->index }}">{{ $cat }}</label>
+                <form action="{{ route('products.index') }}" method="GET">
+                    @if(request('search'))
+                        <input type="hidden" name="search" value="{{ request('search') }}">
+                    @endif
+                    <div class="filter-group">
+                        <h4>Thể loại</h4>
+                        @foreach ($theLoais as $theLoai)
+                        <div class="form-check" style="margin-bottom: var(--space-2);">
+                            <input type="checkbox" id="cat-{{ $theLoai->id }}" name="category[]" value="{{ $theLoai->ten_the_loai }}" 
+                                {{ in_array($theLoai->ten_the_loai, (array)request('category')) ? 'checked' : '' }}>
+                            <label for="cat-{{ $theLoai->id }}">{{ $theLoai->ten_the_loai }}</label>
+                        </div>
+                        @endforeach
                     </div>
-                    @endforeach
-                </div>
-
-                <div class="filter-group">
-                    <h4>Khoảng giá</h4>
-                    <div style="display: flex; gap: var(--space-2); align-items: center;">
-                        <input type="number" class="form-control" placeholder="Từ" style="padding: var(--space-2);">
-                        <span>—</span>
-                        <input type="number" class="form-control" placeholder="Đến" style="padding: var(--space-2);">
+                    <div class="filter-group">
+                        <h4>Khoảng giá</h4>
+                        <div style="display: flex; gap: var(--space-2); align-items: center;">
+                            <input type="number" name="gia_min" value="{{ request('gia_min') }}" class="form-control" placeholder="Từ" style="padding: var(--space-2);">
+                            <span>—</span>
+                            <input type="number" name="gia_max" value="{{ request('gia_max') }}" class="form-control" placeholder="Đến" style="padding: var(--space-2);">
+                        </div>
                     </div>
-                </div>
 
-                <div class="filter-group">
-                    <h4>Đánh giá</h4>
-                    @for ($r = 5; $r >= 3; $r--)
-                    <div class="form-check" style="margin-bottom: var(--space-2);">
-                        <input type="radio" id="rating-{{ $r }}" name="rating" value="{{ $r }}">
-                        <label for="rating-{{ $r }}">
-                            <span class="stars" style="display: inline-flex;">
-                                @for ($s = 1; $s <= 5; $s++)
-                                    <span class="material-icons" style="font-size: 14px;">{{ $s <= $r ? 'star' : 'star' }}</span>
-                                @endfor
-                            </span>
-                            trở lên
-                        </label>
+                    <div class="filter-group">
+                        <h4>Đánh giá</h4>
+                        @for ($r = 5; $r >= 3; $r--)
+                        <div class="form-check" style="margin-bottom: var(--space-2);">
+                            <input type="radio" id="rating-{{ $r }}" name="rating" value="{{ $r }}" {{ request('rating') == $r ? 'checked' : '' }}>
+                            <label for="rating-{{ $r }}">
+                                <span class="stars" style="display: inline-flex;">
+                                    @for ($s = 1; $s <= 5; $s++)
+                                        <span class="material-icons" style="font-size: 14px; color: {{ $s <= $r ? '#f59e0b' : '#e2e8f0' }};">star</span>
+                                    @endfor
+                                </span>
+                                trở lên
+                            </label>
+                        </div>
+                        @endfor
                     </div>
-                    @endfor
-                </div>
 
-                <button class="btn btn-primary btn-block" id="btn-apply-filter">Áp dụng bộ lọc</button>
+                    <button type="submit" class="btn btn-primary btn-block" id="btn-apply-filter">Áp dụng bộ lọc</button>
+                </form>
             </aside>
 
             {{-- Product Grid --}}
             <div>
                 <div class="listing-topbar">
-                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">Hiển thị <strong>1-20</strong> trong <strong>245</strong> sách</p>
-                    <select class="form-control" style="width: auto;" id="sort-select">
-                        <option>Mới nhất</option>
-                        <option>Bán chạy</option>
-                        <option>Giá: Thấp → Cao</option>
-                        <option>Giá: Cao → Thấp</option>
-                        <option>Đánh giá cao</option>
+                    <p style="font-size: var(--font-size-sm); color: var(--color-text-muted);">
+                        Hiển thị <strong>{{ $sachs->firstItem() ?? 0 }}-{{ $sachs->lastItem() ?? 0 }}</strong> trong <strong>{{ $sachs->total() }}</strong> sách
+                        @if($queryText) cho từ khóa "<strong>{{ $queryText }}</strong>"@endif
+                    </p>
+                    <select class="form-control" style="width: auto;" id="sort-select" onchange="location = this.value;">
+                        <option value="{{ request()->fullUrlWithQuery(['sap_xep' => 'moi_nhat']) }}" {{ request('sap_xep') == 'moi_nhat' ? 'selected' : '' }}>Mới nhất</option>
+                        <option value="{{ request()->fullUrlWithQuery(['sap_xep' => 'gia_tang']) }}" {{ request('sap_xep') == 'gia_tang' ? 'selected' : '' }}>Giá: Thấp → Cao</option>
+                        <option value="{{ request()->fullUrlWithQuery(['sap_xep' => 'gia_giam']) }}" {{ request('sap_xep') == 'gia_giam' ? 'selected' : '' }}>Giá: Cao → Thấp</option>
                     </select>
                 </div>
 
                 <div class="book-grid book-grid-3">
-                    @for ($i = 1; $i <= 9; $i++)
-                    <div class="card" id="product-{{ $i }}">
-                        <div style="position: relative;">
-                            <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
-                                <span class="material-icons" style="font-size: 64px; color: var(--color-text-muted);">book</span>
+                    @forelse ($sachs as $sach)
+                    <div class="card" id="product-{{ $sach->id }}">
+                        <a href="{{ route('products.show', $sach->id) }}">
+                            <div style="position: relative;">
+                                @php
+                                    $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
+                                @endphp
+                                <img src="{{ $imageUrl }}" class="card-img" alt="{{ $sach->tieu_de }}">
+                                @if ($sach->gia_goc > $sach->gia_ban)
+                                <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">
+                                    -{{ round((($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc) * 100) }}%
+                                </span>
+                                @endif
                             </div>
-                            @if ($i <= 3)
-                            <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">-{{ $i * 10 }}%</span>
-                            @endif
-                        </div>
+                        </a>
                         <div class="card-body">
                             <div class="stars" style="margin-bottom: var(--space-2);">
+                                @php $avgStar = round($sach->trungBinhSao()); @endphp
                                 @for ($s = 1; $s <= 5; $s++)
-                                    <span class="material-icons" style="font-size: 14px;">{{ $s <= 4 ? 'star' : 'star' }}</span>
+                                    <span class="material-icons" style="font-size: 14px; color: {{ $s <= $avgStar ? '#f59e0b' : '#e2e8f0' }};">star</span>
                                 @endfor
-                                <span style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-left: var(--space-1);">({{ rand(12, 99) }})</span>
+                                <span style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-left: var(--space-1);">({{ $sach->danhGias->count() }})</span>
                             </div>
-                            <div class="card-title">Tên sách {{ $i }}</div>
-                            <div class="card-subtitle">Tác giả {{ $i }}</div>
+                            <a href="{{ route('products.show', $sach->id) }}" class="card-title" style="display: block; color: var(--color-text);">{{ $sach->tieu_de }}</a>
+                            <div class="card-subtitle">{{ $sach->tacGia ? $sach->tacGia->ten_tac_gia : 'Chưa cập nhật' }}</div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-2);">
-                                <div class="card-price">{{ number_format(rand(89, 299) * 1000, 0, ',', '.') }}đ</div>
-                                <button class="icon-btn" title="Thêm vào giỏ" style="background: var(--color-primary-light); border-radius: var(--radius-lg); width: 36px; height: 36px; border: none; cursor: pointer;">
-                                    <span class="material-icons" style="font-size: 18px; color: var(--color-primary-dark);">add_shopping_cart</span>
-                                </button>
+                                <div class="card-price">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</div>
+                                <form action="{{ route('cart.add') }}" method="POST">
+                                    @csrf
+                                    <input type="hidden" name="sach_id" value="{{ $sach->id }}">
+                                    <input type="hidden" name="so_luong" value="1">
+                                    <button type="submit" class="icon-btn" title="Thêm vào giỏ" style="background: var(--color-primary-light); border-radius: var(--radius-lg); width: 36px; height: 36px; border: none; cursor: pointer;">
+                                        <span class="material-icons" style="font-size: 18px; color: var(--color-primary-dark);">add_shopping_cart</span>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
-                    @endfor
+                    @empty
+                    <div style="grid-column: span 3; text-align: center; padding: var(--space-12);">
+                        <span class="material-icons" style="font-size: 64px; color: var(--color-text-muted); margin-bottom: var(--space-4);">search_off</span>
+                        <p>Không có kết quả tìm kiếm phù hợp cho "<strong>{{ $queryText }}</strong>"</p>
+                        <a href="{{ route('products.index') }}" class="btn btn-outline" style="margin-top: var(--space-4);">Xem tất cả sách</a>
+                    </div>
+                    @endforelse
                 </div>
 
-                {{-- Pagination --}}
-                <div class="pagination" id="pagination">
-                    <a href="#"><span class="material-icons">chevron_left</span></a>
-                    <span class="active">1</span>
-                    <a href="#">2</a>
-                    <a href="#">3</a>
-                    <a href="#">4</a>
-                    <span>...</span>
-                    <a href="#">13</a>
-                    <a href="#"><span class="material-icons">chevron_right</span></a>
+                {{-- Pagination Custom --}}
+                <div class="pagination">
+                    @if (!$sachs->onFirstPage())
+                        <a href="{{ $sachs->previousPageUrl() }}"><span class="material-icons">chevron_left</span></a>
+                    @endif
+
+                    @foreach ($sachs->getUrlRange(max(1, $sachs->currentPage() - 2), min($sachs->lastPage(), $sachs->currentPage() + 2)) as $page => $url)
+                        @if ($page == $sachs->currentPage())
+                            <span class="active">{{ $page }}</span>
+                        @else
+                            <a href="{{ $url }}">{{ $page }}</a>
+                        @endif
+                    @endforeach
+
+                    @if ($sachs->hasMorePages())
+                        <a href="{{ $sachs->nextPageUrl() }}"><span class="material-icons">chevron_right</span></a>
+                    @endif
                 </div>
             </div>
         </div>

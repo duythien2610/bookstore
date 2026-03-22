@@ -17,10 +17,66 @@
         </nav>
 
         {{-- Search --}}
-        <div class="header-search" id="search-bar">
+        <form action="{{ route('products.index') }}" method="GET" class="header-search" id="search-bar">
             <span class="material-icons search-icon">search</span>
-            <input type="text" placeholder="Tìm kiếm sách, tác giả..." aria-label="Tìm kiếm">
-        </div>
+            <input type="text" id="search-input" name="search" value="{{ request('search') }}" placeholder="Tìm kiếm sách, tác giả..." aria-label="Tìm kiếm" autocomplete="off">
+            <div id="search-results" class="search-results-dropdown"></div>
+        </form>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const searchInput = document.getElementById('search-input');
+                const searchResults = document.getElementById('search-results');
+                let timeout = null;
+
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(timeout);
+                    const query = this.value.trim();
+
+                    if (query.length < 1) {
+                        searchResults.innerHTML = '';
+                        searchResults.style.display = 'none';
+                        return;
+                    }
+
+                    timeout = setTimeout(() => {
+                        fetch(`{{ route('api.search') }}?q=${encodeURIComponent(query)}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                searchResults.innerHTML = '';
+                                if (data.length > 0) {
+                                    data.forEach(book => {
+                                        const imageUrl = book.link_anh_bia || (book.file_anh_bia ? `/uploads/books/${book.file_anh_bia}` : 'https://placehold.co/150x200?text=No+Image');
+                                        const resultItem = document.createElement('a');
+                                        resultItem.href = `/products/${book.id}`;
+                                        resultItem.className = 'search-result-item';
+                                        resultItem.innerHTML = `
+                                            <img src="${imageUrl}" alt="${book.tieu_de}" class="result-img">
+                                            <div class="result-info">
+                                                <div class="result-title">${book.tieu_de}</div>
+                                                <div class="result-author" style="font-size: 11px; color: var(--color-text-secondary); margin-bottom: 2px;">${book.ten_tac_gia}</div>
+                                                <div class="result-price" style="font-size: 12px; color: var(--color-primary-dark); font-weight: bold;">${new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(book.gia_ban)}</div>
+                                            </div>
+                                        `;
+                                        searchResults.appendChild(resultItem);
+                                    });
+                                } else {
+                                    searchResults.innerHTML = '<div class="no-results">Không có kết quả tìm kiếm phù hợp</div>';
+                                }
+                                searchResults.style.display = 'block';
+                            })
+                            .catch(error => console.error('Error fetching search results:', error));
+                    }, 300);
+                });
+
+                // Close results when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!document.getElementById('search-bar').contains(e.target)) {
+                        searchResults.style.display = 'none';
+                    }
+                });
+            });
+        </script>
 
         {{-- Actions --}}
         <div class="header-actions">

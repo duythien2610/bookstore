@@ -52,6 +52,23 @@ class Sach extends Model
         return $this->danhGias()->avg('so_sao') ?? 0;
     }
 
+    public function chiTiets()
+    {
+        return $this->hasMany(DonHangChiTiet::class, 'sach_id');
+    }
+
+    // Lấy top sách bán chạy (đơn giản hóa logic)
+    public function scopeMostSold($query, $limit = 8)
+    {
+        return $query->withSum(['chiTiets as tong_ban' => function($q) {
+            $q->whereHas('donHang', function($dq) {
+                $dq->where('trang_thai', '!=', 'da_huy');
+            });
+        }], 'so_luong')
+        ->orderByDesc('tong_ban')
+        ->take($limit);
+    }
+
     // Kiểm tra còn hàng
     public function conHang(): bool
     {
