@@ -64,6 +64,11 @@ Route::get('/featured-books', [App\Http\Controllers\SachController::class, 'feat
 
 Route::get('/products/{id}', [App\Http\Controllers\SachController::class, 'show'])->name('products.show');
 
+// Xử lý áp dụng mã giảm giá trên trang thanh toán
+Route::post('/apply-voucher', [App\Http\Controllers\CouponController::class, 'applyCheckoutVoucher'])->name('checkout.voucher.apply');
+Route::post('/remove-voucher', [App\Http\Controllers\CouponController::class, 'removeCheckoutVoucher'])->name('checkout.voucher.remove');
+
+
 // Các route yêu cầu đăng nhập + đã xác thực email
 Route::middleware('verified')->group(function () {
     Route::get('/cart', [App\Http\Controllers\GioHangController::class, 'index'])->name('cart');
@@ -75,7 +80,21 @@ Route::middleware('verified')->group(function () {
     Route::post('/checkout', [App\Http\Controllers\GioHangController::class, 'processCheckout'])->name('checkout.process');
 
     Route::get('/order-success', function () {
-        return view('pages.order-success');
+        $donHangId = session('donHangId');
+        if (!$donHangId) return redirect()->route('home');
+        
+        $donHang = \App\Models\DonHang::with('chiTiets.sach')->findOrFail($donHangId);
+        $cassoInfo = null;
+        if ($donHang->phuong_thuc_tt === 'bank') {
+            $cassoInfo = [
+                'bank_name' => 'Vietcombank',
+                'account_no' => '01234567890',
+                'account_name' => 'MODTRA BOOKS',
+                'amount' => $donHang->tong_tien,
+                'description' => 'MB' . str_pad($donHang->id, 6, '0', STR_PAD_LEFT)
+            ];
+        }
+        return view('pages.order-success', compact('donHang', 'cassoInfo'));
     })->name('order.success');
 
     Route::get('/order-tracking', function () {
@@ -139,7 +158,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // Quản lý đơn hàng
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('admin.orders.show');
-    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update');
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
 
     Route::get('/books/create', [App\Http\Controllers\SachController::class, 'create'])->name('admin.books.create');
 
@@ -177,6 +196,8 @@ Route::prefix('admin')->middleware('admin')->group(function () {
 
     // Quản lý mã giảm giá (Coupon)
     Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons.index');
+    Route::get('/coupons/export', [CouponController::class, 'exportCSV'])->name('admin.coupons.export');
+    Route::post('/coupons/import', [CouponController::class, 'importCSV'])->name('admin.coupons.import');
     Route::post('/coupons', [CouponController::class, 'store'])->name('admin.coupons.store');
     Route::put('/coupons/{id}/toggle', [CouponController::class, 'toggleStatus'])->name('admin.coupons.toggle');
     Route::delete('/coupons/{id}', [CouponController::class, 'destroy'])->name('admin.coupons.destroy');

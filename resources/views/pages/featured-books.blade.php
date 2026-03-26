@@ -34,6 +34,19 @@
                             <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
                         </a>
                         
+                        @php
+                            $giaKhuyenMai = $sach->tinhGiaSauKhuyenMai();
+                        @endphp
+                        @if ($giaKhuyenMai < $sach->gia_ban)
+                        <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: auto; right: var(--space-3); z-index: 10;">
+                            -{{ round((($sach->gia_ban - $giaKhuyenMai) / $sach->gia_ban) * 100) }}%
+                        </span>
+                        @elseif ($sach->gia_goc > $sach->gia_ban)
+                        <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: auto; right: var(--space-3); z-index: 10;">
+                            -{{ round((($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc) * 100) }}%
+                        </span>
+                        @endif
+                        
                         <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
                             @csrf
                             <input type="hidden" name="sach_id" value="{{ $sach->id }}">
@@ -59,8 +72,13 @@
                         <div class="card-subtitle" style="margin-bottom: var(--space-3);">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
                         
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div class="card-price" style="font-size: 18px; font-weight: 700;">
-                                {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                            <div class="card-price" style="font-size: 18px; font-weight: 700; line-height: 1;">
+                                @if($giaKhuyenMai < $sach->gia_ban)
+                                    {{ number_format($giaKhuyenMai, 0, ',', '.') }}đ
+                                    <div style="font-size: 12px; color: var(--color-text-muted); text-decoration: line-through; font-weight: normal;">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</div>
+                                @else
+                                    {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                                @endif
                             </div>
                             <div style="font-size: 12px; color: var(--color-text-muted); font-weight: 500;">
                                 <span style="color: var(--color-success);">{{ $sach->tong_ban }}</span> đã bán

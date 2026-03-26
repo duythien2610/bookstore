@@ -5,6 +5,14 @@
 @section('content')
     <div class="admin-topbar">
         <h1>Quản lý Mã Giảm Giá (Coupons)</h1>
+        <div style="display: flex; gap: var(--space-4);">
+            <a href="{{ route('admin.coupons.export') }}" class="btn " style="background:#fff; color:#4caf50; border:1px solid #4caf50;">
+                <span class="material-icons">file_download</span> Xuất CSV
+            </a>
+            <button onclick="document.getElementById('importModal').style.display='flex'" class="btn btn-primary" style="background:#4caf50; border-color:#4caf50;">
+                <span class="material-icons">file_upload</span> Nhập CSV
+            </button>
+        </div>
     </div>
 
     @if(session('success'))
@@ -37,6 +45,16 @@
                     <div class="form-group">
                         <label class="form-label">Giá Trị * (Ví dụ: 20000 hoặc 10)</label>
                         <input type="number" name="gia_tri" class="input" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Áp dụng cho Thể  Loại</label>
+                        <select name="the_loai_id" class="input">
+                            <option value="">-- Tất cả thể loại (Mã toàn cục) --</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->ten_the_loai }}</option>
+                            @endforeach
+                        </select>
+                        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted); margin-top: 4px;">(Nếu chọn, mã sẽ tự động áp dụng cho sách thuộc thể loại này ở trang chủ/giỏ hàng)</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">Ngày Hết Hạn</label>
@@ -77,6 +95,15 @@
                                 @else
                                     -{{ number_format($c->gia_tri, 0, ',', '.') }}đ
                                 @endif
+                                @if($c->the_loai_id)
+                                    <div style="font-size: 12px; color: var(--color-primary); margin-top: 2px;">
+                                        ({{ $c->theLoai->ten_the_loai ?? 'Thể loại' }})
+                                    </div>
+                                @else
+                                    <div style="font-size: 12px; color: var(--color-text-muted); margin-top: 2px;">
+                                        (Toàn cục)
+                                    </div>
+                                @endif
                             </td>
                             <td>{{ $c->da_dung }} / {{ $c->so_luong ? $c->so_luong : '∞' }}</td>
                             <td>
@@ -113,6 +140,46 @@
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+    </div>
+
+    {{-- Modal Import CSV --}}
+    <div id="importModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+        <div class="card" style="width: 500px; padding: var(--space-6); background: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); padding-bottom: var(--space-3);">
+                <h3 style="margin: 0; font-size: var(--font-lg);">Nhập mã giảm giá từ CSV</h3>
+                <span class="material-icons" style="cursor: pointer; color: var(--color-text-muted);" onclick="document.getElementById('importModal').style.display='none'">close</span>
+            </div>
+            
+            <form action="{{ route('admin.coupons.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-bottom: var(--space-4); line-height: 1.6;">
+                    <p>File CSV của bạn cần được định dạng theo cấu trúc 8 cột (không cần dòng tiêu đề hoặc dòng đầu tiên sẽ tự bị loại bỏ):</p>
+                    <ol style="margin-left: 20px; color: var(--color-text);">
+                        <li><strong>Mã Code:</strong> *Ví dụ: KM2024*</li>
+                        <li><strong>Loại:</strong> *percent* hoặc *fixed*</li>
+                        <li><strong>Giá trị giảm:</strong> *Số tiền hoặc %*</li>
+                        <li><strong>ID Thể Loại:</strong> *Bỏ trống nếu mã toàn cục*</li>
+                        <li><strong>Ngày Hết Hạn:</strong> *YYYY-MM-DD*</li>
+                        <li><strong>Số lượng giới hạn:</strong> *Bỏ trống nếu vô hạn*</li>
+                        <li><strong>Đã dùng:</strong> *(Mặc định 0)*</li>
+                        <li><strong>Trạng thái:</strong> *1: Kích hoạt, 0: Tắt*</li>
+                    </ol>
+                    <p>Bạn có thể xuất CSV để lấy mẫu cấu trúc chuẩn.</p>
+                </div>
+                
+                <div style="margin-bottom: var(--space-6);">
+                    <input type="file" name="csv_file" accept=".csv,.txt" required style="display: block; width: 100%; border: 1px dashed var(--color-border); padding: var(--space-4); border-radius: var(--radius-md); background: var(--color-bg-alt);">
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: var(--space-3);">
+                    <button type="button" class="btn btn-ghost" onclick="document.getElementById('importModal').style.display='none'">Hủy Bỏ</button>
+                    <button type="submit" class="btn btn-primary" style="background:#4caf50;">
+                        <span class="material-icons">cloud_upload</span> Bắt Đầu Nhập
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 @endsection

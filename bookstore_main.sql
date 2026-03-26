@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 5.2.3
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Mar 10, 2026 at 12:50 PM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.0.28
+-- Host: 127.0.0.1:3306
+-- Generation Time: Mar 26, 2026 at 02:49 PM
+-- Server version: 8.4.7
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,19 +24,45 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `banners`
+--
+
+DROP TABLE IF EXISTS `banners`;
+CREATE TABLE IF NOT EXISTS `banners` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tieu_de` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mo_ta` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `duong_dan_anh` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `link_anh` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `lien_ket` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `vi_tri` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'hero',
+  `thu_tu` tinyint UNSIGNED NOT NULL DEFAULT '0',
+  `trang_thai` tinyint(1) NOT NULL DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `danh_gia`
 --
 
-CREATE TABLE `danh_gia` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED NOT NULL,
-  `sach_id` bigint(20) UNSIGNED NOT NULL,
-  `so_sao` int(11) NOT NULL,
+DROP TABLE IF EXISTS `danh_gia`;
+CREATE TABLE IF NOT EXISTS `danh_gia` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `sach_id` bigint UNSIGNED NOT NULL,
+  `so_sao` int NOT NULL,
   `tieu_de` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `binh_luan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
-  `trang_thai` tinyint(4) NOT NULL DEFAULT 1,
+  `binh_luan` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `trang_thai` tinyint NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `danh_gia_user_id_foreign` (`user_id`),
+  KEY `danh_gia_sach_id_foreign` (`sach_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -45,20 +71,145 @@ CREATE TABLE `danh_gia` (
 -- Table structure for table `don_hang`
 --
 
-CREATE TABLE `don_hang` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ma_giam_gia_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `user_id` bigint(20) UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `don_hang`;
+CREATE TABLE IF NOT EXISTS `don_hang` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `payos_order_code` bigint UNSIGNED DEFAULT NULL,
+  `ma_giam_gia_id` bigint UNSIGNED DEFAULT NULL,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `ho_ten` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `so_dien_thoai` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ngay_dat` datetime NOT NULL,
-  `trang_thai` varchar(50) DEFAULT NULL,
+  `trang_thai` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tong_tien` decimal(12,2) NOT NULL,
-  `dia_chi_giao` varchar(255) NOT NULL,
-  `phuong_thuc_tt` varchar(50) DEFAULT NULL,
-  `trang_thai_tt` varchar(50) NOT NULL DEFAULT 'chua_thanh_toan',
-  `ghi_chu` text DEFAULT NULL,
+  `giam_gia` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `phi_van_chuyen` decimal(12,2) NOT NULL DEFAULT '0.00',
+  `thanh_toan` decimal(12,2) DEFAULT NULL,
+  `dia_chi_giao` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `phuong_thuc_tt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `trang_thai_tt` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'chua_thanh_toan',
+  `ghi_chu` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `don_hang_payos_order_code_unique` (`payos_order_code`),
+  KEY `don_hang_user_id_foreign` (`user_id`),
+  KEY `don_hang_ma_giam_gia_id_foreign` (`ma_giam_gia_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `don_hang`
+--
+
+INSERT INTO `don_hang` (`id`, `payos_order_code`, `ma_giam_gia_id`, `user_id`, `ho_ten`, `so_dien_thoai`, `ngay_dat`, `trang_thai`, `tong_tien`, `giam_gia`, `phi_van_chuyen`, `thanh_toan`, `dia_chi_giao`, `phuong_thuc_tt`, `trang_thai_tt`, `ghi_chu`, `created_at`, `updated_at`) VALUES
+(1, NULL, NULL, 9, NULL, NULL, '2026-03-22 20:52:43', 'cho_xac_nhan', 234000.00, 0.00, 0.00, NULL, '10 Đường số 20', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 13:52:43', '2026-03-22 13:52:43'),
+(2, NULL, NULL, 9, NULL, NULL, '2026-03-22 21:17:46', 'cho_xac_nhan', 437000.00, 0.00, 0.00, NULL, '3/5/1 Đường Hoàng Diệu 2', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:17:46', '2026-03-22 14:17:46'),
+(3, NULL, NULL, 1, NULL, NULL, '2025-10-23 10:51:32', 'cho_duyet', 256500.00, 0.00, 0.00, NULL, '823, Thôn 5, Xã Đan Đường, Huyện Giáp Sơn\nBình Dương', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(4, NULL, NULL, 1, NULL, NULL, '2025-12-05 06:30:42', 'dang_giao', 217000.00, 0.00, 0.00, NULL, '1891 Phố Phương, Phường Toại Nhữ, Quận Khúc Tráng\nHồ Chí Minh', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(5, NULL, NULL, 8, NULL, NULL, '2025-12-30 06:51:15', 'da_xac_nhan', 1337000.00, 0.00, 0.00, NULL, '9433 Phố Bằng, Ấp Khánh Đàn, Quận Nhâm\nBình Thuận', 'cod', 'da_thanh_toan', 'Mollitia laudantium ad qui.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(6, NULL, NULL, 9, NULL, NULL, '2025-10-10 21:45:24', 'da_xac_nhan', 1290750.00, 0.00, 0.00, NULL, '11, Thôn Tiển Phước, Ấp Nhung Lợi, Quận Chiêm\nBến Tre', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(7, NULL, NULL, 8, NULL, NULL, '2026-03-03 13:30:08', 'da_xac_nhan', 1524000.00, 0.00, 0.00, NULL, '5906 Phố Khuất Ân Tuệ, Phường Nghi Vĩ, Huyện Lại Mai\nCà Mau', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(8, NULL, NULL, 9, NULL, NULL, '2025-11-07 18:23:29', 'dang_giao', 1630050.00, 0.00, 0.00, NULL, '61 Phố Hoàng Thoại Nương, Phường 92, Huyện 7\nHà Nội', 'bank', 'chua_thanh_toan', 'Autem cupiditate repellat et.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(9, NULL, NULL, 1, NULL, NULL, '2025-11-09 12:02:05', 'cho_duyet', 1646000.00, 0.00, 0.00, NULL, '88 Phố Cung Khánh Cơ, Thôn Uyên Cúc, Quận Thuận Quyết\nThanh Hóa', 'bank', 'chua_thanh_toan', 'Reiciendis ex corporis doloribus quae.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(10, NULL, NULL, 1, NULL, NULL, '2025-10-13 08:54:46', 'dang_giao', 63000.00, 0.00, 0.00, NULL, '224, Thôn 3, Xã 0, Huyện Dương Thiện\nHậu Giang', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(11, NULL, NULL, 1, NULL, NULL, '2025-10-16 02:06:03', 'dang_giao', 684500.00, 0.00, 0.00, NULL, '789, Ấp 60, Ấp Cầm Uyên, Quận 5\nLào Cai', 'vnpay', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(12, NULL, NULL, 8, NULL, NULL, '2025-12-10 22:41:10', 'dang_giao', 220000.00, 0.00, 0.00, NULL, '309 Phố Từ, Phường 11, Quận Khổng\nĐà Nẵng', 'bank', 'chua_thanh_toan', 'Fugit pariatur sapiente omnis dolore repudiandae enim.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(13, NULL, NULL, 1, NULL, NULL, '2026-02-13 18:38:50', 'da_huy', 2475500.00, 0.00, 0.00, NULL, '3722 Phố Trang Kính Lộc, Phường Hoa, Quận Canh\nHồ Chí Minh', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(14, NULL, NULL, 1, NULL, NULL, '2025-10-28 01:17:18', 'cho_duyet', 573000.00, 0.00, 0.00, NULL, '595, Thôn Bàng Sỹ Cúc, Phường Bàng, Huyện Thái Hân\nYên Bái', 'cod', 'chua_thanh_toan', 'Quo voluptas quae qui eius aperiam cum nobis.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(15, NULL, NULL, 1, NULL, NULL, '2025-11-11 19:18:29', 'da_huy', 429000.00, 0.00, 0.00, NULL, '16 Phố Ánh Tâm Thục, Xã Đậu, Quận Tông Kiều Việt\nHải Phòng', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(16, NULL, NULL, 9, NULL, NULL, '2025-11-24 18:11:39', 'cho_duyet', 835000.00, 0.00, 0.00, NULL, '5, Ấp Chương Hợp Nhu, Phường Quyền Phương, Quận Khoát Ân\nHậu Giang', 'cod', 'chua_thanh_toan', 'Reprehenderit nostrum perspiciatis at eveniet nesciunt.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(17, NULL, NULL, 8, NULL, NULL, '2025-11-30 11:55:36', 'dang_giao', 287000.00, 0.00, 0.00, NULL, '94 Phố Dã Thọ Án, Xã Xuyến Huỳnh, Quận Oanh Thu\nHà Nội', 'cod', 'chua_thanh_toan', 'Voluptatem dignissimos expedita animi aut.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(18, NULL, NULL, 9, NULL, NULL, '2026-01-20 07:20:51', 'cho_duyet', 1610000.00, 0.00, 0.00, NULL, '828, Thôn Lều Triệu, Phường Khuyên Mỹ, Quận 5\nHà Tĩnh', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(19, NULL, NULL, 1, NULL, NULL, '2026-02-16 00:00:50', 'cho_duyet', 622500.00, 0.00, 0.00, NULL, '7278 Phố Cù Thi Long, Xã 5, Quận 5\nHồ Chí Minh', 'vnpay', 'da_thanh_toan', 'Omnis tempora hic eaque quae.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(20, NULL, NULL, 8, NULL, NULL, '2026-03-21 22:17:06', 'da_xac_nhan', 837000.00, 0.00, 0.00, NULL, '234 Phố Đan Lý Đức, Xã Vân, Quận Tào Ca Phụng\nLạng Sơn', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(21, NULL, NULL, 8, NULL, NULL, '2025-11-13 08:35:17', 'da_xac_nhan', 414000.00, 0.00, 0.00, NULL, '52, Ấp Lô Chiêu Đường, Thôn Trình Thanh, Huyện Đường Toàn\nĐắk Nông', 'bank', 'da_thanh_toan', 'Maiores aut distinctio dolores aut.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(22, NULL, NULL, 8, NULL, NULL, '2025-11-27 21:43:11', 'da_xac_nhan', 851450.00, 0.00, 0.00, NULL, '38, Ấp Thy, Xã Chử, Quận 7\nĐồng Nai', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(23, NULL, NULL, 9, NULL, NULL, '2025-10-17 19:27:44', 'hoan_thanh', 342350.00, 0.00, 0.00, NULL, '6584 Phố Đặng Sinh Mẫn, Phường Cự, Huyện Cung\nLong An', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(24, NULL, NULL, 8, NULL, NULL, '2025-09-25 16:43:54', 'da_xac_nhan', 1032500.00, 0.00, 0.00, NULL, '1 Phố Hình Thư Trà, Phường Hoa, Quận Linh Giang\nTiền Giang', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(25, NULL, NULL, 9, NULL, NULL, '2026-03-08 14:08:06', 'dang_giao', 70500.00, 0.00, 0.00, NULL, '3155, Ấp Xuyến Ngạn, Xã Thuận Thập, Quận 1\nBến Tre', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(26, NULL, NULL, 9, NULL, NULL, '2025-12-17 22:20:12', 'da_xac_nhan', 1021500.00, 0.00, 0.00, NULL, '7, Thôn 65, Phường Tiếp Hảo Quân, Huyện Nhậm Kính\nQuảng Ninh', 'bank', 'da_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(27, NULL, NULL, 8, NULL, NULL, '2025-11-20 13:31:20', 'da_huy', 1250000.00, 0.00, 0.00, NULL, '3093 Phố Huỳnh, Phường 36, Quận Vi Lợi\nHà Nội', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(28, NULL, NULL, 8, NULL, NULL, '2026-02-13 05:07:37', 'dang_giao', 1453500.00, 0.00, 0.00, NULL, '7313 Phố Ân Hồng Hồng, Phường 11, Huyện Tâm\nHồ Chí Minh', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(29, NULL, NULL, 1, NULL, NULL, '2025-12-18 19:09:46', 'dang_giao', 220250.00, 0.00, 0.00, NULL, '889, Ấp Vũ Trác, Xã Hiển, Huyện 3\nNghệ An', 'vnpay', 'chua_thanh_toan', 'Ex ullam molestiae voluptatem voluptas quae natus maxime.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(30, NULL, NULL, 1, NULL, NULL, '2026-02-03 22:47:39', 'da_xac_nhan', 1259000.00, 0.00, 0.00, NULL, '9, Ấp Nữ Toàn, Ấp Trưng Mẫn, Quận Tuyết Dụng\nBắc Kạn', 'bank', 'chua_thanh_toan', 'Animi libero dolore dolorum repudiandae voluptatibus perferendis consequuntur.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(31, NULL, NULL, 8, NULL, NULL, '2026-02-17 00:32:43', 'hoan_thanh', 1805000.00, 0.00, 0.00, NULL, '299 Phố Nghị Quỳnh Vỹ, Phường Hoàng, Huyện Mai\nĐà Nẵng', 'cod', 'da_thanh_toan', 'Quisquam recusandae velit magnam quis.', '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(32, NULL, NULL, 8, NULL, NULL, '2026-01-10 00:25:36', 'cho_duyet', 1066000.00, 0.00, 0.00, NULL, '242 Phố Đặng, Xã Đức Vũ, Huyện 2\nHà Nội', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(33, NULL, NULL, 9, NULL, NULL, '2026-02-23 01:09:05', 'hoan_thanh', 2437000.00, 0.00, 0.00, NULL, '31, Thôn Cao, Xã 09, Huyện Huỳnh Ngạn\nBến Tre', 'vnpay', 'chua_thanh_toan', 'Non ex enim aspernatur officia sequi.', '2026-03-22 14:30:17', '2026-03-22 14:30:18'),
+(34, NULL, NULL, 8, NULL, NULL, '2026-02-23 18:47:03', 'da_huy', 998000.00, 0.00, 0.00, NULL, '8 Phố Phan Lợi Nga, Phường 3, Quận 2\nCần Thơ', 'vnpay', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(35, NULL, NULL, 8, NULL, NULL, '2025-11-13 04:49:19', 'cho_duyet', 873000.00, 0.00, 0.00, NULL, '67 Phố Bùi Vĩ Thạc, Xã Đàn Ngụy, Quận Cung Ẩn\nPhú Yên', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(36, NULL, NULL, 1, NULL, NULL, '2025-12-20 15:05:10', 'hoan_thanh', 696500.00, 0.00, 0.00, NULL, '6776 Phố Cù Viên Hội, Phường Tuyền, Huyện 38\nAn Giang', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(37, NULL, NULL, 1, NULL, NULL, '2025-11-10 04:27:52', 'dang_giao', 274500.00, 0.00, 0.00, NULL, '269, Thôn Khoa Bào Hồng, Ấp Tào Huyền, Quận 2\nQuảng Trị', 'momo', 'da_thanh_toan', 'Unde suscipit aut est est occaecati natus veniam.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(38, NULL, NULL, 8, NULL, NULL, '2025-11-13 11:22:45', 'hoan_thanh', 699000.00, 0.00, 0.00, NULL, '214 Phố Chương, Xã Quỳnh, Quận 7\nĐà Nẵng', 'cod', 'chua_thanh_toan', 'Autem architecto aut quaerat velit.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(39, NULL, NULL, 8, NULL, NULL, '2025-12-13 19:54:07', 'da_huy', 1912000.00, 0.00, 0.00, NULL, '9330 Phố Lều Vượng Khang, Phường Cái Lương Trang, Quận Ninh Mã\nLong An', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(40, NULL, NULL, 1, NULL, NULL, '2026-02-12 14:52:16', 'hoan_thanh', 523500.00, 0.00, 0.00, NULL, '880 Phố Triết, Phường San Mai, Huyện Dũng Sơn\nCần Thơ', 'bank', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(41, NULL, NULL, 9, NULL, NULL, '2026-02-17 13:07:25', 'da_xac_nhan', 603000.00, 0.00, 0.00, NULL, '5 Phố Vịnh, Thôn Doãn Đức, Quận Hưng Uy\nBà Rịa - Vũng Tàu', 'bank', 'chua_thanh_toan', 'Atque possimus nesciunt eaque cumque harum commodi fuga.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(42, NULL, NULL, 1, NULL, NULL, '2026-03-17 09:38:39', 'da_xac_nhan', 1035000.00, 0.00, 0.00, NULL, '9588 Phố Ấu Vỹ Sinh, Ấp Trác Trúc, Huyện Thào Lam\nBắc Giang', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(43, NULL, NULL, 1, NULL, NULL, '2025-11-17 07:10:40', 'dang_giao', 2887500.00, 0.00, 0.00, NULL, '2 Phố Khu Tiền Khánh, Phường Bàng, Huyện Lam Giác\nPhú Yên', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(44, NULL, NULL, 8, NULL, NULL, '2026-01-19 09:17:29', 'hoan_thanh', 1657500.00, 0.00, 0.00, NULL, '9 Phố Toại, Xã 36, Quận 1\nCần Thơ', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(45, NULL, NULL, 1, NULL, NULL, '2026-02-24 05:17:17', 'dang_giao', 2908800.00, 0.00, 0.00, NULL, '95, Thôn Ấu Nguyệt, Xã 76, Huyện 7\nThanh Hóa', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(46, NULL, NULL, 1, NULL, NULL, '2026-01-22 02:35:12', 'hoan_thanh', 566250.00, 0.00, 0.00, NULL, '7 Phố Duệ, Xã 45, Quận Hình Hà Tuyền\nHải Phòng', 'bank', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(47, NULL, NULL, 8, NULL, NULL, '2025-10-30 21:34:04', 'cho_duyet', 112000.00, 0.00, 0.00, NULL, '719 Phố Chiêu, Xã Doãn, Huyện Nghị\nĐà Nẵng', 'vnpay', 'chua_thanh_toan', 'Labore officia nihil voluptatem commodi et quos.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(48, NULL, NULL, 1, NULL, NULL, '2026-01-10 15:38:24', 'da_xac_nhan', 121500.00, 0.00, 0.00, NULL, '5350 Phố Vương Khê Uyên, Phường Cảnh Khổng, Quận Bá\nQuảng Bình', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(49, NULL, NULL, 1, NULL, NULL, '2026-03-18 16:21:29', 'da_huy', 587040.00, 0.00, 0.00, NULL, '5439, Thôn 7, Ấp Lư Hỷ, Huyện 77\nHưng Yên', 'bank', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(50, NULL, NULL, 1, NULL, NULL, '2025-12-14 04:02:11', 'da_xac_nhan', 1080000.00, 0.00, 0.00, NULL, '6 Phố Lỳ Chinh Nhạn, Phường Yên Tuệ Ân, Quận 2\nĐà Nẵng', 'bank', 'chua_thanh_toan', 'Ullam molestiae qui sed sit aut et dolorem.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(51, NULL, NULL, 9, NULL, NULL, '2025-12-24 12:32:59', 'dang_giao', 939500.00, 0.00, 0.00, NULL, '79 Phố Ngụy Yên Nhuận, Xã Chấn Điền, Quận Thôi Ly\nNinh Bình', 'bank', 'chua_thanh_toan', 'Consequatur ut ea dolorum temporibus.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(52, NULL, NULL, 8, NULL, NULL, '2025-12-30 01:40:46', 'da_xac_nhan', 269000.00, 0.00, 0.00, NULL, '7878, Ấp 9, Phường Hòa Hình, Huyện 2\nKhánh Hòa', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(53, NULL, NULL, 9, NULL, NULL, '2025-10-03 02:27:21', 'cho_duyet', 1735000.00, 0.00, 0.00, NULL, '5 Phố Hoa Khê Phong, Xã Khanh Nhung, Huyện Vũ\nĐà Nẵng', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(54, NULL, NULL, 9, NULL, NULL, '2026-03-13 12:34:24', 'da_huy', 744500.00, 0.00, 0.00, NULL, '3, Ấp Bình Oanh, Xã Tăng Nhượng Lễ, Huyện Hỷ Lưu\nThanh Hóa', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(55, NULL, NULL, 8, NULL, NULL, '2026-02-28 18:06:29', 'hoan_thanh', 1006500.00, 0.00, 0.00, NULL, '2 Phố Huỳnh Thảo Đôn, Xã Hiệp Yên, Huyện Di Tường\nLong An', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(56, NULL, NULL, 1, NULL, NULL, '2025-10-02 20:30:52', 'da_xac_nhan', 1405000.00, 0.00, 0.00, NULL, '3608 Phố Khôi, Xã Dung, Huyện Mâu Nam\nCần Thơ', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(57, NULL, NULL, 8, NULL, NULL, '2025-12-30 01:15:06', 'cho_duyet', 1557000.00, 0.00, 0.00, NULL, '39 Phố Minh, Phường Kha, Huyện Ấu\nYên Bái', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(58, NULL, NULL, 1, NULL, NULL, '2025-12-25 18:54:22', 'da_huy', 1257000.00, 0.00, 0.00, NULL, '6953, Ấp Phúc Khúc, Xã Hành Hiếu, Quận Hà Quỳnh Tâm\nHòa Bình', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(59, NULL, NULL, 8, NULL, NULL, '2025-11-02 22:27:42', 'da_xac_nhan', 860500.00, 0.00, 0.00, NULL, '97 Phố Cung, Ấp Di Nguyệt, Huyện Mai Hợp\nĐà Nẵng', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(60, NULL, NULL, 9, NULL, NULL, '2025-12-18 16:52:53', 'hoan_thanh', 1116000.00, 0.00, 0.00, NULL, '6 Phố Lữ Linh Hội, Phường 8, Huyện Lâm\nQuảng Ngãi', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(61, NULL, NULL, 8, NULL, NULL, '2026-01-31 09:35:04', 'dang_giao', 1016000.00, 0.00, 0.00, NULL, '129 Phố Lý, Phường Hỷ, Quận Hoài Cương\nHồ Chí Minh', 'vnpay', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(62, NULL, NULL, 8, NULL, NULL, '2026-02-26 17:25:45', 'da_huy', 2253000.00, 0.00, 0.00, NULL, '7956, Thôn Tôn, Phường 76, Huyện Trưng\nThái Bình', 'vnpay', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(63, NULL, NULL, 1, NULL, NULL, '2026-01-01 09:59:29', 'da_xac_nhan', 860500.00, 0.00, 0.00, NULL, '892 Phố Kim Khai Đôn, Thôn Bế Băng, Huyện 7\nHà Nam', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(64, NULL, NULL, 9, NULL, NULL, '2026-03-15 17:07:58', 'dang_giao', 1597000.00, 0.00, 0.00, NULL, '7, Thôn Nhàn Quách, Xã Ngôn Thoa, Quận Chiêu Đường\nQuảng Ninh', 'cod', 'da_thanh_toan', 'Molestias maxime beatae reprehenderit minima iusto.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(65, NULL, NULL, 1, NULL, NULL, '2025-10-25 03:17:42', 'da_xac_nhan', 533000.00, 0.00, 0.00, NULL, '24 Phố Tôn Khai Khuyên, Phường Xuân, Huyện 4\nHà Nội', 'cod', 'da_thanh_toan', 'Nihil molestiae quaerat quidem inventore praesentium at.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(66, NULL, NULL, 8, NULL, NULL, '2026-02-08 07:06:26', 'cho_duyet', 2014900.00, 0.00, 0.00, NULL, '6, Thôn 2, Phường Thắng Trầm, Huyện Hoa\nBình Định', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(67, NULL, NULL, 1, NULL, NULL, '2026-01-11 02:29:04', 'da_xac_nhan', 2367750.00, 0.00, 0.00, NULL, '2 Phố Thụy, Xã Đức Võ, Huyện Thịnh Khôi\nCần Thơ', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(68, NULL, NULL, 8, NULL, NULL, '2026-02-03 12:33:54', 'hoan_thanh', 2063000.00, 0.00, 0.00, NULL, '8 Phố Đổng Ý Nhật, Phường Thúy, Huyện Vịnh Tuấn\nCần Thơ', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(69, NULL, NULL, 1, NULL, NULL, '2026-03-06 18:29:10', 'dang_giao', 806500.00, 0.00, 0.00, NULL, '23, Thôn Ong, Xã 70, Quận Hồng\nHải Dương', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(70, NULL, NULL, 8, NULL, NULL, '2026-01-31 02:56:06', 'da_xac_nhan', 1727250.00, 0.00, 0.00, NULL, '4, Ấp Mai Trình Thy, Phường Định Tào, Quận Trung Hội\nKiên Giang', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(71, NULL, NULL, 1, NULL, NULL, '2025-11-27 11:11:57', 'da_huy', 357000.00, 0.00, 0.00, NULL, '6 Phố Mã, Phường Xa, Huyện Miên Hạ\nCần Thơ', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(72, NULL, NULL, 9, NULL, NULL, '2026-01-16 22:24:45', 'da_xac_nhan', 956500.00, 0.00, 0.00, NULL, '7763 Phố Nhiệm Điệp Bảo, Ấp Nhậm Yên, Quận Hoa Vũ\nSơn La', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(73, NULL, NULL, 9, NULL, NULL, '2025-10-17 07:10:43', 'cho_duyet', 1366500.00, 0.00, 0.00, NULL, '58 Phố Châu Khuê Trung, Thôn Thân Vi, Huyện Dinh Hạ\nHà Nội', 'momo', 'da_thanh_toan', 'Quia provident qui est eos consequatur alias laboriosam.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(74, NULL, NULL, 9, NULL, NULL, '2025-10-25 10:15:42', 'cho_duyet', 241500.00, 0.00, 0.00, NULL, '81, Ấp 91, Phường Thành Giao, Quận Hân Khê\nTuyên Quang', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(75, NULL, NULL, 9, NULL, NULL, '2026-01-27 20:32:33', 'da_huy', 954000.00, 0.00, 0.00, NULL, '3 Phố Lưu, Ấp Đan Chi, Huyện Đàm\nLâm Đồng', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(76, NULL, NULL, 9, NULL, NULL, '2025-12-23 19:37:16', 'dang_giao', 382500.00, 0.00, 0.00, NULL, '90 Phố Thạch Lập Khanh, Ấp Ông Ngân, Quận 65\nĐà Nẵng', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(77, NULL, NULL, 8, NULL, NULL, '2025-10-20 19:36:12', 'hoan_thanh', 3093000.00, 0.00, 0.00, NULL, '11 Phố Lương Phong San, Thôn Chung Nguyên, Quận Phước Giao\nBắc Ninh', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(78, NULL, NULL, 9, NULL, NULL, '2025-10-28 19:03:04', 'da_huy', 2128000.00, 0.00, 0.00, NULL, '145 Phố Lâm Ái Đan, Phường Trình, Quận Mang Điệp Huyền\nHải Phòng', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(79, NULL, NULL, 9, NULL, NULL, '2025-12-03 05:08:09', 'hoan_thanh', 1022000.00, 0.00, 0.00, NULL, '9740, Thôn Trịnh Phong Toàn, Phường Minh Phan, Huyện Ty Biện\nThái Bình', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(80, NULL, NULL, 8, NULL, NULL, '2026-01-26 04:08:11', 'dang_giao', 1325820.00, 0.00, 0.00, NULL, '2885 Phố Trần Nguyên Nhã, Thôn Lều Công, Huyện Kha Phước\nCần Thơ', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(81, NULL, NULL, 8, NULL, NULL, '2026-03-01 08:12:01', 'da_huy', 1679500.00, 0.00, 0.00, NULL, '35 Phố Nhâm Đình Điền, Ấp Ong Tiên, Quận Phạm\nKon Tum', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(82, NULL, NULL, 8, NULL, NULL, '2025-11-04 14:43:46', 'cho_duyet', 550000.00, 0.00, 0.00, NULL, '2, Thôn Ninh Khanh, Xã Tôn Quảng Phụng, Quận Danh\nSơn La', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(83, NULL, NULL, 9, NULL, NULL, '2025-12-05 02:38:06', 'hoan_thanh', 556500.00, 0.00, 0.00, NULL, '57 Phố Sử, Xã Hảo Sử, Quận 4\nCần Thơ', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(84, NULL, NULL, 8, NULL, NULL, '2025-10-24 02:59:22', 'hoan_thanh', 2107500.00, 0.00, 0.00, NULL, '2, Thôn Thịnh Vinh, Ấp Luận Đại, Huyện Giác\nVĩnh Phúc', 'bank', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(85, NULL, NULL, 9, NULL, NULL, '2026-02-25 13:42:36', 'da_huy', 232200.00, 0.00, 0.00, NULL, '258 Phố Hàng Ngân Khai, Xã Cẩn Nhã, Quận Lợi\nHà Nội', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(86, NULL, NULL, 1, NULL, NULL, '2026-03-04 21:55:03', 'hoan_thanh', 960000.00, 0.00, 0.00, NULL, '751, Ấp Khiêm Thào, Thôn Bồ Cẩn, Quận Lĩnh Thân\nKiên Giang', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(87, NULL, NULL, 1, NULL, NULL, '2025-09-26 17:28:03', 'dang_giao', 59500.00, 0.00, 0.00, NULL, '3 Phố Hy Thảo An, Xã Sâm, Quận Mạnh Ngụy\nHồ Chí Minh', 'bank', 'chua_thanh_toan', 'Enim illum corporis est.', '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(88, NULL, NULL, 9, NULL, NULL, '2025-10-10 08:10:00', 'da_xac_nhan', 211500.00, 0.00, 0.00, NULL, '8 Phố Khâu, Xã Thương, Quận Ninh Đăng Vi\nKhánh Hòa', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(89, NULL, NULL, 8, NULL, NULL, '2026-01-03 15:19:56', 'da_xac_nhan', 2520500.00, 0.00, 0.00, NULL, '34, Thôn 51, Phường 1, Quận Thi\nBắc Ninh', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:18', '2026-03-22 14:30:19'),
+(90, NULL, NULL, 9, NULL, NULL, '2026-01-03 22:34:39', 'hoan_thanh', 62000.00, 0.00, 0.00, NULL, '6, Thôn Đan Hà, Xã Châu, Huyện Tường Cấn\nTuyên Quang', 'momo', 'chua_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(91, NULL, NULL, 8, NULL, NULL, '2026-02-06 09:32:48', 'dang_giao', 3041980.00, 0.00, 0.00, NULL, '688 Phố Vỹ, Phường Liễu Vi Đoan, Quận Quản Thuận\nHồ Chí Minh', 'cod', 'da_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(92, NULL, NULL, 9, NULL, NULL, '2026-02-06 16:17:00', 'cho_duyet', 820500.00, 0.00, 0.00, NULL, '60 Phố Điền Bằng Huyền, Xã 19, Quận Khánh Ngụy\nCần Thơ', 'cod', 'da_thanh_toan', 'Mollitia voluptas aliquam officiis nobis aut inventore inventore.', '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(93, NULL, NULL, 9, NULL, NULL, '2025-10-31 16:14:13', 'hoan_thanh', 1914000.00, 0.00, 0.00, NULL, '12 Phố Cao Sĩ Bình, Xã Mã, Quận Điệp Phùng\nKhánh Hòa', 'bank', 'da_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(94, NULL, NULL, 8, NULL, NULL, '2025-12-06 02:48:48', 'da_xac_nhan', 532000.00, 0.00, 0.00, NULL, '62 Phố Hàng Thy Hoài, Phường 82, Quận Nhâm Quyên Hiếu\nHà Nội', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(95, NULL, NULL, 8, NULL, NULL, '2026-03-20 05:22:12', 'cho_duyet', 2591500.00, 0.00, 0.00, NULL, '1 Phố Tôn Trang Nhã, Xã Đặng, Quận Liễu\nBình Thuận', 'vnpay', 'da_thanh_toan', 'Eos debitis ut velit.', '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(96, NULL, NULL, 1, NULL, NULL, '2026-01-29 11:47:31', 'da_huy', 213500.00, 0.00, 0.00, NULL, '504 Phố Ông Hồng Bửu, Xã Chiến, Huyện Phước\nCần Thơ', 'bank', 'chua_thanh_toan', 'Vel dolores enim atque quibusdam in aut aut.', '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(97, NULL, NULL, 1, NULL, NULL, '2026-01-17 23:00:37', 'dang_giao', 683970.00, 0.00, 0.00, NULL, '6 Phố Hảo, Phường Võ Quyền Bạch, Huyện Cấn Diễm Nhật\nHồ Chí Minh', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(98, NULL, NULL, 9, NULL, NULL, '2025-11-13 05:12:21', 'da_xac_nhan', 1039500.00, 0.00, 0.00, NULL, '86 Phố Triệu, Thôn Tô Khiêm, Huyện Duy\nĐồng Tháp', 'vnpay', 'da_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(99, NULL, NULL, 8, NULL, NULL, '2026-01-13 03:42:19', 'dang_giao', 1670000.00, 0.00, 0.00, NULL, '6610 Phố Châu Quyên Thạc, Ấp Hợp Canh, Quận 5\nHà Nội', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(100, NULL, NULL, 8, NULL, NULL, '2026-02-09 02:19:20', 'da_xac_nhan', 860000.00, 0.00, 0.00, NULL, '1 Phố Tôn Nguyên Nhiên, Ấp Minh Tuyến, Quận Bình Nam\nĐà Nẵng', 'momo', 'da_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(101, NULL, NULL, 9, NULL, NULL, '2025-10-02 03:16:14', 'da_huy', 306000.00, 0.00, 0.00, NULL, '4253 Phố Phạm, Xã 1, Huyện Bá\nNinh Bình', 'bank', 'chua_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(102, NULL, NULL, 9, NULL, NULL, '2025-12-09 10:14:24', 'da_huy', 864000.00, 0.00, 0.00, NULL, '6, Thôn Khang, Xã Tuyền Trung, Huyện Triệu Đan\nBình Phước', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(103, NULL, NULL, 9, NULL, NULL, '2026-03-22 21:36:27', 'cho_xac_nhan', 194500.00, 0.00, 0.00, NULL, '56 Đường Hoàng Diệu 2', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:36:27', '2026-03-22 14:36:27'),
+(104, NULL, NULL, 9, NULL, NULL, '2026-03-22 21:57:14', 'cho_xac_nhan', 774000.00, 0.00, 0.00, NULL, '4 Đường Sư Vạn Hạnh', 'cod', 'chua_thanh_toan', NULL, '2026-03-22 14:57:14', '2026-03-22 14:57:14'),
+(105, NULL, NULL, 10, NULL, NULL, '2026-03-26 18:09:44', 'cho_xac_nhan', 134000.00, 0.00, 0.00, NULL, '1234', 'cod', 'chua_thanh_toan', NULL, '2026-03-26 11:09:44', '2026-03-26 11:09:44'),
+(106, NULL, NULL, 10, NULL, NULL, '2026-03-26 18:13:33', 'da_giao', 71000.00, 0.00, 0.00, NULL, '1234', 'cod', 'chua_thanh_toan', NULL, '2026-03-26 11:13:33', '2026-03-26 12:00:33'),
+(107, NULL, NULL, 10, 'tong binh minh', '0398602792', '2026-03-26 19:27:57', 'da_giao', 1949000.00, 389800.00, 30000.00, 1589200.00, '1234, Phường 4, Thành phố Thủ Đức, TP. Hồ Chí Minh', 'cod', 'chua_thanh_toan', NULL, '2026-03-26 12:27:57', '2026-03-26 12:28:23'),
+(108, NULL, 6, 10, 'tong binh minh', '0398602792', '2026-03-26 19:58:38', 'da_giao', 220000.00, 59750.00, 30000.00, 190250.00, '456, Phường 5, Quận Hai Bà Trưng, Hà Nội', 'cod', 'chua_thanh_toan', NULL, '2026-03-26 12:58:38', '2026-03-26 12:59:02');
 
 -- --------------------------------------------------------
 
@@ -66,16 +217,346 @@ CREATE TABLE `don_hang` (
 -- Table structure for table `don_hang_chi_tiet`
 --
 
-CREATE TABLE `don_hang_chi_tiet` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `don_hang_id` bigint(20) UNSIGNED NOT NULL,
-  `sach_id` bigint(20) UNSIGNED NOT NULL,
-  `so_luong` int(11) NOT NULL,
+DROP TABLE IF EXISTS `don_hang_chi_tiet`;
+CREATE TABLE IF NOT EXISTS `don_hang_chi_tiet` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `don_hang_id` bigint UNSIGNED NOT NULL,
+  `sach_id` bigint UNSIGNED NOT NULL,
+  `so_luong` int NOT NULL,
   `don_gia` decimal(12,2) NOT NULL,
   `thanh_tien` decimal(12,2) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `don_hang_chi_tiet_don_hang_id_foreign` (`don_hang_id`),
+  KEY `don_hang_chi_tiet_sach_id_foreign` (`sach_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=321 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `don_hang_chi_tiet`
+--
+
+INSERT INTO `don_hang_chi_tiet` (`id`, `don_hang_id`, `sach_id`, `so_luong`, `don_gia`, `thanh_tien`, `created_at`, `updated_at`) VALUES
+(1, 1, 1238, 3, 78000.00, 234000.00, '2026-03-22 13:52:43', '2026-03-22 13:52:43'),
+(2, 2, 1243, 3, 127000.00, 381000.00, '2026-03-22 14:17:46', '2026-03-22 14:17:46'),
+(3, 2, 1244, 1, 56000.00, 56000.00, '2026-03-22 14:17:46', '2026-03-22 14:17:46'),
+(4, 3, 700, 3, 27000.00, 81000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(5, 3, 844, 3, 58500.00, 175500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(6, 4, 836, 2, 108500.00, 217000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(7, 5, 1104, 1, 417000.00, 417000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(8, 5, 1174, 1, 170000.00, 170000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(9, 5, 1191, 3, 250000.00, 750000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(10, 6, 638, 1, 27000.00, 27000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(11, 6, 681, 1, 102000.00, 102000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(12, 6, 886, 3, 254000.00, 762000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(13, 6, 1058, 1, 378000.00, 378000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(14, 6, 1248, 1, 21750.00, 21750.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(15, 7, 1047, 3, 156000.00, 468000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(16, 7, 1226, 3, 352000.00, 1056000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(17, 8, 491, 3, 119350.00, 358050.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(18, 8, 576, 3, 153000.00, 459000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(19, 8, 723, 3, 28000.00, 84000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(20, 8, 733, 3, 27000.00, 81000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(21, 8, 1193, 3, 216000.00, 648000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(22, 9, 559, 2, 509000.00, 1018000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(23, 9, 831, 1, 168000.00, 168000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(24, 9, 858, 3, 70000.00, 210000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(25, 9, 1089, 1, 250000.00, 250000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(26, 10, 600, 2, 31500.00, 63000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(27, 11, 612, 2, 129000.00, 258000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(28, 11, 671, 3, 118500.00, 355500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(29, 11, 676, 1, 71000.00, 71000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(30, 12, 878, 1, 220000.00, 220000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(31, 13, 844, 3, 58500.00, 175500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(32, 13, 1072, 2, 374000.00, 748000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(33, 13, 1184, 3, 297000.00, 891000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(34, 13, 1200, 2, 275000.00, 550000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(35, 13, 1272, 2, 55500.00, 111000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(36, 14, 841, 3, 191000.00, 573000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(37, 15, 697, 2, 31000.00, 62000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(38, 15, 707, 1, 21000.00, 21000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(39, 15, 766, 3, 44500.00, 133500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(40, 15, 960, 1, 212500.00, 212500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(41, 16, 396, 1, 45000.00, 45000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(42, 16, 710, 3, 16000.00, 48000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(43, 16, 1183, 2, 371000.00, 742000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(44, 17, 961, 2, 143500.00, 287000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(45, 18, 689, 1, 22000.00, 22000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(46, 18, 866, 2, 161000.00, 322000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(47, 18, 1060, 2, 216000.00, 432000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(48, 18, 1104, 2, 417000.00, 834000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(49, 19, 686, 1, 25500.00, 25500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(50, 19, 741, 2, 120000.00, 240000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(51, 19, 966, 1, 123000.00, 123000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(52, 19, 1281, 3, 78000.00, 234000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(53, 20, 438, 1, 71000.00, 71000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(54, 20, 445, 2, 195500.00, 391000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(55, 20, 463, 2, 88000.00, 176000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(56, 20, 957, 1, 199000.00, 199000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(57, 21, 1276, 2, 207000.00, 414000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(58, 22, 562, 1, 219450.00, 219450.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(59, 22, 1134, 2, 316000.00, 632000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(60, 23, 438, 3, 71000.00, 213000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(61, 23, 567, 1, 129350.00, 129350.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(62, 24, 823, 1, 92500.00, 92500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(63, 24, 875, 2, 186000.00, 372000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(64, 24, 1152, 2, 284000.00, 568000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(65, 25, 598, 1, 70500.00, 70500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(66, 26, 478, 3, 152000.00, 456000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(67, 26, 593, 3, 188500.00, 565500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(68, 27, 680, 2, 25500.00, 51000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(69, 27, 866, 3, 161000.00, 483000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(70, 27, 946, 2, 169000.00, 338000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(71, 27, 1083, 1, 378000.00, 378000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(72, 28, 419, 3, 152000.00, 456000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(73, 28, 515, 3, 240000.00, 720000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(74, 28, 1032, 3, 92500.00, 277500.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(75, 29, 561, 1, 149250.00, 149250.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(76, 29, 676, 1, 71000.00, 71000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(77, 30, 697, 2, 31000.00, 62000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(78, 30, 944, 1, 169000.00, 169000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(79, 30, 1229, 2, 514000.00, 1028000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(80, 31, 556, 3, 119000.00, 357000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(81, 31, 1106, 1, 306000.00, 306000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(82, 31, 1217, 2, 571000.00, 1142000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(83, 32, 770, 2, 95000.00, 190000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(84, 32, 954, 3, 292000.00, 876000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(85, 33, 745, 2, 25500.00, 51000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(86, 33, 821, 3, 89000.00, 267000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(87, 33, 962, 1, 118000.00, 118000.00, '2026-03-22 14:30:17', '2026-03-22 14:30:17'),
+(88, 33, 1066, 3, 392000.00, 1176000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(89, 33, 1175, 3, 275000.00, 825000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(90, 34, 494, 3, 132500.00, 397500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(91, 34, 742, 1, 127500.00, 127500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(92, 34, 749, 2, 101000.00, 202000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(93, 34, 810, 2, 69500.00, 139000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(94, 34, 942, 1, 132000.00, 132000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(95, 35, 830, 3, 127000.00, 381000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(96, 35, 1043, 2, 171750.00, 343500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(97, 35, 1277, 3, 49500.00, 148500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(98, 36, 757, 1, 28500.00, 28500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(99, 36, 1236, 1, 668000.00, 668000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(100, 37, 431, 3, 91500.00, 274500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(101, 38, 429, 2, 123000.00, 246000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(102, 38, 1035, 3, 151000.00, 453000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(103, 39, 512, 1, 156500.00, 156500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(104, 39, 573, 1, 144000.00, 144000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(105, 39, 615, 3, 441500.00, 1324500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(106, 39, 748, 1, 119000.00, 119000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(107, 39, 1244, 3, 56000.00, 168000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(108, 40, 504, 3, 63500.00, 190500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(109, 40, 1004, 3, 111000.00, 333000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(110, 41, 545, 1, 109500.00, 109500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(111, 41, 727, 3, 92000.00, 276000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(112, 41, 872, 2, 84000.00, 168000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(113, 41, 1277, 1, 49500.00, 49500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(114, 42, 402, 2, 73000.00, 146000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(115, 42, 419, 1, 152000.00, 152000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(116, 42, 884, 2, 59500.00, 119000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(117, 42, 949, 3, 116000.00, 348000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(118, 42, 1261, 2, 135000.00, 270000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(119, 43, 623, 1, 97500.00, 97500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(120, 43, 869, 2, 112000.00, 224000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(121, 43, 935, 2, 203000.00, 406000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(122, 43, 1105, 3, 418000.00, 1254000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(123, 43, 1108, 3, 302000.00, 906000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(124, 44, 396, 3, 45000.00, 135000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(125, 44, 498, 2, 207000.00, 414000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(126, 44, 771, 2, 449250.00, 898500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(127, 44, 974, 3, 70000.00, 210000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(128, 45, 583, 3, 135000.00, 405000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(129, 45, 974, 3, 70000.00, 210000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(130, 45, 1055, 2, 630900.00, 1261800.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(131, 45, 1142, 3, 240000.00, 720000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(132, 45, 1280, 2, 156000.00, 312000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(133, 46, 684, 2, 25500.00, 51000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(134, 46, 1043, 3, 171750.00, 515250.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(135, 47, 575, 1, 112000.00, 112000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(136, 48, 458, 3, 30000.00, 90000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(137, 48, 600, 1, 31500.00, 31500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(138, 49, 460, 1, 78540.00, 78540.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(139, 49, 501, 2, 211500.00, 423000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(140, 49, 755, 1, 28500.00, 28500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(141, 49, 762, 2, 28500.00, 57000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(142, 50, 1196, 3, 360000.00, 1080000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(143, 51, 446, 3, 55000.00, 165000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(144, 51, 657, 3, 38000.00, 114000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(145, 51, 779, 1, 160500.00, 160500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(146, 51, 1191, 2, 250000.00, 500000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(147, 52, 943, 1, 94000.00, 94000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(148, 52, 956, 1, 175000.00, 175000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(149, 53, 435, 3, 27000.00, 81000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(150, 53, 697, 1, 31000.00, 31000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(151, 53, 1109, 3, 283000.00, 849000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(152, 53, 1143, 1, 540000.00, 540000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(153, 53, 1281, 3, 78000.00, 234000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(154, 54, 446, 2, 55000.00, 110000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(155, 54, 501, 3, 211500.00, 634500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(156, 55, 790, 3, 165500.00, 496500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(157, 55, 1197, 3, 170000.00, 510000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(158, 56, 492, 2, 156500.00, 313000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(159, 56, 1039, 2, 266000.00, 532000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(160, 56, 1162, 2, 280000.00, 560000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(161, 57, 458, 1, 30000.00, 30000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(162, 57, 697, 3, 31000.00, 93000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(163, 57, 976, 1, 135000.00, 135000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(164, 57, 1038, 3, 156000.00, 468000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(165, 57, 1156, 3, 277000.00, 831000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(166, 58, 761, 3, 27000.00, 81000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(167, 58, 1066, 3, 392000.00, 1176000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(168, 59, 387, 2, 99000.00, 198000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(169, 59, 644, 3, 27000.00, 81000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(170, 59, 678, 3, 25500.00, 76500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(171, 59, 773, 2, 30000.00, 60000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(172, 59, 1135, 1, 445000.00, 445000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(173, 60, 765, 2, 95000.00, 190000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(174, 60, 878, 3, 220000.00, 660000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(175, 60, 974, 3, 70000.00, 210000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(176, 60, 1244, 1, 56000.00, 56000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(177, 61, 722, 3, 27000.00, 81000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(178, 61, 781, 2, 143500.00, 287000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(179, 61, 1024, 3, 216000.00, 648000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(180, 62, 829, 3, 74000.00, 222000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(181, 62, 1228, 3, 677000.00, 2031000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(182, 63, 569, 1, 237000.00, 237000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(183, 63, 756, 2, 27000.00, 54000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(184, 63, 767, 3, 116000.00, 348000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(185, 63, 1168, 1, 221500.00, 221500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(186, 64, 618, 1, 158000.00, 158000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(187, 64, 630, 1, 84000.00, 84000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(188, 64, 1143, 2, 540000.00, 1080000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(189, 64, 1200, 1, 275000.00, 275000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(190, 65, 434, 2, 126500.00, 253000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(191, 65, 582, 1, 169000.00, 169000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(192, 65, 828, 1, 111000.00, 111000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(193, 66, 738, 3, 20000.00, 60000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(194, 66, 754, 2, 28500.00, 57000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(195, 66, 799, 3, 125300.00, 375900.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(196, 66, 1072, 2, 374000.00, 748000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(197, 66, 1180, 3, 258000.00, 774000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(198, 67, 405, 3, 46000.00, 138000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(199, 67, 646, 2, 27000.00, 54000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(200, 67, 698, 2, 33000.00, 66000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(201, 67, 771, 3, 449250.00, 1347750.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(202, 67, 886, 3, 254000.00, 762000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(203, 68, 823, 2, 92500.00, 185000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(204, 68, 1119, 3, 626000.00, 1878000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(205, 69, 837, 1, 339000.00, 339000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(206, 69, 969, 3, 119000.00, 357000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(207, 69, 983, 1, 110500.00, 110500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(208, 70, 485, 3, 94500.00, 283500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(209, 70, 635, 1, 27000.00, 27000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(210, 70, 987, 3, 119250.00, 357750.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(211, 70, 1111, 3, 353000.00, 1059000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(212, 71, 748, 3, 119000.00, 357000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(213, 72, 411, 1, 76000.00, 76000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(214, 72, 574, 3, 57500.00, 172500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(215, 72, 712, 2, 120000.00, 240000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(216, 72, 1047, 3, 156000.00, 468000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(217, 73, 444, 2, 78000.00, 156000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(218, 73, 539, 3, 211500.00, 634500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(219, 73, 594, 3, 36000.00, 108000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(220, 73, 681, 3, 102000.00, 306000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(221, 73, 695, 3, 54000.00, 162000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(222, 74, 867, 3, 80500.00, 241500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(223, 75, 551, 1, 409500.00, 409500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(224, 75, 650, 3, 67500.00, 202500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(225, 75, 833, 1, 109500.00, 109500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(226, 75, 1050, 3, 77500.00, 232500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(227, 76, 585, 3, 127500.00, 382500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(228, 77, 551, 2, 409500.00, 819000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(229, 77, 1119, 2, 626000.00, 1252000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(230, 77, 1230, 2, 511000.00, 1022000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(231, 78, 674, 2, 127000.00, 254000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(232, 78, 1032, 2, 92500.00, 185000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(233, 78, 1104, 2, 417000.00, 834000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(234, 78, 1178, 3, 285000.00, 855000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(235, 79, 1100, 2, 511000.00, 1022000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(236, 80, 410, 2, 285360.00, 570720.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(237, 80, 472, 1, 161100.00, 161100.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(238, 80, 641, 2, 67500.00, 135000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(239, 80, 699, 1, 27000.00, 27000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(240, 80, 1193, 2, 216000.00, 432000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(241, 81, 438, 2, 71000.00, 142000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(242, 81, 524, 1, 127500.00, 127500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(243, 81, 875, 3, 186000.00, 558000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(244, 81, 934, 3, 134000.00, 402000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(245, 81, 1171, 3, 150000.00, 450000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(246, 82, 1087, 2, 275000.00, 550000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(247, 83, 426, 2, 135000.00, 270000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(248, 83, 642, 1, 67500.00, 67500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(249, 83, 833, 2, 109500.00, 219000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(250, 84, 478, 2, 152000.00, 304000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(251, 84, 878, 3, 220000.00, 660000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(252, 84, 881, 1, 228500.00, 228500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(253, 84, 970, 3, 194500.00, 583500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(254, 84, 983, 3, 110500.00, 331500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(255, 85, 1165, 1, 232200.00, 232200.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(256, 86, 557, 2, 168000.00, 336000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(257, 86, 693, 1, 31500.00, 31500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(258, 86, 741, 1, 120000.00, 120000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(259, 86, 847, 3, 64500.00, 193500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(260, 86, 1177, 1, 279000.00, 279000.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(261, 87, 884, 1, 59500.00, 59500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(262, 88, 501, 1, 211500.00, 211500.00, '2026-03-22 14:30:18', '2026-03-22 14:30:18'),
+(263, 89, 397, 1, 89000.00, 89000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(264, 89, 507, 2, 157500.00, 315000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(265, 89, 1010, 3, 150500.00, 451500.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(266, 89, 1054, 3, 393000.00, 1179000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(267, 89, 1101, 2, 243000.00, 486000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(268, 90, 1266, 1, 62000.00, 62000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(269, 91, 398, 3, 66000.00, 198000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(270, 91, 505, 3, 352660.00, 1057980.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(271, 91, 512, 2, 156500.00, 313000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(272, 91, 712, 3, 120000.00, 360000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(273, 91, 1183, 3, 371000.00, 1113000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(274, 92, 438, 3, 71000.00, 213000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(275, 92, 465, 1, 216500.00, 216500.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(276, 92, 619, 2, 195500.00, 391000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(277, 93, 527, 2, 220000.00, 440000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(278, 93, 874, 2, 212000.00, 424000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(279, 93, 937, 2, 175000.00, 350000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(280, 93, 1036, 1, 78000.00, 78000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(281, 93, 1070, 2, 311000.00, 622000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(282, 94, 459, 1, 30000.00, 30000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(283, 94, 826, 2, 85000.00, 170000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(284, 94, 939, 2, 166000.00, 332000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(285, 95, 587, 2, 162500.00, 325000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(286, 95, 596, 1, 261000.00, 261000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(287, 95, 708, 1, 11500.00, 11500.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(288, 95, 763, 1, 116000.00, 116000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(289, 95, 1119, 3, 626000.00, 1878000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(290, 96, 664, 1, 28500.00, 28500.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(291, 96, 879, 2, 92500.00, 185000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(292, 97, 423, 1, 8470.00, 8470.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(293, 97, 593, 1, 188500.00, 188500.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(294, 97, 787, 2, 126000.00, 252000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(295, 97, 1157, 1, 235000.00, 235000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(296, 98, 610, 1, 144000.00, 144000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(297, 98, 701, 1, 9500.00, 9500.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(298, 98, 947, 1, 130000.00, 130000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(299, 98, 1219, 3, 252000.00, 756000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(300, 99, 1232, 1, 414000.00, 414000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(301, 99, 1235, 2, 628000.00, 1256000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(302, 100, 463, 3, 88000.00, 264000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(303, 100, 607, 1, 156000.00, 156000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(304, 100, 618, 2, 158000.00, 316000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(305, 100, 796, 1, 124000.00, 124000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(306, 101, 390, 1, 34000.00, 34000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(307, 101, 604, 2, 136000.00, 272000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(308, 102, 825, 1, 134000.00, 134000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(309, 102, 866, 3, 161000.00, 483000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(310, 102, 938, 2, 123500.00, 247000.00, '2026-03-22 14:30:19', '2026-03-22 14:30:19'),
+(311, 103, 1245, 1, 194500.00, 194500.00, '2026-03-22 14:36:27', '2026-03-22 14:36:27'),
+(312, 104, 974, 1, 70000.00, 70000.00, '2026-03-22 14:57:14', '2026-03-22 14:57:14'),
+(313, 104, 1119, 1, 626000.00, 626000.00, '2026-03-22 14:57:14', '2026-03-22 14:57:14'),
+(314, 104, 1238, 1, 78000.00, 78000.00, '2026-03-22 14:57:14', '2026-03-22 14:57:14'),
+(315, 105, 1238, 1, 78000.00, 78000.00, '2026-03-26 11:09:44', '2026-03-26 11:09:44'),
+(316, 105, 1240, 1, 56000.00, 56000.00, '2026-03-26 11:09:44', '2026-03-26 11:09:44'),
+(317, 106, 438, 1, 71000.00, 71000.00, '2026-03-26 11:13:33', '2026-03-26 11:13:33'),
+(318, 107, 1119, 3, 626000.00, 1878000.00, '2026-03-26 12:27:57', '2026-03-26 12:27:57'),
+(319, 107, 438, 1, 71000.00, 71000.00, '2026-03-26 12:27:57', '2026-03-26 12:27:57'),
+(320, 108, 952, 4, 55000.00, 220000.00, '2026-03-26 12:58:38', '2026-03-26 12:58:38');
 
 -- --------------------------------------------------------
 
@@ -83,15 +564,18 @@ CREATE TABLE `don_hang_chi_tiet` (
 -- Table structure for table `email_verifications`
 --
 
-CREATE TABLE `email_verifications` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED NOT NULL,
-  `code_hash` varchar(255) NOT NULL,
-  `expires_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `attempts` tinyint(3) UNSIGNED NOT NULL DEFAULT 0,
+DROP TABLE IF EXISTS `email_verifications`;
+CREATE TABLE IF NOT EXISTS `email_verifications` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `code_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `attempts` tinyint UNSIGNED NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `email_verifications_user_id_foreign` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -99,14 +583,17 @@ CREATE TABLE `email_verifications` (
 -- Table structure for table `failed_jobs`
 --
 
-CREATE TABLE `failed_jobs` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `uuid` varchar(255) NOT NULL,
-  `connection` text NOT NULL,
-  `queue` text NOT NULL,
-  `payload` longtext NOT NULL,
-  `exception` longtext NOT NULL,
-  `failed_at` timestamp NOT NULL DEFAULT current_timestamp()
+DROP TABLE IF EXISTS `failed_jobs`;
+CREATE TABLE IF NOT EXISTS `failed_jobs` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `uuid` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `connection` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `queue` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `payload` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `exception` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `failed_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -115,14 +602,32 @@ CREATE TABLE `failed_jobs` (
 -- Table structure for table `gio_hang`
 --
 
-CREATE TABLE `gio_hang` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` bigint(20) UNSIGNED NOT NULL,
-  `trang_thai` varchar(50) DEFAULT NULL,
+DROP TABLE IF EXISTS `gio_hang`;
+CREATE TABLE IF NOT EXISTS `gio_hang` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `trang_thai` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `tong_tien` decimal(12,2) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `gio_hang_user_id_foreign` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `gio_hang`
+--
+
+INSERT INTO `gio_hang` (`id`, `user_id`, `trang_thai`, `tong_tien`, `created_at`, `updated_at`) VALUES
+(1, 9, 'completed', 234000.00, '2026-03-22 13:51:27', '2026-03-22 13:52:43'),
+(2, 9, 'completed', 437000.00, '2026-03-22 14:04:22', '2026-03-22 14:17:46'),
+(3, 9, 'completed', 194500.00, '2026-03-22 14:18:16', '2026-03-22 14:36:27'),
+(4, 9, 'completed', 774000.00, '2026-03-22 14:37:15', '2026-03-22 14:57:14'),
+(5, 10, 'completed', 134000.00, '2026-03-26 11:09:21', '2026-03-26 11:09:44'),
+(6, 10, 'completed', 71000.00, '2026-03-26 11:13:19', '2026-03-26 11:13:33'),
+(7, 10, 'completed', 1949000.00, '2026-03-26 12:04:51', '2026-03-26 12:27:57'),
+(8, 10, 'completed', 220000.00, '2026-03-26 12:49:45', '2026-03-26 12:58:38'),
+(9, 10, 'active', 70000.00, '2026-03-26 13:29:07', '2026-03-26 13:29:07');
 
 -- --------------------------------------------------------
 
@@ -130,16 +635,40 @@ CREATE TABLE `gio_hang` (
 -- Table structure for table `gio_hang_chi_tiet`
 --
 
-CREATE TABLE `gio_hang_chi_tiet` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `gio_hang_id` bigint(20) UNSIGNED NOT NULL,
-  `sach_id` bigint(20) UNSIGNED NOT NULL,
-  `so_luong` int(11) NOT NULL,
+DROP TABLE IF EXISTS `gio_hang_chi_tiet`;
+CREATE TABLE IF NOT EXISTS `gio_hang_chi_tiet` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `gio_hang_id` bigint UNSIGNED NOT NULL,
+  `sach_id` bigint UNSIGNED NOT NULL,
+  `so_luong` int NOT NULL,
   `don_gia` decimal(12,2) NOT NULL,
   `thanh_tien` decimal(12,2) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `gio_hang_chi_tiet_gio_hang_id_foreign` (`gio_hang_id`),
+  KEY `gio_hang_chi_tiet_sach_id_foreign` (`sach_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `gio_hang_chi_tiet`
+--
+
+INSERT INTO `gio_hang_chi_tiet` (`id`, `gio_hang_id`, `sach_id`, `so_luong`, `don_gia`, `thanh_tien`, `created_at`, `updated_at`) VALUES
+(1, 1, 1238, 3, 78000.00, 234000.00, '2026-03-22 13:51:27', '2026-03-22 13:51:52'),
+(3, 2, 1243, 3, 127000.00, 381000.00, '2026-03-22 14:11:13', '2026-03-22 14:11:16'),
+(4, 2, 1244, 1, 56000.00, 56000.00, '2026-03-22 14:17:29', '2026-03-22 14:17:29'),
+(5, 3, 1245, 1, 194500.00, 194500.00, '2026-03-22 14:18:16', '2026-03-22 14:18:16'),
+(8, 4, 974, 1, 70000.00, 70000.00, '2026-03-22 14:41:50', '2026-03-22 14:41:50'),
+(9, 4, 1119, 1, 626000.00, 626000.00, '2026-03-22 14:41:59', '2026-03-22 14:41:59'),
+(10, 4, 1238, 1, 78000.00, 78000.00, '2026-03-22 14:56:20', '2026-03-22 14:56:20'),
+(11, 5, 1238, 1, 78000.00, 78000.00, '2026-03-26 11:09:21', '2026-03-26 11:09:21'),
+(12, 5, 1240, 1, 56000.00, 56000.00, '2026-03-26 11:09:29', '2026-03-26 11:09:29'),
+(13, 6, 438, 1, 71000.00, 71000.00, '2026-03-26 11:13:19', '2026-03-26 11:13:19'),
+(14, 7, 1119, 3, 626000.00, 1878000.00, '2026-03-26 12:04:51', '2026-03-26 12:08:54'),
+(15, 7, 438, 1, 71000.00, 71000.00, '2026-03-26 12:09:46', '2026-03-26 12:09:46'),
+(16, 8, 952, 4, 55000.00, 220000.00, '2026-03-26 12:49:45', '2026-03-26 12:56:48'),
+(17, 9, 974, 1, 70000.00, 70000.00, '2026-03-26 13:29:07', '2026-03-26 13:29:07');
 
 -- --------------------------------------------------------
 
@@ -147,18 +676,719 @@ CREATE TABLE `gio_hang_chi_tiet` (
 -- Table structure for table `ma_giam_gia`
 --
 
-CREATE TABLE `ma_giam_gia` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ma_code` varchar(50) NOT NULL,
-  `loai` enum('percent','fixed') NOT NULL,
+DROP TABLE IF EXISTS `ma_giam_gia`;
+CREATE TABLE IF NOT EXISTS `ma_giam_gia` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ma_code` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `sach_id` bigint UNSIGNED DEFAULT NULL COMMENT 'ID sách áp dụng mã này (nếu null thì áp dụng cho cả đơn hàng)',
+  `the_loai_id` bigint UNSIGNED DEFAULT NULL,
+  `loai` enum('percent','fixed') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `gia_tri` decimal(12,2) NOT NULL,
   `ngay_het_han` date DEFAULT NULL,
-  `so_luong` int(11) DEFAULT NULL,
-  `da_dung` int(11) NOT NULL DEFAULT 0,
-  `trang_thai` tinyint(4) NOT NULL DEFAULT 1,
+  `so_luong` int DEFAULT NULL,
+  `da_dung` int NOT NULL DEFAULT '0',
+  `trang_thai` tinyint NOT NULL DEFAULT '1',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `ma_giam_gia_ma_code_unique` (`ma_code`),
+  KEY `ma_giam_gia_sach_id_foreign` (`sach_id`),
+  KEY `ma_giam_gia_the_loai_id_foreign` (`the_loai_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=690 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `ma_giam_gia`
+--
+
+INSERT INTO `ma_giam_gia` (`id`, `ma_code`, `sach_id`, `the_loai_id`, `loai`, `gia_tri`, `ngay_het_han`, `so_luong`, `da_dung`, `trang_thai`, `created_at`, `updated_at`) VALUES
+(3, 'CHAOBANMOI', NULL, NULL, 'percent', 20.00, '2026-05-01', 500, 0, 1, '2026-03-26 12:37:15', '2026-03-26 13:25:57'),
+(4, 'TETVUIXUAN', NULL, NULL, 'fixed', 50000.00, '2026-05-01', 10000, 0, 1, '2026-03-26 12:37:39', '2026-03-26 13:25:57'),
+(5, 'SALE_T3', NULL, NULL, 'percent', 15.00, '2026-05-01', NULL, 0, 1, '2026-03-26 12:44:35', '2026-03-26 13:25:57'),
+(6, 'SALE_T4', NULL, NULL, 'percent', 15.00, '2026-05-01', NULL, 1, 1, '2026-03-26 12:45:14', '2026-03-26 13:25:57'),
+(7, 'KI_NIEM', NULL, NULL, 'fixed', 35000.00, '2026-05-01', 500, 0, 1, '2026-03-26 12:45:51', '2026-03-26 13:25:57'),
+(8, 'KY_NANG', 631, NULL, 'fixed', 15000.00, '2026-05-01', 500, 0, 1, '2026-03-26 12:47:55', '2026-03-26 13:25:57'),
+(9, 'HOC_TAP', 428, NULL, 'percent', 20000.00, '2026-05-01', 500, 0, 1, '2026-03-26 12:48:31', '2026-03-26 13:25:57'),
+(10, 'TAI_CHINH', 952, NULL, 'fixed', 35000.00, '2026-05-01', 100, 1, 1, '2026-03-26 12:49:23', '2026-03-26 13:25:57'),
+(11, 'MIEN_PHI_GIAO_HANG', NULL, NULL, 'fixed', 25000.00, '2026-05-01', NULL, 0, 1, '2026-03-26 12:52:12', '2026-03-26 13:25:57'),
+(12, 'AI', 1025, NULL, 'fixed', 10000.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:00:48', '2026-03-26 13:25:57'),
+(13, 'BAC_SI', 882, NULL, 'fixed', 15000.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:01:23', '2026-03-26 13:25:57'),
+(14, 'AN_DAM', 870, NULL, 'fixed', 15000.00, '2026-05-01', NULL, 0, 1, '2026-03-26 13:02:35', '2026-03-26 13:25:57'),
+(15, 'ĂN DẬM', 868, NULL, 'fixed', 15000.00, '2026-05-01', 15000, 0, 1, '2026-03-26 13:03:19', '2026-03-26 13:25:57'),
+(16, 'TOP01', 1283, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(17, 'TOP02', 1282, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(18, 'TOP03', 1281, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(19, 'TOP04', 1280, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(20, 'TOP05', 1279, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(21, 'TOP06', 1278, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(22, 'TOP07', 1277, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(23, 'TOP08', 1276, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(24, 'TOP09', 1275, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(25, 'TOP10', 1274, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(26, 'TOP11', 1273, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(27, 'TOP12', 1272, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(28, 'TOP13', 1271, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(29, 'TOP14', 1270, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(30, 'TOP15', 1269, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(31, 'TOP16', 1268, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(32, 'TOP17', 1267, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(33, 'TOP18', 1266, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(34, 'TOP19', 1265, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(35, 'TOP20', 1264, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(36, 'TOP21', 1263, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(37, 'TOP22', 1262, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(38, 'TOP23', 1261, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(39, 'TOP24', 1260, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(40, 'TOP25', 1259, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(41, 'TOP26', 1258, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(42, 'TOP27', 1257, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(43, 'TOP28', 1256, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(44, 'TOP29', 1255, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(45, 'TOP30', 1254, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(46, 'TOP31', 1253, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(47, 'TOP32', 1252, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(48, 'TOP33', 1251, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(49, 'TOP34', 1250, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(50, 'TOP35', 1249, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(51, 'TOP36', 1248, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(52, 'TOP37', 1247, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(53, 'TOP38', 1246, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(54, 'TOP39', 1245, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(55, 'TOP40', 1244, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(56, 'TOP41', 1243, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(57, 'TOP42', 1242, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(58, 'TOP43', 1241, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(59, 'TOP44', 1240, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(60, 'TOP45', 1239, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(61, 'TOP46', 1238, NULL, 'percent', 20.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(62, 'TOP47', 1237, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(63, 'TOP48', 1236, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(64, 'TOP49', 1235, NULL, 'percent', 18.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(65, 'TOP50', 1234, NULL, 'percent', 15.00, '2026-05-01', 100, 0, 1, '2026-03-26 13:09:41', '2026-03-26 13:25:57'),
+(66, 'C3B514', 514, 3, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(67, 'C3B513', 513, 3, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(68, 'C3B512', 512, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(69, 'C3B511', 511, 3, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(70, 'C3B510', 510, 3, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(71, 'C3B509', 509, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(72, 'C3B508', 508, 3, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(73, 'C3B507', 507, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(74, 'C3B506', 506, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(75, 'C3B505', 505, 3, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(76, 'C3B504', 504, 3, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(77, 'C3B503', 503, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(78, 'C3B502', 502, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(79, 'C3B501', 501, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(80, 'C3B500', 500, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(81, 'C3B499', 499, 3, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(82, 'C3B498', 498, 3, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(83, 'C3B497', 497, 3, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(84, 'C3B496', 496, 3, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(85, 'C3B495', 495, 3, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(86, 'C5B490', 490, 5, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(87, 'C5B489', 489, 5, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(88, 'C5B488', 488, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(89, 'C5B487', 487, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(90, 'C5B486', 486, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(91, 'C5B485', 485, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(92, 'C5B484', 484, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(93, 'C5B483', 483, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(94, 'C5B482', 482, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(95, 'C5B481', 481, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(96, 'C5B480', 480, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(97, 'C5B479', 479, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(98, 'C5B478', 478, 5, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(99, 'C5B477', 477, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(100, 'C5B476', 476, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(101, 'C5B475', 475, 5, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(102, 'C5B474', 474, 5, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(103, 'C5B473', 473, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(104, 'C5B472', 472, 5, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(105, 'C5B471', 471, 5, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(106, 'C6B435', 435, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(107, 'C6B434', 434, 6, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(108, 'C6B433', 433, 6, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(109, 'C6B432', 432, 6, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(110, 'C6B431', 431, 6, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(111, 'C6B430', 430, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(112, 'C6B429', 429, 6, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(113, 'C6B427', 427, 6, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(114, 'C6B426', 426, 6, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(115, 'C6B425', 425, 6, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(116, 'C6B424', 424, 6, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(117, 'C6B423', 423, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(118, 'C6B422', 422, 6, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(119, 'C6B421', 421, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(120, 'C6B420', 420, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(121, 'C6B419', 419, 6, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(122, 'C6B418', 418, 6, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(123, 'C6B417', 417, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(124, 'C6B416', 416, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(125, 'C6B415', 415, 6, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(126, 'C10B467', 467, 10, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(127, 'C10B466', 466, 10, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(128, 'C10B465', 465, 10, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(129, 'C10B464', 464, 10, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(130, 'C10B463', 463, 10, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(131, 'C10B462', 462, 10, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(132, 'C10B461', 461, 10, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(133, 'C10B460', 460, 10, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(134, 'C10B459', 459, 10, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(135, 'C10B458', 458, 10, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(136, 'C10B457', 457, 10, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(137, 'C10B456', 456, 10, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(138, 'C10B455', 455, 10, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(139, 'C10B454', 454, 10, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(140, 'C10B453', 453, 10, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(141, 'C10B452', 452, 10, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(142, 'C10B451', 451, 10, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(143, 'C10B450', 450, 10, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(144, 'C10B449', 449, 10, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(145, 'C10B448', 448, 10, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(146, 'C11B1028', 1028, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(147, 'C11B1027', 1027, 11, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(148, 'C11B1026', 1026, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(149, 'C11B1024', 1024, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(150, 'C11B1023', 1023, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(151, 'C11B1022', 1022, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(152, 'C11B1021', 1021, 11, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(153, 'C11B1020', 1020, 11, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(154, 'C11B1019', 1019, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(155, 'C11B1018', 1018, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(156, 'C11B1017', 1017, 11, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(157, 'C11B1016', 1016, 11, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(158, 'C11B1015', 1015, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(159, 'C11B1014', 1014, 11, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(160, 'C11B1013', 1013, 11, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(161, 'C11B1012', 1012, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(162, 'C11B1011', 1011, 11, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(163, 'C11B1010', 1010, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(164, 'C11B1009', 1009, 11, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(165, 'C11B1008', 1008, 11, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(166, 'C12B1005', 1005, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(167, 'C12B1004', 1004, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(168, 'C12B1003', 1003, 12, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(169, 'C12B1002', 1002, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(170, 'C12B1001', 1001, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(171, 'C12B1000', 1000, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(172, 'C12B999', 999, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(173, 'C12B998', 998, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(174, 'C12B997', 997, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(175, 'C12B996', 996, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(176, 'C12B995', 995, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(177, 'C12B994', 994, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(178, 'C12B993', 993, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(179, 'C12B992', 992, 12, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(180, 'C12B991', 991, 12, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(181, 'C12B990', 990, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(182, 'C12B989', 989, 12, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(183, 'C12B988', 988, 12, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(184, 'C12B987', 987, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(185, 'C12B986', 986, 12, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(186, 'C13B1052', 1052, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(187, 'C13B1051', 1051, 13, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(188, 'C13B1050', 1050, 13, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(189, 'C13B1049', 1049, 13, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(190, 'C13B1048', 1048, 13, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(191, 'C13B1047', 1047, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(192, 'C13B1046', 1046, 13, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(193, 'C13B1045', 1045, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(194, 'C13B1044', 1044, 13, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(195, 'C13B1043', 1043, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(196, 'C13B1042', 1042, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(197, 'C13B1041', 1041, 13, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(198, 'C13B1040', 1040, 13, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(199, 'C13B1039', 1039, 13, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(200, 'C13B1038', 1038, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(201, 'C13B1037', 1037, 13, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(202, 'C13B1036', 1036, 13, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(203, 'C13B1035', 1035, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(204, 'C13B1034', 1034, 13, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(205, 'C13B1033', 1033, 13, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(206, 'C14B981', 981, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(207, 'C14B980', 980, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(208, 'C14B979', 979, 14, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(209, 'C14B978', 978, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(210, 'C14B977', 977, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(211, 'C14B976', 976, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(212, 'C14B975', 975, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(213, 'C14B974', 974, 14, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(214, 'C14B973', 973, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(215, 'C14B972', 972, 14, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(216, 'C14B971', 971, 14, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(217, 'C14B970', 970, 14, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(218, 'C14B969', 969, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(219, 'C14B968', 968, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(220, 'C14B967', 967, 14, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(221, 'C14B966', 966, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(222, 'C14B965', 965, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(223, 'C14B964', 964, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(224, 'C14B963', 963, 14, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(225, 'C14B962', 962, 14, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(226, 'C15B957', 957, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(227, 'C15B956', 956, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(228, 'C15B955', 955, 15, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(229, 'C15B954', 954, 15, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(230, 'C15B953', 953, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(231, 'C15B951', 951, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(232, 'C15B950', 950, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(233, 'C15B949', 949, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(234, 'C15B948', 948, 15, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(235, 'C15B947', 947, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(236, 'C15B946', 946, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(237, 'C15B945', 945, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(238, 'C15B944', 944, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(239, 'C15B943', 943, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(240, 'C15B942', 942, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(241, 'C15B941', 941, 15, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(242, 'C15B940', 940, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(243, 'C15B939', 939, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(244, 'C15B938', 938, 15, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(245, 'C15B937', 937, 15, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(246, 'C17B842', 842, 17, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(247, 'C17B841', 841, 17, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(248, 'C17B840', 840, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(249, 'C17B839', 839, 17, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(250, 'C17B838', 838, 17, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(251, 'C17B837', 837, 17, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(252, 'C17B836', 836, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(253, 'C17B835', 835, 17, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(254, 'C17B834', 834, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(255, 'C17B833', 833, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(256, 'C17B832', 832, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(257, 'C17B831', 831, 17, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(258, 'C17B830', 830, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(259, 'C17B829', 829, 17, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(260, 'C17B828', 828, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(261, 'C17B827', 827, 17, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(262, 'C17B826', 826, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(263, 'C17B825', 825, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(264, 'C17B824', 824, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(265, 'C17B823', 823, 17, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(266, 'C18B700', 700, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(267, 'C18B699', 699, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(268, 'C18B698', 698, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(269, 'C18B697', 697, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(270, 'C18B696', 696, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(271, 'C18B695', 695, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(272, 'C18B694', 694, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(273, 'C18B693', 693, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(274, 'C18B692', 692, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(275, 'C18B691', 691, 18, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(276, 'C18B690', 690, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(277, 'C18B689', 689, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(278, 'C18B688', 688, 18, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(279, 'C18B687', 687, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(280, 'C18B686', 686, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(281, 'C18B685', 685, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(282, 'C18B684', 684, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(283, 'C18B683', 683, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(284, 'C18B682', 682, 18, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(285, 'C18B681', 681, 18, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(286, 'C20B818', 818, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(287, 'C20B817', 817, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(288, 'C20B816', 816, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(289, 'C20B815', 815, 20, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(290, 'C20B814', 814, 20, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(291, 'C20B813', 813, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(292, 'C20B812', 812, 20, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(293, 'C20B811', 811, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(294, 'C20B810', 810, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(295, 'C20B809', 809, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(296, 'C20B808', 808, 20, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(297, 'C20B807', 807, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(298, 'C20B806', 806, 20, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(299, 'C20B805', 805, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(300, 'C20B804', 804, 20, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(301, 'C20B803', 803, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(302, 'C20B802', 802, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(303, 'C20B801', 801, 20, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(304, 'C22B866', 866, 22, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(305, 'C22B865', 865, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(306, 'C22B864', 864, 22, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(307, 'C22B863', 863, 22, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(308, 'C22B862', 862, 22, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(309, 'C22B861', 861, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(310, 'C22B860', 860, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(311, 'C22B859', 859, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(312, 'C22B858', 858, 22, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(313, 'C22B857', 857, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(314, 'C22B856', 856, 22, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(315, 'C22B855', 855, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(316, 'C22B854', 854, 22, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(317, 'C22B853', 853, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(318, 'C22B852', 852, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(319, 'C22B851', 851, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(320, 'C22B850', 850, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(321, 'C22B849', 849, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(322, 'C22B848', 848, 22, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(323, 'C22B847', 847, 22, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(324, 'C25B887', 887, 25, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(325, 'C25B886', 886, 25, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(326, 'C25B885', 885, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(327, 'C25B884', 884, 25, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(328, 'C25B883', 883, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(329, 'C25B881', 881, 25, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(330, 'C25B880', 880, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(331, 'C25B879', 879, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(332, 'C25B878', 878, 25, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(333, 'C25B877', 877, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(334, 'C25B876', 876, 25, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(335, 'C25B875', 875, 25, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(336, 'C25B874', 874, 25, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(337, 'C25B873', 873, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(338, 'C25B872', 872, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(339, 'C25B871', 871, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(340, 'C25B869', 869, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(341, 'C25B867', 867, 25, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(342, 'C27B676', 676, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(343, 'C27B675', 675, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(344, 'C27B674', 674, 27, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(345, 'C27B673', 673, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(346, 'C27B672', 672, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(347, 'C27B671', 671, 27, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(348, 'C27B670', 670, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(349, 'C27B669', 669, 27, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(350, 'C27B668', 668, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(351, 'C27B667', 667, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(352, 'C27B666', 666, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(353, 'C27B665', 665, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(354, 'C27B664', 664, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(355, 'C27B663', 663, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(356, 'C27B662', 662, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(357, 'C27B661', 661, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(358, 'C27B660', 660, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(359, 'C27B659', 659, 27, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(360, 'C27B658', 658, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(361, 'C27B657', 657, 27, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(362, 'C28B654', 654, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(363, 'C28B653', 653, 28, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(364, 'C28B652', 652, 28, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(365, 'C28B651', 651, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(366, 'C28B650', 650, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(367, 'C28B649', 649, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(368, 'C28B648', 648, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(369, 'C28B647', 647, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(370, 'C28B646', 646, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(371, 'C28B645', 645, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(372, 'C28B644', 644, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(373, 'C28B643', 643, 28, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(374, 'C28B642', 642, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(375, 'C28B641', 641, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(376, 'C28B640', 640, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(377, 'C28B639', 639, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(378, 'C28B638', 638, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(379, 'C28B637', 637, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(380, 'C28B636', 636, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(381, 'C28B635', 635, 28, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(382, 'C30B776', 776, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(383, 'C30B775', 775, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(384, 'C30B774', 774, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(385, 'C30B773', 773, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(386, 'C30B772', 772, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(387, 'C30B771', 771, 30, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(388, 'C30B770', 770, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(389, 'C30B769', 769, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(390, 'C30B768', 768, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(391, 'C30B767', 767, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(392, 'C30B766', 766, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(393, 'C30B765', 765, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(394, 'C30B764', 764, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(395, 'C30B763', 763, 30, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(396, 'C30B762', 762, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(397, 'C30B761', 761, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(398, 'C30B760', 760, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(399, 'C30B759', 759, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(400, 'C30B758', 758, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(401, 'C30B757', 757, 30, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(402, 'C31B752', 752, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(403, 'C31B751', 751, 31, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(404, 'C31B750', 750, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(405, 'C31B749', 749, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(406, 'C31B748', 748, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(407, 'C31B747', 747, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(408, 'C31B746', 746, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(409, 'C31B745', 745, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(410, 'C31B744', 744, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(411, 'C31B743', 743, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(412, 'C31B742', 742, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(413, 'C31B741', 741, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(414, 'C31B740', 740, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(415, 'C31B739', 739, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(416, 'C31B738', 738, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(417, 'C31B737', 737, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(418, 'C31B736', 736, 31, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(419, 'C31B735', 735, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(420, 'C31B734', 734, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(421, 'C31B733', 733, 31, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(422, 'C32B723', 723, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(423, 'C32B722', 722, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(424, 'C32B721', 721, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(425, 'C32B720', 720, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(426, 'C32B719', 719, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(427, 'C32B718', 718, 32, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(428, 'C32B717', 717, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(429, 'C32B716', 716, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(430, 'C32B715', 715, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(431, 'C32B714', 714, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(432, 'C32B713', 713, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(433, 'C32B712', 712, 32, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(434, 'C32B711', 711, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(435, 'C32B710', 710, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(436, 'C32B709', 709, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(437, 'C32B708', 708, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(438, 'C32B707', 707, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(439, 'C32B706', 706, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(440, 'C32B705', 705, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(441, 'C32B704', 704, 32, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24');
+INSERT INTO `ma_giam_gia` (`id`, `ma_code`, `sach_id`, `the_loai_id`, `loai`, `gia_tri`, `ngay_het_han`, `so_luong`, `da_dung`, `trang_thai`, `created_at`, `updated_at`) VALUES
+(442, 'C34B538', 538, 34, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(443, 'C34B537', 537, 34, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(444, 'C34B536', 536, 34, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(445, 'C34B535', 535, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(446, 'C34B534', 534, 34, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(447, 'C34B533', 533, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(448, 'C34B532', 532, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(449, 'C34B531', 531, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(450, 'C34B530', 530, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(451, 'C34B529', 529, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(452, 'C34B528', 528, 34, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(453, 'C34B527', 527, 34, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(454, 'C34B526', 526, 34, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(455, 'C34B525', 525, 34, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(456, 'C34B524', 524, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(457, 'C34B523', 523, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(458, 'C34B522', 522, 34, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(459, 'C34B521', 521, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(460, 'C34B520', 520, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(461, 'C34B519', 519, 34, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(462, 'C35B608', 608, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(463, 'C35B607', 607, 35, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(464, 'C35B606', 606, 35, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(465, 'C35B605', 605, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(466, 'C35B604', 604, 35, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(467, 'C35B603', 603, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(468, 'C35B602', 602, 35, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(469, 'C35B601', 601, 35, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(470, 'C35B600', 600, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(471, 'C35B599', 599, 35, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(472, 'C35B598', 598, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(473, 'C35B597', 597, 35, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(474, 'C35B596', 596, 35, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(475, 'C35B595', 595, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(476, 'C35B594', 594, 35, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(477, 'C35B593', 593, 35, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(478, 'C35B592', 592, 35, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(479, 'C35B591', 591, 35, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(480, 'C35B590', 590, 35, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(481, 'C35B589', 589, 35, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(482, 'C37B560', 560, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(483, 'C37B559', 559, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(484, 'C37B558', 558, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(485, 'C37B557', 557, 37, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(486, 'C37B556', 556, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(487, 'C37B555', 555, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(488, 'C37B554', 554, 37, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(489, 'C37B553', 553, 37, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(490, 'C37B552', 552, 37, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(491, 'C37B551', 551, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(492, 'C37B550', 550, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(493, 'C37B549', 549, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(494, 'C37B548', 548, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(495, 'C37B547', 547, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(496, 'C37B546', 546, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(497, 'C37B545', 545, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(498, 'C37B544', 544, 37, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(499, 'C37B543', 543, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(500, 'C37B542', 542, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(501, 'C37B541', 541, 37, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(502, 'C38B630', 630, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(503, 'C38B629', 629, 38, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(504, 'C38B628', 628, 38, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(505, 'C38B627', 627, 38, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(506, 'C38B626', 626, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(507, 'C38B625', 625, 38, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(508, 'C38B624', 624, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(509, 'C38B623', 623, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(510, 'C38B622', 622, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(511, 'C38B621', 621, 38, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(512, 'C38B620', 620, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(513, 'C38B619', 619, 38, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(514, 'C38B618', 618, 38, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(515, 'C38B617', 617, 38, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(516, 'C38B616', 616, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(517, 'C38B615', 615, 38, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(518, 'C38B614', 614, 38, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(519, 'C38B613', 613, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(520, 'C38B612', 612, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(521, 'C38B611', 611, 38, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(522, 'C40B1183', 1183, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(523, 'C40B1182', 1182, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(524, 'C40B1181', 1181, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(525, 'C40B1180', 1180, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(526, 'C40B1179', 1179, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(527, 'C40B1178', 1178, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(528, 'C40B1177', 1177, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(529, 'C40B1176', 1176, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(530, 'C40B1175', 1175, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(531, 'C40B1174', 1174, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(532, 'C40B1173', 1173, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(533, 'C40B1172', 1172, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(534, 'C40B1171', 1171, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(535, 'C40B1170', 1170, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(536, 'C40B1169', 1169, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(537, 'C40B1168', 1168, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(538, 'C40B1167', 1167, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(539, 'C40B1166', 1166, 40, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(540, 'C40B1165', 1165, 40, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(541, 'C41B1140', 1140, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(542, 'C41B1139', 1139, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(543, 'C41B1138', 1138, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(544, 'C41B1137', 1137, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(545, 'C41B1136', 1136, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(546, 'C41B1135', 1135, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(547, 'C41B1134', 1134, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(548, 'C41B1133', 1133, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(549, 'C41B1132', 1132, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(550, 'C41B1131', 1131, 41, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(551, 'C41B1130', 1130, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(552, 'C41B1129', 1129, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(553, 'C41B1128', 1128, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(554, 'C41B1127', 1127, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(555, 'C41B1126', 1126, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(556, 'C41B1125', 1125, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(557, 'C41B1124', 1124, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(558, 'C41B1123', 1123, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(559, 'C41B1122', 1122, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(560, 'C41B1121', 1121, 41, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(561, 'C42B1164', 1164, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(562, 'C42B1163', 1163, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(563, 'C42B1162', 1162, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(564, 'C42B1161', 1161, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(565, 'C42B1160', 1160, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(566, 'C42B1159', 1159, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(567, 'C42B1158', 1158, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(568, 'C42B1157', 1157, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(569, 'C42B1156', 1156, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(570, 'C42B1155', 1155, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(571, 'C42B1154', 1154, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(572, 'C42B1153', 1153, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(573, 'C42B1152', 1152, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(574, 'C42B1151', 1151, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(575, 'C42B1150', 1150, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(576, 'C42B1149', 1149, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(577, 'C42B1148', 1148, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(578, 'C42B1147', 1147, 42, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(579, 'C42B1146', 1146, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(580, 'C42B1145', 1145, 42, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(581, 'C43B1203', 1203, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(582, 'C43B1202', 1202, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(583, 'C43B1201', 1201, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(584, 'C43B1200', 1200, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(585, 'C43B1199', 1199, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(586, 'C43B1198', 1198, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(587, 'C43B1197', 1197, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(588, 'C43B1196', 1196, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(589, 'C43B1195', 1195, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(590, 'C43B1194', 1194, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(591, 'C43B1193', 1193, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(592, 'C43B1192', 1192, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(593, 'C43B1191', 1191, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(594, 'C43B1190', 1190, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(595, 'C43B1189', 1189, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(596, 'C43B1188', 1188, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(597, 'C43B1187', 1187, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(598, 'C43B1186', 1186, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(599, 'C43B1185', 1185, 43, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(600, 'C43B1184', 1184, 43, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(601, 'C45B1224', 1224, 45, 'fixed', 15000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(602, 'C45B1223', 1223, 45, 'fixed', 8000.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(603, 'C45B1222', 1222, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(604, 'C45B1221', 1221, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(605, 'C45B1220', 1220, 45, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(606, 'C45B1219', 1219, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(607, 'C45B1218', 1218, 45, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(608, 'C45B1217', 1217, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(609, 'C45B1216', 1216, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(610, 'C45B1215', 1215, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(611, 'C45B1214', 1214, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(612, 'C45B1213', 1213, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(613, 'C45B1212', 1212, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(614, 'C45B1211', 1211, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(615, 'C45B1210', 1210, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(616, 'C45B1209', 1209, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(617, 'C45B1208', 1208, 45, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(618, 'C45B1207', 1207, 45, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(619, 'C45B1206', 1206, 45, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(620, 'C45B1205', 1205, 45, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(621, 'C46B1233', 1233, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(622, 'C46B1232', 1232, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(623, 'C46B1231', 1231, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(624, 'C46B1230', 1230, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(625, 'C46B1229', 1229, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(626, 'C46B1228', 1228, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(627, 'C46B1227', 1227, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(628, 'C46B1226', 1226, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(629, 'C46B1225', 1225, 46, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(630, 'C48B1116', 1116, 48, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(631, 'C48B1115', 1115, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(632, 'C48B1114', 1114, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(633, 'C48B1113', 1113, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(634, 'C48B1112', 1112, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(635, 'C48B1111', 1111, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(636, 'C48B1110', 1110, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(637, 'C48B1109', 1109, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(638, 'C48B1108', 1108, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(639, 'C48B1107', 1107, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(640, 'C48B1106', 1106, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(641, 'C48B1105', 1105, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(642, 'C48B1104', 1104, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(643, 'C48B1103', 1103, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(644, 'C48B1102', 1102, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(645, 'C48B1101', 1101, 48, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(646, 'C48B1100', 1100, 48, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(647, 'C49B1099', 1099, 49, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(648, 'C49B1098', 1098, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(649, 'C49B1097', 1097, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(650, 'C49B1096', 1096, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(651, 'C49B1095', 1095, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(652, 'C49B1094', 1094, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(653, 'C49B1093', 1093, 49, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(654, 'C49B1092', 1092, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(655, 'C49B1091', 1091, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(656, 'C49B1090', 1090, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(657, 'C49B1089', 1089, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(658, 'C49B1088', 1088, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(659, 'C49B1087', 1087, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(660, 'C49B1086', 1086, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(661, 'C49B1085', 1085, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(662, 'C49B1084', 1084, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(663, 'C49B1083', 1083, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(664, 'C49B1082', 1082, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(665, 'C49B1081', 1081, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(666, 'C49B1080', 1080, 49, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(667, 'C50B1075', 1075, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(668, 'C50B1074', 1074, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(669, 'C50B1073', 1073, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(670, 'C50B1072', 1072, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(671, 'C50B1071', 1071, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(672, 'C50B1070', 1070, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(673, 'C50B1069', 1069, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(674, 'C50B1068', 1068, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(675, 'C50B1067', 1067, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(676, 'C50B1066', 1066, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(677, 'C50B1065', 1065, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(678, 'C50B1064', 1064, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(679, 'C50B1063', 1063, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(680, 'C50B1062', 1062, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(681, 'C50B1061', 1061, 50, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(682, 'C50B1060', 1060, 50, 'percent', 10.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(683, 'C50B1059', 1059, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(684, 'C50B1058', 1058, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(685, 'C50B1057', 1057, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(686, 'C50B1056', 1056, 50, 'percent', 15.00, '2026-05-01', 50, 0, 1, '2026-03-26 13:26:24', '2026-03-26 13:26:24'),
+(687, 'SINH_NHAT', NULL, NULL, 'percent', 50.00, '2026-07-02', 50, 0, 1, '2026-03-26 13:28:54', '2026-03-26 13:28:54'),
+(688, 'TIET_KIEM_10K', NULL, NULL, 'fixed', 10000.00, '2026-07-02', 500, 0, 1, '2026-03-26 13:49:40', '2026-03-26 13:49:40'),
+(689, 'ƯU đãI GIAO HàNG', NULL, NULL, 'percent', 15.00, '2026-01-06', 100, 0, 1, '2026-03-26 13:49:40', '2026-03-26 13:49:40');
 
 -- --------------------------------------------------------
 
@@ -166,11 +1396,13 @@ CREATE TABLE `ma_giam_gia` (
 -- Table structure for table `migrations`
 --
 
-CREATE TABLE `migrations` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `migration` varchar(255) NOT NULL,
-  `batch` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+DROP TABLE IF EXISTS `migrations`;
+CREATE TABLE IF NOT EXISTS `migrations` (
+  `id` int UNSIGNED NOT NULL AUTO_INCREMENT,
+  `migration` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `batch` int NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `migrations`
@@ -206,7 +1438,15 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (27, '2026_03_09_162042_add_profile_fields_to_users_table', 2),
 (28, '2026_03_09_114103_create_posts_table', 3),
 (29, '2026_03_09_115411_add_category_to_posts_table', 3),
-(30, '2026_03_10_100025_add_views_to_posts_table', 4);
+(30, '2026_03_10_100025_add_views_to_posts_table', 4),
+(31, '2026_03_10_190059_add_google_id_to_users_table', 5),
+(32, '2026_03_13_070000_add_loai_sach_to_the_loai_table', 5),
+(33, '2026_03_13_151118_add_payos_order_code_to_don_hang_table', 6),
+(34, '2026_03_13_224258_create_banners_table', 7),
+(35, '2026_03_15_115803_create_wishlists_table', 8),
+(36, '2026_03_26_190700_add_sach_id_to_ma_giam_gia_table', 9),
+(37, '2026_03_26_192516_add_checkout_fields_to_don_hang_table', 10),
+(38, '2026_03_26_200414_add_the_loai_id_to_ma_giam_gia_table', 11);
 
 -- --------------------------------------------------------
 
@@ -214,12 +1454,14 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 -- Table structure for table `nha_cung_cap`
 --
 
-CREATE TABLE `nha_cung_cap` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ten_ncc` varchar(150) NOT NULL,
+DROP TABLE IF EXISTS `nha_cung_cap`;
+CREATE TABLE IF NOT EXISTS `nha_cung_cap` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ten_ncc` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=80 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `nha_cung_cap`
@@ -312,12 +1554,14 @@ INSERT INTO `nha_cung_cap` (`id`, `ten_ncc`, `created_at`, `updated_at`) VALUES
 -- Table structure for table `nha_xuat_ban`
 --
 
-CREATE TABLE `nha_xuat_ban` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ten_nxb` varchar(150) NOT NULL,
+DROP TABLE IF EXISTS `nha_xuat_ban`;
+CREATE TABLE IF NOT EXISTS `nha_xuat_ban` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ten_nxb` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=182 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `nha_xuat_ban`
@@ -512,14 +1756,17 @@ INSERT INTO `nha_xuat_ban` (`id`, `ten_nxb`, `created_at`, `updated_at`) VALUES
 -- Table structure for table `password_resets`
 --
 
-CREATE TABLE `password_resets` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `code_hash` varchar(255) NOT NULL,
-  `expires_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `attempts` tinyint(3) UNSIGNED NOT NULL DEFAULT 0,
+DROP TABLE IF EXISTS `password_resets`;
+CREATE TABLE IF NOT EXISTS `password_resets` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `code_hash` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `expires_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `attempts` tinyint UNSIGNED NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `password_resets_email_index` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -528,16 +1775,20 @@ CREATE TABLE `password_resets` (
 -- Table structure for table `personal_access_tokens`
 --
 
-CREATE TABLE `personal_access_tokens` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `tokenable_type` varchar(255) NOT NULL,
-  `tokenable_id` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `token` varchar(64) NOT NULL,
-  `abilities` text DEFAULT NULL,
+DROP TABLE IF EXISTS `personal_access_tokens`;
+CREATE TABLE IF NOT EXISTS `personal_access_tokens` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tokenable_type` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `tokenable_id` bigint UNSIGNED NOT NULL,
+  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `token` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `abilities` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
   `last_used_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
+  KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -546,19 +1797,23 @@ CREATE TABLE `personal_access_tokens` (
 -- Table structure for table `posts`
 --
 
-CREATE TABLE `posts` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `category` varchar(255) DEFAULT NULL,
-  `slug` varchar(255) NOT NULL,
-  `image` varchar(255) DEFAULT NULL,
-  `content` longtext NOT NULL,
-  `status` enum('draft','pending','published','rejected') NOT NULL DEFAULT 'pending',
-  `views` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `user_id` bigint(20) UNSIGNED NOT NULL,
+DROP TABLE IF EXISTS `posts`;
+CREATE TABLE IF NOT EXISTS `posts` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `category` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `slug` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `status` enum('draft','pending','published','rejected') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `views` bigint UNSIGNED NOT NULL DEFAULT '0',
+  `user_id` bigint UNSIGNED NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `posts_slug_unique` (`slug`),
+  KEY `posts_user_id_foreign` (`user_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `posts`
@@ -574,12 +1829,14 @@ INSERT INTO `posts` (`id`, `title`, `category`, `slug`, `image`, `content`, `sta
 -- Table structure for table `roles`
 --
 
-CREATE TABLE `roles` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ten_vai_tro` varchar(255) NOT NULL,
+DROP TABLE IF EXISTS `roles`;
+CREATE TABLE IF NOT EXISTS `roles` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ten_vai_tro` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `roles`
@@ -595,27 +1852,34 @@ INSERT INTO `roles` (`id`, `ten_vai_tro`, `created_at`, `updated_at`) VALUES
 -- Table structure for table `sach`
 --
 
-CREATE TABLE `sach` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `tieu_de` varchar(200) NOT NULL,
-  `isbn` varchar(20) DEFAULT NULL,
-  `nam_xuat_ban` year(4) DEFAULT NULL,
-  `so_trang` int(11) DEFAULT NULL,
-  `tac_gia_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `nha_xuat_ban_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `nha_cung_cap_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `the_loai_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `loai_sach` enum('trong_nuoc','nuoc_ngoai') NOT NULL DEFAULT 'trong_nuoc',
-  `hinh_thuc_bia` varchar(50) DEFAULT NULL,
-  `mo_ta` text DEFAULT NULL,
-  `file_anh_bia` varchar(100) DEFAULT NULL,
-  `link_anh_bia` varchar(200) DEFAULT NULL,
+DROP TABLE IF EXISTS `sach`;
+CREATE TABLE IF NOT EXISTS `sach` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `tieu_de` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `isbn` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `nam_xuat_ban` year DEFAULT NULL,
+  `so_trang` int DEFAULT NULL,
+  `tac_gia_id` bigint UNSIGNED DEFAULT NULL,
+  `nha_xuat_ban_id` bigint UNSIGNED DEFAULT NULL,
+  `nha_cung_cap_id` bigint UNSIGNED DEFAULT NULL,
+  `the_loai_id` bigint UNSIGNED DEFAULT NULL,
+  `loai_sach` enum('trong_nuoc','nuoc_ngoai') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'trong_nuoc',
+  `hinh_thuc_bia` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `mo_ta` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci,
+  `file_anh_bia` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `link_anh_bia` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `gia_ban` decimal(12,2) NOT NULL,
   `gia_goc` decimal(12,2) DEFAULT NULL,
-  `so_luong_ton` int(11) NOT NULL DEFAULT 0,
+  `so_luong_ton` int NOT NULL DEFAULT '0',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sach_isbn_unique` (`isbn`),
+  KEY `sach_tac_gia_id_foreign` (`tac_gia_id`),
+  KEY `sach_nha_xuat_ban_id_foreign` (`nha_xuat_ban_id`),
+  KEY `sach_nha_cung_cap_id_foreign` (`nha_cung_cap_id`),
+  KEY `sach_the_loai_id_foreign` (`the_loai_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=1284 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `sach`
@@ -1454,7 +2718,7 @@ INSERT INTO `sach` (`id`, `tieu_de`, `isbn`, `nam_xuat_ban`, `so_trang`, `tac_gi
 (1235, 'Bộ Marketing 7.0 - A Guide For Thinking Marketers In The Age Of AI', '9781394329861', '2026', 240, 485, 180, NULL, 46, 'nuoc_ngoai', 'Bìa Cứng', 'Marketing 7.0 - A Guide For Thinking Marketers In The Age Of AI\nLevel up your marketing strategy by understanding how the human mind works in the age of artificial intelligence (AI)\nMarketing 7.0 explores mind-centric marketing, a new approach that shifts the focus from AI-driven performance optimization to understanding how people think, connect, and buy. With the insights in this book, readers will be prepared to engage a new breed of consumers: the augmented human.\nWritten by Philip Kotler, one of the world\'s leading authorities on marketing, together with Hermawan Kartajaya and Iwan Setiawan from the leading marketing consulting firm MCorp, this book discusses ideas such as:\n- Why digitalization, AI, and immersive technology unlock the consumer mind', NULL, 'https://cdn1.fahasa.com/media/catalog/product/9/7/9781394329861.jpg', 628000.00, NULL, 20, '2026-03-10 11:45:09', '2026-03-10 11:45:09'),
 (1236, 'The Winner’s Curse - Behavioral Economics Anomalies, Then And Now', '9781982165116', '2025', 352, 711, 73, 69, 46, 'nuoc_ngoai', 'Bìa Cứng', 'The Winner’s Curse - Behavioral Economics Anomalies, Then And Now\nNamed one of Financial Times’s Best Books of 2025, that bestselling author Tim Hartford called \"fun\" and \"nerdy in the best way\"\nNobel Prize winner Richard H. Thaler and rising star economist Alex O. Imas explore the past, present, and cutting-edge future in behavioral economics in The Winner’s Curse.\nWhy do people cooperate with one another when they have no obvious motivation to do so? Why do we hold on to possessions of little value? And why is the winner of an auction so often disappointed?\nOver thirty years ago, Richard H. Thaler introduced readers to behavioral economics in his seminal Anomalies column, written with collaborators including Daniel Kahneman and Amos Tversky. These provocative articles challenged the fundamental idea at the heart of economics that people are selfish, rational optimizers, and provided the foundation for what became behavioral economics. That was then.', NULL, 'https://cdn1.fahasa.com/media/catalog/product/9/7/9781982165116.jpg', 668000.00, NULL, 20, '2026-03-10 11:45:09', '2026-03-10 11:45:09'),
 (1237, 'Mở Lối Yêu Thương', '8935278600091', '2018', 268, 712, 181, 20, 46, 'nuoc_ngoai', 'Bìa Mềm', 'Mở Lối Yêu Thương\nMở lối yêu thương của sư cô Thích Nữ Nhuận Bình là tản văn, viết về những điều “thấy, nghe” của tác giả, thông qua đó, gợi mở cách suy nghĩ tích cực, cách tiếp cận tích cực và giải pháp tốt cho các vấn nạn trong đời thực.\nTheo tác giả, “có mặt cho nhau” không chỉ là nhu cầu xã hội, còn là sự tương tác mang lại niềm vui, hạnh phúc cho con người. Tác giả đề cao nhiệt huyết khi cho rằng giúp người chính là giúp mình. Khép lại các kỷ niệm buồn đau, tạm biệt quá khứ buồn bã, tìm kiếm lý tưởng sống, chân thành cải thiện bản thân, không nhìn lỗi người, nhìn thấu trái tim mình, hoàn thiện chính mình như hoa sen nở từ bùn nhơ.\nTác giả đề nghị hãy sống bao dung như đất, nhiệt huyết như lửa, không chấp như ngọn gió, mỉm cười cho qua mọi việc, vững chãi ở mọi nơi, nhìn thấu bản thân và tha nhân, trải nghiệm hạnh phúc bây giờ và tại đây. Tác giả kêu gọi mỗi người “tự cứu lấy mình” bằng lối sống: Chơi với bạn tốt, nhẫn để an vui, kiên trì để thành tựu, biết xin lỗi và tha thứ,… để trải nghiệm hạnh phúc trong mỗi phút giây. Kêu gọi sống có lý tưởng, tác giả đề nghị hiểu để thương sâu, không bới lông tìm vết, buông bỏ khổ đau để trải nghiệm chân giá trị của cuộc sống.', NULL, 'https://cdn1.fahasa.com/media/catalog/product/m/o/mo_loi_yeu_thuong_1_2018_10_29_14_50_23.jpg', 72000.00, NULL, 20, '2026-03-10 11:45:09', '2026-03-10 11:45:09'),
-(1238, 'Những Trò Chơi Giúp Trẻ 0-2 Tuổi Phát Triển Toàn Diện Thể Chất Và Tâm Hồn', '8936218410008', '2023', 174, 417, 10, 51, 24, 'trong_nuoc', 'Bìa Mềm', 'Những Trò Chơi Giúp Trẻ 0-2 Tuổi Phát Triển Toàn Diện Thể Chất Và Tâm Hồn\nCon đang ở trong tâm trạng không tốt và quấy khóc từ sáng. Bạn đã bao giờ muốn bật khóc vì không biết phải làm thế nào cho con cười chưa? Cuốn sách này là một bài hát cổ vũ những người lần đầu làm cha mẹ. Không có những trò ảo thuật. Cũng không có những trò chơi hiếm đến mức không ai biết. Trong cuốn sách này có những trò chơi chứa đầy khám phá khiến bạn tự hỏi “Cái này, có thể trở thành trò chơi được hay sao?”. Cảm giác nặng nề “phải chơi với con” cũng trở nên nhẹ nhàng hơn. Tôi chủ đích viết một cuốn sách như thế. Những điều tôi gợi ý trong cuốn sách này là “thay đổi quan điểm của bạn”. Nếu bạn có thể tìm thấy “niềm vui” trong những việc hết sức bình thường hàng ngày, chăm sóc con hay đi dạo cùng con mà không phải bận lòng, thì đó chính là những trò chơi tuyệt vời nhất. Bạn không cần phải thúc ép bản thân hay làm điều gì thật đặc biệt.', NULL, 'https://cdn1.fahasa.com/media/catalog/product/8/9/8936218410008.jpg', 78000.00, NULL, 20, '2026-03-10 11:49:05', '2026-03-10 11:49:05'),
+(1238, 'Những Trò Chơi Giúp Trẻ 0-2 Tuổi Phát Triển Toàn Diện Thể Chất Và Tâm Hồn', '8936218410008', '2023', 174, 417, 10, 51, 24, 'trong_nuoc', 'bia_cung', 'Những Trò Chơi Giúp Trẻ 0-2 Tuổi Phát Triển Toàn Diện Thể Chất Và Tâm Hồn\r\nCon đang ở trong tâm trạng không tốt và quấy khóc từ sáng. Bạn đã bao giờ muốn bật khóc vì không biết phải làm thế nào cho con cười chưa? Cuốn sách này là một bài hát cổ vũ những người lần đầu làm cha mẹ. Không có những trò ảo thuật. Cũng không có những trò chơi hiếm đến mức không ai biết. Trong cuốn sách này có những trò chơi chứa đầy khám phá khiến bạn tự hỏi “Cái này, có thể trở thành trò chơi được hay sao?”. Cảm giác nặng nề “phải chơi với con” cũng trở nên nhẹ nhàng hơn. Tôi chủ đích viết một cuốn sách như thế. Những điều tôi gợi ý trong cuốn sách này là “thay đổi quan điểm của bạn”. Nếu bạn có thể tìm thấy “niềm vui” trong những việc hết sức bình thường hàng ngày, chăm sóc con hay đi dạo cùng con mà không phải bận lòng, thì đó chính là những trò chơi tuyệt vời nhất. Bạn không cần phải thúc ép bản thân hay làm điều gì thật đặc biệt.', NULL, 'https://cdn1.fahasa.com/media/catalog/product/8/9/8936218410008.jpg', 78000.00, NULL, 50, '2026-03-10 11:49:05', '2026-03-26 12:01:06'),
 (1239, 'Bộ Năng Lực Tư Duy IQ 3-6 Tuổi - 365 Ngày Cùng Con Phát Triển Trí Tuệ - Tập 1', '8935230009498', '2025', 34, 292, 1, 27, 24, 'trong_nuoc', 'Bìa Mềm', 'Năng Lực Tư Duy IQ 3-6 Tuổi - 365 Ngày Cùng Con Phát Triển Trí Tuệ - Tập 1\nMỗi đứa trẻ là một thiên tài nên thầy cô, cha mẹ chính là những nhà giáo dục thiên tài. Đồng hành và góp sức cùng sứ mệnh cao quý ấy, bộ sách 365 ngày cùng con phát triển trí tuệ với nội dung hay, hình thức đẹp đã sẵn sàng mở ra cánh cửa dẫn vào kho báu tri thức nhân loại.\nHãy để bộ sách thú vị này dẫn dắt bé khám phá thế giới, rèn luyện trí tuệ và phát triển trí thông minh một cách tự nhiên - hiệu quả nhất!\n365 ngày cùng con phát triển trí tuệ thuộc tủ sách Năng lực tư duy IQ 3-6 tuổi sẽ là món quà ý nghĩa dành tặng cho bé yêu!', NULL, 'https://cdn1.fahasa.com/media/catalog/product/8/9/8935230009498.jpg', 30500.00, NULL, 20, '2026-03-10 11:49:05', '2026-03-10 11:49:05'),
 (1240, 'Con Có Thể Tự Bảo Vệ Mình - Cơ Thể Con Là Của Con (Tái Bản 2022)', '8935325007934', '2022', 34, 418, 7, 10, 24, 'trong_nuoc', 'Bìa Mềm', '“Cơ thể con là của con” kể về cô bé Clara có một điều đặc biệt đó là: Cơ thể của cô bé chỉ thuộc về một mình cô bé mà thôi. Clara nhận thức được sự thay đổi của cơ thể mình hàng ngày và bé tự hào về điều đó. Cô bé rất thích được ôm và âu yếm. Tuy nhiên không phải lúc nào cũng vậy. Clara không thích bị ôm hôn ngấu nghiến hay những trò đùa quá trớn. Cô bé quyết định nói “Không” khi mình cảm thấy không thích và thoải mái. Nếu người đó cố tình vi phạm, cô bé sẽ tự biết cách bảo vệ mình bằng cách tránh xa và kể cho những người tin tưởng. \nĐể nói “KHÔNG” và tránh khỏi những sự đụng chạm khó chịu từ người khác không phải là điều dễ dàng. Trẻ em có thể dễ dàng tự ý thức được những gì chúng thích hay không thích. Do đó điều quan trọng là dạy cho bé ý thức về cơ thể và cảm xúc của mình. Chỉ khi hiểu được điều đó bé mới có thể vạch ra giới hạn an toàn cho bản thân. \nCuốn sách này được tạo nên bởi những hình ảnh đáng yêu với cốt truyện rõ ràng,  nhấn mạnh vào thái độ con tôn trọng cơ thể con, con tôn trọng người khác và mọi người cũng cần tôn trọng con.', NULL, 'https://cdn1.fahasa.com/media/catalog/product/8/9/8935325007934.jpg', 56000.00, NULL, 20, '2026-03-10 11:49:05', '2026-03-10 11:49:05'),
 (1241, 'Phát Triển EQ Cho Trẻ Mẫu Giáo - Đầy Ắp Lòng Tự Tin', '8935235230941', '2021', 28, 419, 12, 3, 24, 'trong_nuoc', 'Bìa Mềm', 'Phát triển EQ cho trẻ mẫu giáo \n- Sách có nền tảng tâm lý học chuẩn chỉnh. \n- Hình ảnh sinh động. \n- Lời thoại ngắn gọn và điểm nhấn riêng cho từng trang cảm xúc. \n- Có đúc kết các cách cảm nhận, cách suy nghĩ khác nhau cho từng tình huống. \n- Gợi mở và tôn trọng cảm xúc của người đọc. \n- Có các bài tập rất nhỏ và rất dễ thực hành cho từng em bé của từng gia đình. \nNhiều năm nay, khoa học đã cho thấy, IQ là một phần đưa đến thành công của trẻ sau này, còn EQ lại là những thứ cực kỳ thiết thân đi cùng trẻ suốt cuộc đời và tạo dựng cả hạnh phúc lẫn thành công cho trẻ. Làm thế nào hiểu về EQ, làm thế nào tâm sự cùng trẻ về cảm xúc, làm thế nào giúp trẻ khắc phục những điểm chưa tốt khi quản lý cảm xúc của mình? Làm thế nào đi cùng trẻ qua những kỳ khủng hoảng vì trẻ chưa thể diễn đạt rõ ràng thành lời cảm xúc của mình? Quá nhiều câu hỏi từ cha mẹ dành cho em bé của mình đúng không? Và có thể tìm ra lối đi tươi sáng nho nhỏ từ những trang sách này. ', NULL, 'https://cdn1.fahasa.com/media/catalog/product/i/m/image_237556.jpg', 21000.00, NULL, 20, '2026-03-10 11:49:05', '2026-03-10 11:49:05'),
@@ -1505,15 +2769,42 @@ INSERT INTO `sach` (`id`, `tieu_de`, `isbn`, `nam_xuat_ban`, `so_trang`, `tac_gi
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `sessions`
+--
+
+DROP TABLE IF EXISTS `sessions`;
+CREATE TABLE IF NOT EXISTS `sessions` (
+  `id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `user_id` bigint UNSIGNED DEFAULT NULL,
+  `ip_address` varchar(45) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `user_agent` text COLLATE utf8mb4_unicode_ci,
+  `payload` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `last_activity` int NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Dumping data for table `sessions`
+--
+
+INSERT INTO `sessions` (`id`, `user_id`, `ip_address`, `user_agent`, `payload`, `last_activity`) VALUES
+('zJhYAs2sA6TTsvac0OkdLju2tPFKuGGvFoPNZ1c5', 10, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'YTo2OntzOjY6Il90b2tlbiI7czo0MDoiNWZjZVpueFdoSjF5NkFCcWpHQ1BEdG1YVW5IczVNeVB2VnZORlpPTyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MzU6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9hZG1pbi9jb3Vwb25zIjt9czo2OiJfZmxhc2giO2E6Mjp7czozOiJvbGQiO2E6MDp7fXM6MzoibmV3IjthOjA6e319czo1MDoibG9naW5fd2ViXzU5YmEzNmFkZGMyYjJmOTQwMTU4MGYwMTRjN2Y1OGVhNGUzMDk4OWQiO2k6MTA7czo0OiJjYXJ0IjthOjI6e2k6MTIzODthOjg6e3M6Nzoic2FjaF9pZCI7aToxMjM4O3M6NzoidGlldV9kZSI7czo5NjoiTmjhu69uZyBUcsOyIENoxqFpIEdpw7pwIFRy4bq7IDAtMiBUdeG7lWkgUGjDoXQgVHJp4buDbiBUb8OgbiBEaeG7h24gVGjhu4MgQ2jhuqV0IFbDoCBUw6JtIEjhu5NuIjtzOjExOiJ0ZW5fdGFjX2dpYSI7czoxMToiTmFuYSBIYXRhbm8iO3M6NzoiZ2lhX2JhbiI7aTo3ODAwMDtzOjc6ImdpYV9nb2MiO2k6MDtzOjc6ImFuaF9iaWEiO3M6Njc6Imh0dHBzOi8vY2RuMS5mYWhhc2EuY29tL21lZGlhL2NhdGFsb2cvcHJvZHVjdC84LzkvODkzNjIxODQxMDAwOC5qcGciO3M6ODoic29fbHVvbmciO2k6MTtzOjc6InRvbl9raG8iO2k6NTA7fWk6MTI0MDthOjg6e3M6Nzoic2FjaF9pZCI7aToxMjQwO3M6NzoidGlldV9kZSI7czo4MzoiQ29uIEPDsyBUaOG7gyBU4buxIELhuqNvIFbhu4cgTcOsbmggLSBDxqEgVGjhu4MgQ29uIEzDoCBD4bunYSBDb24gKFTDoWkgQuG6o24gMjAyMikiO3M6MTE6InRlbl90YWNfZ2lhIjtzOjE0OiJEYWdtYXIgR2Vpc2xlciI7czo3OiJnaWFfYmFuIjtpOjU2MDAwO3M6NzoiZ2lhX2dvYyI7aTowO3M6NzoiYW5oX2JpYSI7czo2NzoiaHR0cHM6Ly9jZG4xLmZhaGFzYS5jb20vbWVkaWEvY2F0YWxvZy9wcm9kdWN0LzgvOS84OTM1MzI1MDA3OTM0LmpwZyI7czo4OiJzb19sdW9uZyI7aToxO3M6NzoidG9uX2tobyI7aToyMDt9fXM6MTc6InBhc3N3b3JkX2hhc2hfd2ViIjtzOjYwOiIkMnkkMTAkbm5aenNzaWtrVVZIUFZJcFZxc056T2M4QmN1NlBQM25meWV6NFpTamFURk9JR1J0UWhNcXEiO30=', 1774532982),
+('fSAuFFrhla8i4BVw0pvx3muDuP3gvMwkJmTKlttt', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiNlNQYUZHOVlEY1FFUFI0UHZMVTBlRmoxa0E1VGRnOHhXcU9KQnlndCI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6MjE6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMCI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1774532963),
+('x7ozwISzXIuhVZuJqKzRbyuM69zAcfGWRioFX4kf', NULL, '127.0.0.1', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36', 'YTozOntzOjY6Il90b2tlbiI7czo0MDoiWGZwS3BSZzg0U1d5RWlOOUZxaVlwRmRsWk1kZGdVdWVlMlAxQktEdyI7czo5OiJfcHJldmlvdXMiO2E6MTp7czozOiJ1cmwiO3M6Mjc6Imh0dHA6Ly8xMjcuMC4wLjE6ODAwMC9sb2dpbiI7fXM6NjoiX2ZsYXNoIjthOjI6e3M6Mzoib2xkIjthOjA6e31zOjM6Im5ldyI7YTowOnt9fX0=', 1774532970);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `tac_gia`
 --
 
-CREATE TABLE `tac_gia` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ten_tac_gia` varchar(150) NOT NULL,
+DROP TABLE IF EXISTS `tac_gia`;
+CREATE TABLE IF NOT EXISTS `tac_gia` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ten_tac_gia` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=713 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `tac_gia`
@@ -2240,66 +3531,70 @@ INSERT INTO `tac_gia` (`id`, `ten_tac_gia`, `created_at`, `updated_at`) VALUES
 -- Table structure for table `the_loai`
 --
 
-CREATE TABLE `the_loai` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `parent_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `ten_the_loai` varchar(150) NOT NULL,
+DROP TABLE IF EXISTS `the_loai`;
+CREATE TABLE IF NOT EXISTS `the_loai` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `parent_id` bigint UNSIGNED DEFAULT NULL,
+  `ten_the_loai` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `loai_sach` enum('trong_nuoc','nuoc_ngoai','tat_ca') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'trong_nuoc' COMMENT 'Phân loại thể loại: trong_nuoc | nuoc_ngoai | tat_ca',
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `the_loai_parent_id_foreign` (`parent_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=59 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `the_loai`
 --
 
-INSERT INTO `the_loai` (`id`, `parent_id`, `ten_the_loai`, `created_at`, `updated_at`) VALUES
-(2, NULL, 'Văn học', '2026-03-07 15:47:37', '2026-03-07 15:47:37'),
-(3, 2, 'Tiểu Thuyết', '2026-03-07 15:47:59', '2026-03-07 15:47:59'),
-(5, 2, 'Light Novel', '2026-03-07 15:48:21', '2026-03-07 15:48:21'),
-(6, 2, 'Truyện ngắn - Tản văn', '2026-03-07 15:48:52', '2026-03-07 15:48:52'),
-(8, 2, 'Tác Phẩm Kinh Điển', '2026-03-07 15:49:22', '2026-03-07 15:49:22'),
-(9, 2, 'Huyền Bí - Giả Tưởng - Kinh Dị', '2026-03-07 15:49:43', '2026-03-07 15:49:43'),
-(10, 2, 'Thơ Ca, Tục Ngữ, Ca Dao, Thành Ngữ', '2026-03-07 15:50:05', '2026-03-07 15:50:05'),
-(11, NULL, 'Kinh Tế', '2026-03-07 15:50:55', '2026-03-07 15:50:55'),
-(12, 11, 'Nhân Vật - Bài Học Kinh Doanh', '2026-03-07 15:51:14', '2026-03-07 15:51:14'),
-(13, 11, 'Quản Trị - Lãnh Đạo', '2026-03-07 15:51:32', '2026-03-07 15:51:32'),
-(14, 11, 'Marketing - Bán Hàng', '2026-03-07 15:51:37', '2026-03-07 15:51:37'),
-(15, 11, 'Khởi Nghiệp - Làm Giàu', '2026-03-07 15:51:44', '2026-03-07 15:51:44'),
-(16, 11, 'Phân Tích Kinh Tế', '2026-03-07 15:51:50', '2026-03-07 15:51:50'),
-(17, NULL, 'Tâm lý - Kỹ năng sống', '2026-03-07 15:52:52', '2026-03-07 15:52:52'),
-(18, 17, 'Kỹ năng sống', '2026-03-07 15:53:02', '2026-03-07 15:53:02'),
-(19, 17, 'Tâm lý', '2026-03-07 15:53:08', '2026-03-07 15:53:08'),
-(20, 17, 'Rèn luyện nhân cách', '2026-03-07 15:53:17', '2026-03-07 15:53:17'),
-(21, NULL, 'Nuôi dạy con', '2026-03-07 15:55:16', '2026-03-07 15:55:16'),
-(22, 21, 'Cẩm Nang Làm Cha Mẹ', '2026-03-07 15:55:30', '2026-03-07 15:55:30'),
-(23, 21, 'Phương Pháp Giáo Dục Các Nước', '2026-03-07 15:56:38', '2026-03-07 15:56:38'),
-(24, 21, 'Phát Triển Kỹ Năng Trí Tuệ Cho Trẻ', '2026-03-07 15:56:54', '2026-03-07 15:56:54'),
-(25, 21, 'Dinh Dưỡng Sức Khoẻ Cho Trẻ', '2026-03-07 15:57:12', '2026-03-07 15:57:12'),
-(26, NULL, 'Sách thiếu nhi', '2026-03-07 15:57:31', '2026-03-07 15:57:31'),
-(27, 26, 'Manga - Comic', '2026-03-07 15:57:46', '2026-03-07 15:57:46'),
-(28, 26, 'Kiến Thức Bách Khoa', '2026-03-07 15:58:57', '2026-03-07 15:58:57'),
-(29, 26, 'Sách Tranh Kỹ Năng Sống Cho Trẻ', '2026-03-07 15:59:11', '2026-03-07 15:59:11'),
-(30, 26, 'Vừa Học - Vừa Chơi Với Trẻ', '2026-03-07 15:59:30', '2026-03-07 15:59:30'),
-(31, 26, 'Từ Điển Thiếu Nhi', '2026-03-07 16:00:01', '2026-03-07 16:00:01'),
-(32, 26, 'Tô Màu, Luyện Chữ', '2026-03-07 16:00:14', '2026-03-07 16:00:14'),
-(33, NULL, 'Tiểu sử - Hồi ký', '2026-03-07 16:00:27', '2026-03-07 16:00:27'),
-(34, 33, 'Câu Chuyện Cuộc Đời', '2026-03-07 16:01:17', '2026-03-07 16:01:17'),
-(35, 33, 'Lịch Sử', '2026-03-07 16:01:23', '2026-03-07 16:01:23'),
-(36, 33, 'Kinh Tế', '2026-03-07 16:01:30', '2026-03-07 16:01:30'),
-(37, 33, 'Chính Trị', '2026-03-07 16:01:35', '2026-03-07 16:01:35'),
-(38, 33, 'Nghệ Thuật - Giải Trí', '2026-03-07 16:01:41', '2026-03-07 16:01:41'),
-(39, NULL, 'FICTION', '2026-03-07 16:02:29', '2026-03-07 16:02:29'),
-(40, 39, 'Romance', '2026-03-07 16:02:42', '2026-03-07 16:02:42'),
-(41, 39, 'Fantasy', '2026-03-07 16:02:50', '2026-03-07 16:02:50'),
-(42, 39, 'Graphic Novels, Anime & Manga', '2026-03-07 16:02:57', '2026-03-07 16:02:57'),
-(43, 39, 'Thrillers', '2026-03-07 16:03:01', '2026-03-07 16:03:01'),
-(44, NULL, 'Business & Management', '2026-03-07 16:03:23', '2026-03-07 16:03:23'),
-(45, 44, 'Entrepreneurship', '2026-03-07 16:03:35', '2026-03-07 16:03:35'),
-(46, 44, 'Sales & Marketing', '2026-03-07 16:03:40', '2026-03-07 16:03:40'),
-(47, NULL, 'Personal Development', '2026-03-07 16:03:59', '2026-03-07 16:03:59'),
-(48, 47, 'Popular Psychology', '2026-03-07 16:04:44', '2026-03-07 16:04:44'),
-(49, 47, 'Personal Finance \r\n', '2026-03-07 16:04:51', '2026-03-07 16:04:51'),
-(50, 47, 'Advice On Careers Achieving S\r\nuccess', '2026-03-07 16:04:59', '2026-03-07 16:04:59');
+INSERT INTO `the_loai` (`id`, `parent_id`, `ten_the_loai`, `loai_sach`, `created_at`, `updated_at`) VALUES
+(2, NULL, 'Văn học', 'trong_nuoc', '2026-03-07 15:47:37', '2026-03-07 15:47:37'),
+(3, 2, 'Tiểu Thuyết', 'trong_nuoc', '2026-03-07 15:47:59', '2026-03-07 15:47:59'),
+(5, 2, 'Light Novel', 'trong_nuoc', '2026-03-07 15:48:21', '2026-03-07 15:48:21'),
+(6, 2, 'Truyện ngắn - Tản văn', 'trong_nuoc', '2026-03-07 15:48:52', '2026-03-07 15:48:52'),
+(8, 2, 'Tác Phẩm Kinh Điển', 'trong_nuoc', '2026-03-07 15:49:22', '2026-03-07 15:49:22'),
+(9, 2, 'Huyền Bí - Giả Tưởng - Kinh Dị', 'trong_nuoc', '2026-03-07 15:49:43', '2026-03-07 15:49:43'),
+(10, 2, 'Thơ Ca, Tục Ngữ, Ca Dao, Thành Ngữ', 'trong_nuoc', '2026-03-07 15:50:05', '2026-03-07 15:50:05'),
+(11, NULL, 'Kinh Tế', 'trong_nuoc', '2026-03-07 15:50:55', '2026-03-07 15:50:55'),
+(12, 11, 'Nhân Vật - Bài Học Kinh Doanh', 'trong_nuoc', '2026-03-07 15:51:14', '2026-03-07 15:51:14'),
+(13, 11, 'Quản Trị - Lãnh Đạo', 'trong_nuoc', '2026-03-07 15:51:32', '2026-03-07 15:51:32'),
+(14, 11, 'Marketing - Bán Hàng', 'trong_nuoc', '2026-03-07 15:51:37', '2026-03-07 15:51:37'),
+(15, 11, 'Khởi Nghiệp - Làm Giàu', 'trong_nuoc', '2026-03-07 15:51:44', '2026-03-07 15:51:44'),
+(16, 11, 'Phân Tích Kinh Tế', 'trong_nuoc', '2026-03-07 15:51:50', '2026-03-07 15:51:50'),
+(17, NULL, 'Tâm lý - Kỹ năng sống', 'trong_nuoc', '2026-03-07 15:52:52', '2026-03-07 15:52:52'),
+(18, 17, 'Kỹ năng sống', 'trong_nuoc', '2026-03-07 15:53:02', '2026-03-07 15:53:02'),
+(19, 17, 'Tâm lý', 'trong_nuoc', '2026-03-07 15:53:08', '2026-03-07 15:53:08'),
+(20, 17, 'Rèn luyện nhân cách', 'trong_nuoc', '2026-03-07 15:53:17', '2026-03-07 15:53:17'),
+(21, NULL, 'Nuôi dạy con', 'trong_nuoc', '2026-03-07 15:55:16', '2026-03-07 15:55:16'),
+(22, 21, 'Cẩm Nang Làm Cha Mẹ', 'trong_nuoc', '2026-03-07 15:55:30', '2026-03-07 15:55:30'),
+(23, 21, 'Phương Pháp Giáo Dục Các Nước', 'trong_nuoc', '2026-03-07 15:56:38', '2026-03-07 15:56:38'),
+(24, 21, 'Phát Triển Kỹ Năng Trí Tuệ Cho Trẻ', 'trong_nuoc', '2026-03-07 15:56:54', '2026-03-07 15:56:54'),
+(25, 21, 'Dinh Dưỡng Sức Khoẻ Cho Trẻ', 'trong_nuoc', '2026-03-07 15:57:12', '2026-03-07 15:57:12'),
+(26, NULL, 'Sách thiếu nhi', 'trong_nuoc', '2026-03-07 15:57:31', '2026-03-07 15:57:31'),
+(27, 26, 'Manga - Comic', 'trong_nuoc', '2026-03-07 15:57:46', '2026-03-07 15:57:46'),
+(28, 26, 'Kiến Thức Bách Khoa', 'trong_nuoc', '2026-03-07 15:58:57', '2026-03-07 15:58:57'),
+(29, 26, 'Sách Tranh Kỹ Năng Sống Cho Trẻ', 'trong_nuoc', '2026-03-07 15:59:11', '2026-03-07 15:59:11'),
+(30, 26, 'Vừa Học - Vừa Chơi Với Trẻ', 'trong_nuoc', '2026-03-07 15:59:30', '2026-03-07 15:59:30'),
+(31, 26, 'Từ Điển Thiếu Nhi', 'trong_nuoc', '2026-03-07 16:00:01', '2026-03-07 16:00:01'),
+(32, 26, 'Tô Màu, Luyện Chữ', 'trong_nuoc', '2026-03-07 16:00:14', '2026-03-07 16:00:14'),
+(33, NULL, 'Tiểu sử - Hồi ký', 'trong_nuoc', '2026-03-07 16:00:27', '2026-03-07 16:00:27'),
+(34, 33, 'Câu Chuyện Cuộc Đời', 'trong_nuoc', '2026-03-07 16:01:17', '2026-03-07 16:01:17'),
+(35, 33, 'Lịch Sử', 'trong_nuoc', '2026-03-07 16:01:23', '2026-03-07 16:01:23'),
+(36, 33, 'Kinh Tế', 'trong_nuoc', '2026-03-07 16:01:30', '2026-03-07 16:01:30'),
+(37, 33, 'Chính Trị', 'trong_nuoc', '2026-03-07 16:01:35', '2026-03-07 16:01:35'),
+(38, 33, 'Nghệ Thuật - Giải Trí', 'trong_nuoc', '2026-03-07 16:01:41', '2026-03-07 16:01:41'),
+(39, NULL, 'FICTION', 'nuoc_ngoai', '2026-03-07 16:02:29', '2026-03-07 16:02:29'),
+(40, 39, 'Romance', 'nuoc_ngoai', '2026-03-07 16:02:42', '2026-03-07 16:02:42'),
+(41, 39, 'Fantasy', 'nuoc_ngoai', '2026-03-07 16:02:50', '2026-03-07 16:02:50'),
+(42, 39, 'Graphic Novels, Anime & Manga', 'nuoc_ngoai', '2026-03-07 16:02:57', '2026-03-07 16:02:57'),
+(43, 39, 'Thrillers', 'nuoc_ngoai', '2026-03-07 16:03:01', '2026-03-07 16:03:01'),
+(44, NULL, 'Business & Management', 'nuoc_ngoai', '2026-03-07 16:03:23', '2026-03-07 16:03:23'),
+(45, 44, 'Entrepreneurship', 'nuoc_ngoai', '2026-03-07 16:03:35', '2026-03-07 16:03:35'),
+(46, 44, 'Sales & Marketing', 'nuoc_ngoai', '2026-03-07 16:03:40', '2026-03-07 16:03:40'),
+(47, NULL, 'Personal Development', 'nuoc_ngoai', '2026-03-07 16:03:59', '2026-03-07 16:03:59'),
+(48, 47, 'Popular Psychology', 'nuoc_ngoai', '2026-03-07 16:04:44', '2026-03-07 16:04:44'),
+(49, 47, 'Personal Finance \r\n', 'nuoc_ngoai', '2026-03-07 16:04:51', '2026-03-07 16:04:51'),
+(50, 47, 'Advice On Careers Achieving S\r\nuccess', 'nuoc_ngoai', '2026-03-07 16:04:59', '2026-03-07 16:04:59');
 
 -- --------------------------------------------------------
 
@@ -2307,291 +3602,62 @@ INSERT INTO `the_loai` (`id`, `parent_id`, `ten_the_loai`, `created_at`, `update
 -- Table structure for table `users`
 --
 
-CREATE TABLE `users` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `ho_ten` varchar(100) NOT NULL,
-  `email` varchar(100) NOT NULL,
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `ho_ten` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `email` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `google_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `email_verified_at` timestamp NULL DEFAULT NULL,
-  `password` varchar(255) NOT NULL,
-  `so_dien_thoai` varchar(15) DEFAULT NULL,
+  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `so_dien_thoai` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `ngay_sinh` date DEFAULT NULL,
-  `gioi_tinh` varchar(10) DEFAULT NULL,
-  `dia_chi` varchar(255) DEFAULT NULL,
-  `avatar` varchar(200) DEFAULT NULL,
-  `role_id` bigint(20) UNSIGNED NOT NULL,
-  `trang_thai` tinyint(4) NOT NULL DEFAULT 1,
-  `remember_token` varchar(100) DEFAULT NULL,
+  `gioi_tinh` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `dia_chi` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `avatar` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
+  `role_id` bigint UNSIGNED NOT NULL,
+  `trang_thai` tinyint NOT NULL DEFAULT '1',
+  `remember_token` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
-  `updated_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `users_role_id_foreign` (`role_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `ho_ten`, `email`, `email_verified_at`, `password`, `so_dien_thoai`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `avatar`, `role_id`, `trang_thai`, `remember_token`, `created_at`, `updated_at`) VALUES
-(1, 'Đỗ Duy Thiên', '33doduythien@gmail.com', '2026-03-07 15:44:33', '$2y$10$SeTh0vKn5g9PvYoxWf6OAenVMBYcDW9r/dhqM8xzGT4hZkxgtZJPe', '0942741334', '2005-10-26', 'male', 'Xã Vĩnh Hoà Phú, Huyện Châu Thành, Tỉnh Kiên Giang', NULL, 1, 1, NULL, '2026-03-07 15:44:15', '2026-03-10 01:41:32'),
-(8, 'Luật Trọng', 'luatle.111105@gmail.com', '2026-03-08 08:16:55', '$2y$10$gj9ZclYaCXh8Ge/jCuurneuzpUIfZWQHFJgfIfOhCqvWlgMBJZeYS', '0966330657', NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-03-08 08:16:29', '2026-03-08 08:16:55');
+INSERT INTO `users` (`id`, `ho_ten`, `email`, `google_id`, `email_verified_at`, `password`, `so_dien_thoai`, `ngay_sinh`, `gioi_tinh`, `dia_chi`, `avatar`, `role_id`, `trang_thai`, `remember_token`, `created_at`, `updated_at`) VALUES
+(1, 'Đỗ Duy Thiên', '33doduythien@gmail.com', NULL, '2026-03-07 15:44:33', '$2y$10$420XNK9aD68HwF21m5VlxeGBTd6igmSK8n1qhyIOe3ShSATQiTo3.', '0942741334', '2005-10-26', 'male', 'Xã Vĩnh Hoà Phú, Huyện Châu Thành, Tỉnh Kiên Giang', NULL, 1, 1, NULL, '2026-03-07 15:44:15', '2026-03-15 13:47:59'),
+(8, 'Luật Trọng', 'luatle.111105@gmail.com', NULL, '2026-03-08 08:16:55', '$2y$10$gj9ZclYaCXh8Ge/jCuurneuzpUIfZWQHFJgfIfOhCqvWlgMBJZeYS', '0966330657', NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-03-08 08:16:29', '2026-03-08 08:16:55'),
+(9, 'Lê Kiều Trinh', 'lekiutrinh1605@gmail.com', NULL, '2026-03-22 10:37:17', '$2y$10$TutzboJCqx8ImUYPjPQZleW1dzhmMzWU1VSbLoo/pP39h3JflPVDW', '0766743913', '2005-06-01', 'female', '10/4/9A Đường số 20|Phường Bình Hưng Hoà A|Quận Bình Tân|Thành phố Hồ Chí Minh', NULL, 2, 1, NULL, '2026-03-22 10:35:33', '2026-03-22 14:10:40'),
+(10, 'Bình minh Tống', 'tongbinhminh806@gmail.com', NULL, '2026-03-26 11:07:52', '$2y$10$nnZzssikkUVHPVIpVqsNzOc8Bcu6PP3nfyez4ZSjaTFOIGRtQhMqq', '398602792', NULL, NULL, NULL, NULL, 1, 1, NULL, '2026-03-26 11:06:40', '2026-03-26 13:43:44');
+
+-- --------------------------------------------------------
 
 --
--- Indexes for dumped tables
+-- Table structure for table `wishlists`
 --
 
---
--- Indexes for table `danh_gia`
---
-ALTER TABLE `danh_gia`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `danh_gia_user_id_foreign` (`user_id`),
-  ADD KEY `danh_gia_sach_id_foreign` (`sach_id`);
+DROP TABLE IF EXISTS `wishlists`;
+CREATE TABLE IF NOT EXISTS `wishlists` (
+  `id` bigint UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` bigint UNSIGNED NOT NULL,
+  `sach_id` bigint UNSIGNED NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `wishlists_user_id_sach_id_unique` (`user_id`,`sach_id`),
+  KEY `wishlists_sach_id_foreign` (`sach_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Indexes for table `don_hang`
---
-ALTER TABLE `don_hang`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `don_hang_user_id_foreign` (`user_id`),
-  ADD KEY `don_hang_ma_giam_gia_id_foreign` (`ma_giam_gia_id`);
-
---
--- Indexes for table `don_hang_chi_tiet`
---
-ALTER TABLE `don_hang_chi_tiet`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `don_hang_chi_tiet_don_hang_id_foreign` (`don_hang_id`),
-  ADD KEY `don_hang_chi_tiet_sach_id_foreign` (`sach_id`);
-
---
--- Indexes for table `email_verifications`
---
-ALTER TABLE `email_verifications`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `email_verifications_user_id_foreign` (`user_id`);
-
---
--- Indexes for table `failed_jobs`
---
-ALTER TABLE `failed_jobs`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `failed_jobs_uuid_unique` (`uuid`);
-
---
--- Indexes for table `gio_hang`
---
-ALTER TABLE `gio_hang`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `gio_hang_user_id_foreign` (`user_id`);
-
---
--- Indexes for table `gio_hang_chi_tiet`
---
-ALTER TABLE `gio_hang_chi_tiet`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `gio_hang_chi_tiet_gio_hang_id_foreign` (`gio_hang_id`),
-  ADD KEY `gio_hang_chi_tiet_sach_id_foreign` (`sach_id`);
-
---
--- Indexes for table `ma_giam_gia`
---
-ALTER TABLE `ma_giam_gia`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `ma_giam_gia_ma_code_unique` (`ma_code`);
-
---
--- Indexes for table `migrations`
---
-ALTER TABLE `migrations`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `nha_cung_cap`
---
-ALTER TABLE `nha_cung_cap`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `nha_xuat_ban`
---
-ALTER TABLE `nha_xuat_ban`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `password_resets`
---
-ALTER TABLE `password_resets`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `password_resets_email_index` (`email`);
-
---
--- Indexes for table `personal_access_tokens`
---
-ALTER TABLE `personal_access_tokens`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `personal_access_tokens_token_unique` (`token`),
-  ADD KEY `personal_access_tokens_tokenable_type_tokenable_id_index` (`tokenable_type`,`tokenable_id`);
-
---
--- Indexes for table `posts`
---
-ALTER TABLE `posts`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `posts_slug_unique` (`slug`),
-  ADD KEY `posts_user_id_foreign` (`user_id`);
-
---
--- Indexes for table `roles`
---
-ALTER TABLE `roles`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `sach`
---
-ALTER TABLE `sach`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `sach_isbn_unique` (`isbn`),
-  ADD KEY `sach_tac_gia_id_foreign` (`tac_gia_id`),
-  ADD KEY `sach_nha_xuat_ban_id_foreign` (`nha_xuat_ban_id`),
-  ADD KEY `sach_nha_cung_cap_id_foreign` (`nha_cung_cap_id`),
-  ADD KEY `sach_the_loai_id_foreign` (`the_loai_id`);
-
---
--- Indexes for table `tac_gia`
---
-ALTER TABLE `tac_gia`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `the_loai`
---
-ALTER TABLE `the_loai`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `the_loai_parent_id_foreign` (`parent_id`);
-
---
--- Indexes for table `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `users_role_id_foreign` (`role_id`);
-
---
--- AUTO_INCREMENT for dumped tables
+-- Dumping data for table `wishlists`
 --
 
---
--- AUTO_INCREMENT for table `danh_gia`
---
-ALTER TABLE `danh_gia`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `don_hang`
---
-ALTER TABLE `don_hang`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `don_hang_chi_tiet`
---
-ALTER TABLE `don_hang_chi_tiet`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `email_verifications`
---
-ALTER TABLE `email_verifications`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
-
---
--- AUTO_INCREMENT for table `failed_jobs`
---
-ALTER TABLE `failed_jobs`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `gio_hang`
---
-ALTER TABLE `gio_hang`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `gio_hang_chi_tiet`
---
-ALTER TABLE `gio_hang_chi_tiet`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `ma_giam_gia`
---
-ALTER TABLE `ma_giam_gia`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `migrations`
---
-ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
-
---
--- AUTO_INCREMENT for table `nha_cung_cap`
---
-ALTER TABLE `nha_cung_cap`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
-
---
--- AUTO_INCREMENT for table `nha_xuat_ban`
---
-ALTER TABLE `nha_xuat_ban`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
-
---
--- AUTO_INCREMENT for table `password_resets`
---
-ALTER TABLE `password_resets`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `personal_access_tokens`
---
-ALTER TABLE `personal_access_tokens`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `posts`
---
-ALTER TABLE `posts`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `roles`
---
-ALTER TABLE `roles`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT for table `sach`
---
-ALTER TABLE `sach`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1284;
-
---
--- AUTO_INCREMENT for table `tac_gia`
---
-ALTER TABLE `tac_gia`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=713;
-
---
--- AUTO_INCREMENT for table `the_loai`
---
-ALTER TABLE `the_loai`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
-
---
--- AUTO_INCREMENT for table `users`
---
-ALTER TABLE `users`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+INSERT INTO `wishlists` (`id`, `user_id`, `sach_id`, `created_at`, `updated_at`) VALUES
+(1, 1, 1276, '2026-03-15 05:08:04', '2026-03-15 05:08:04');
 
 --
 -- Constraints for dumped tables
@@ -2638,6 +3704,13 @@ ALTER TABLE `gio_hang_chi_tiet`
   ADD CONSTRAINT `gio_hang_chi_tiet_sach_id_foreign` FOREIGN KEY (`sach_id`) REFERENCES `sach` (`id`) ON DELETE CASCADE;
 
 --
+-- Constraints for table `ma_giam_gia`
+--
+ALTER TABLE `ma_giam_gia`
+  ADD CONSTRAINT `ma_giam_gia_sach_id_foreign` FOREIGN KEY (`sach_id`) REFERENCES `sach` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `ma_giam_gia_the_loai_id_foreign` FOREIGN KEY (`the_loai_id`) REFERENCES `the_loai` (`id`) ON DELETE SET NULL;
+
+--
 -- Constraints for table `posts`
 --
 ALTER TABLE `posts`
@@ -2663,6 +3736,13 @@ ALTER TABLE `the_loai`
 --
 ALTER TABLE `users`
   ADD CONSTRAINT `users_role_id_foreign` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `wishlists`
+--
+ALTER TABLE `wishlists`
+  ADD CONSTRAINT `wishlists_sach_id_foreign` FOREIGN KEY (`sach_id`) REFERENCES `sach` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `wishlists_user_id_foreign` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

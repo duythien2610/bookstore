@@ -129,22 +129,66 @@
                     @endforeach
                 </div>
 
+                <div style="margin-bottom: var(--space-6);">
+                    @if(session('checkout_voucher'))
+                        <div style="background: var(--color-bg-alt); padding: 10px 15px; border-radius: 8px; border: 1px dashed var(--color-primary); display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <span style="font-weight: 600; color: var(--color-primary-dark);">{{ session('checkout_voucher')->ma_code }}</span>
+                                <div style="font-size: 12px; color: var(--color-text-muted);">
+                                    Đã áp dụng giảm {{ session('checkout_voucher')->loai === 'percent' ? session('checkout_voucher')->gia_tri . '%' : number_format(session('checkout_voucher')->gia_tri, 0, ',', '.') . 'đ' }}
+                                </div>
+                            </div>
+                            <form action="{{ route('checkout.voucher.remove') }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-ghost" style="color: var(--color-error); padding: 4px 8px;">Hủy</button>
+                            </form>
+                        </div>
+                    @else
+                        <form action="{{ route('checkout.voucher.apply') }}" method="POST" style="display: flex; gap: 8px;">
+                            @csrf
+                            <input type="text" name="ma_code" class="form-control" placeholder="Mã giảm giá..." style="flex: 1; border-radius: 8px;" required>
+                            <button type="submit" class="btn btn-outline" style="border-radius: 8px;">Áp dụng</button>
+                        </form>
+                        @if(session('error'))
+                            <div style="color: var(--color-error); font-size: 13px; margin-top: 5px;">{{ session('error') }}</div>
+                        @endif
+                    @endif
+                </div>
+
+                @php
+                    $tamtinh = $gioHang->tong_tien;
+                    $phivanchuyen = 30000;
+                    $giamgia = 0;
+                    if(session('checkout_voucher')) {
+                        $v = session('checkout_voucher');
+                        if($v->loai === 'percent') {
+                            $giamgia = $tamtinh * ($v->gia_tri / 100);
+                        } else {
+                            $giamgia = $v->gia_tri;
+                        }
+                    }
+                    if($giamgia > $tamtinh) $giamgia = $tamtinh;
+                    $tongcong = $tamtinh + $phivanchuyen - $giamgia;
+                @endphp
+
                 <div style="border-top: 1px solid var(--color-border-light); padding-top: var(--space-6);">
                     <div class="summary-row" style="margin-bottom: 20px;">
                         <span style="color: var(--color-text-secondary);">Tạm tính</span>
-                        <span style="font-weight: 600;">{{ number_format($gioHang->tong_tien, 0, ',', '.') }}đ</span>
+                        <span style="font-weight: 600;">{{ number_format($tamtinh, 0, ',', '.') }}đ</span>
                     </div>
                     <div class="summary-row" style="margin-bottom: 20px;">
                         <span style="color: var(--color-text-secondary);">Phí vận chuyển</span>
-                        <span style="font-weight: 600;">30.000đ</span>
+                        <span style="font-weight: 600;">{{ number_format($phivanchuyen, 0, ',', '.') }}đ</span>
                     </div>
+                    @if($giamgia > 0)
                     <div class="summary-row" style="margin-bottom: 25px;">
-                        <span style="color: var(--color-primary-dark);">Giảm giá</span>
-                        <span style="color: var(--color-primary-dark); font-weight: 600;">-50.000đ</span>
+                        <span style="color: var(--color-primary-dark);">Mã giảm giá</span>
+                        <span style="color: var(--color-primary-dark); font-weight: 600;">-{{ number_format($giamgia, 0, ',', '.') }}đ</span>
                     </div>
+                    @endif
                     <div class="summary-row total" style="border-top: none; padding-top: 0;">
                         <span style="font-size: 22px; font-weight: 700;">Tổng cộng</span>
-                        <span style="font-size: 24px; font-weight: 800;">{{ number_format($gioHang->tong_tien + 30000 - 50000, 0, ',', '.') }}đ</span>
+                        <span style="font-size: 24px; font-weight: 800;">{{ number_format($tongcong, 0, ',', '.') }}đ</span>
                     </div>
                 </div>
 

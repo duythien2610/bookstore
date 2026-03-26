@@ -76,6 +76,40 @@ class Sach extends Model
         return $this->so_luong_ton > 0;
     }
 
+    // Lấy giá sau khi tự động áp dụng mã giảm của thể loại
+    public function tinhGiaSauKhuyenMai()
+    {
+        $gia = $this->gia_ban;
+        
+        $theLoaiIds = [$this->the_loai_id];
+        if ($this->theLoai && $this->theLoai->parent_id) {
+            $theLoaiIds[] = $this->theLoai->parent_id;
+        }
+
+        // Tìm mã giảm giá auto-apply (nếu có the_loai_id thì coi như là auto apply cho thể loại đó)
+        $voucher = \App\Models\MaGiamGia::whereIn('the_loai_id', $theLoaiIds)
+            ->where('trang_thai', 1)
+            ->where(function($q) {
+                $q->whereNull('ngay_het_han')->orWhere('ngay_het_han', '>=', date('Y-m-d'));
+            })
+            ->where(function($q) {
+                $q->whereNull('so_luong')->orWhereRaw('da_dung < so_luong');
+            })
+            ->orderByDesc('gia_tri') // lấy cái giảm nhiều nhất nếu có nhiều mã
+            ->first();
+
+        if ($voucher) {
+            if ($voucher->loai === 'percent') {
+                 $gia -= $gia * ($voucher->gia_tri / 100);
+            } else {
+                 $gia -= $voucher->gia_tri;
+            }
+            if ($gia < 0) $gia = 0;
+        }
+        
+        return $gia;
+    }
+
     // =========================================================================
     //  LOCAL SCOPES
     // =========================================================================
@@ -92,9 +126,9 @@ class Sach extends Model
             $q->where(function ($inner) use ($search) {
                 $inner->where('sach.tieu_de', 'like', "%{$search}%")
                       ->orWhere('sach.isbn', 'like', "%{$search}%")
-                      ->orWhereHas('tacGia', fn($tg) => $tg->where('ten_tac_gia', 'like', "%{$search}%"))
-                      ->orWhereHas('nhaXuatBan', fn($nxb) => $nxb->where('ten_nxb', 'like', "%{$search}%"))
-                      ->orWhereHas('nhaCungCap', fn($ncc) => $ncc->where('ten_ncc', 'like', "%{$search}%"));
+                      ->orWhereHas('tacGia', function($tg) use ($search) { $tg->where('ten_tac_gia', 'like', "%{$search}%"); })
+                      ->orWhereHas('nhaXuatBan', function($nxb) use ($search) { $nxb->where('ten_nxb', 'like', "%{$search}%"); })
+                      ->orWhereHas('nhaCungCap', function($ncc) use ($search) { $ncc->where('ten_ncc', 'like', "%{$search}%"); });
             });
         });
 
@@ -117,11 +151,11 @@ class Sach extends Model
         });
 
         // 3. Lọc theo loại sách (trong nước / nước ngoài)
-        $query->when($filters['loai_sach'] ?? false, fn($q, $v) => $q->where('sach.loai_sach', $v));
+        $query->when($filters['loai_sach'] ?? false, function($q, $v) { $q->where('sach.loai_sach', $v); });
 
         // 4. Khoảng giá
-        $query->when($filters['gia_min'] ?? false, fn($q, $v) => $q->where('sach.gia_ban', '>=', $v));
-        $query->when($filters['gia_max'] ?? false, fn($q, $v) => $q->where('sach.gia_ban', '<=', $v));
+        $query->when($filters['gia_min'] ?? false, function($q, $v) { $q->where('sach.gia_ban', '>=', $v); });
+        $query->when($filters['gia_max'] ?? false, function($q, $v) { $q->where('sach.gia_ban', '<=', $v); });
 
         // 5. Lọc trạng thái tồn kho (admin)
         $query->when($filters['trang_thai'] ?? false, function ($q, $trang_thai) {

@@ -64,7 +64,16 @@
                         </a>
                         <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
                         <div class="card-price">
-                            {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                            @php
+                                $giaSauVoucher = $sach->tinhGiaSauKhuyenMai();
+                            @endphp
+                            @if($giaSauVoucher < $sach->gia_ban)
+                                {{ number_format($giaSauVoucher, 0, ',', '.') }}đ 
+                                <span class="original" style="text-decoration: line-through; margin-left: 5px;">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</span>
+                            @else
+                                {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                            @endif
+                            
                             @if($sach->gia_goc > $sach->gia_ban)
                                 <span class="original">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
                             @endif
@@ -81,7 +90,7 @@
         <div class="container">
             <div class="section-header">
                 <h2>Sách bán chạy nhất</h2>
-                <a href="{{ url('/products?sort=bestseller') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
+                <a href="{{ url('/products?sap_xep=ban_chay') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
             </div>
             <div class="book-grid book-grid-4">
                 @foreach($sachNoiBat->skip(4)->take(4) as $sach)
@@ -111,7 +120,15 @@
                         </a>
                         <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
                         <div class="card-price">
-                            {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                            @php
+                                $giaSauVoucher = $sach->tinhGiaSauKhuyenMai();
+                            @endphp
+                            @if($giaSauVoucher < $sach->gia_ban)
+                                {{ number_format($giaSauVoucher, 0, ',', '.') }}đ 
+                                <span class="original" style="text-decoration: line-through; margin-left: 5px;">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</span>
+                            @else
+                                {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                            @endif
                         </div>
                     </div>
                 </div>

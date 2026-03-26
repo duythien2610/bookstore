@@ -10,7 +10,7 @@ class MaGiamGia extends Model
     use HasFactory;
     protected $table = 'ma_giam_gia';
     protected $fillable = [
-        'ma_code', 'loai', 'gia_tri',
+        'ma_code', 'loai', 'gia_tri', 'the_loai_id',
         'ngay_het_han', 'so_luong', 'da_dung', 'trang_thai'
     ];
 
@@ -21,5 +21,10 @@ class MaGiamGia extends Model
     public function donHangs()
     {
         return $this->hasMany(DonHang::class, 'ma_giam_gia_id');
+    }
+
+    public function theLoai()
+    {
+        return $this->belongsTo(TheLoai::class, 'the_loai_id');
     }
 }

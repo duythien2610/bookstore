@@ -13,7 +13,7 @@
         <div style="display:flex; gap: var(--space-2);">
             <form action="{{ route('admin.orders.updateStatus', $donHang->id) }}" method="POST" style="display:flex; gap:var(--space-2);">
                 @csrf
-                @method('PATCH')
+                @method('PUT')
                 <select name="trang_thai" class="input" style="width:200px;" required>
                     <option value="cho_thanh_toan" {{ $donHang->trang_thai == 'cho_thanh_toan' ? 'selected' : '' }}>Chờ thanh toán</option>
                     <option value="cho_xac_nhan" {{ $donHang->trang_thai == 'cho_xac_nhan' ? 'selected' : '' }}>Chờ xác nhận</option>

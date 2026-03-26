@@ -44,17 +44,20 @@ class GioHangController extends Controller
 
         // Kiểm tra xem đã có sách này trong giỏ chưa
         $chiTiet = $gioHang->chiTiets()->where('sach_id', $sachId)->first();
+        
+        $giaApDung = $sach->tinhGiaSauKhuyenMai();
 
         if ($chiTiet) {
             $chiTiet->so_luong += $soLuong;
+            $chiTiet->don_gia = $giaApDung; // Cập nhật lại giá nếu có voucher mới
             $chiTiet->thanh_tien = $chiTiet->so_luong * $chiTiet->don_gia;
             $chiTiet->save();
         } else {
             $gioHang->chiTiets()->create([
                 'sach_id' => $sachId,
                 'so_luong' => $soLuong,
-                'don_gia' => $sach->gia_ban,
-                'thanh_tien' => $soLuong * $sach->gia_ban
+                'don_gia' => $giaApDung,
+                'thanh_tien' => $soLuong * $giaApDung
             ]);
         }
 
@@ -137,17 +140,48 @@ class GioHangController extends Controller
             $gioHang = GioHang::where('user_id', auth()->id())
                 ->where('trang_thai', 'active')
                 ->firstOrFail();
+
+            $tamtinh = $gioHang->tong_tien;
+            $phivanchuyen = 30000;
+            $giamgia = 0;
+            $maGiamGiaId = null;
+
+            if(session('checkout_voucher')) {
+                $v = session('checkout_voucher');
+                
+                // Cập nhật lượt dùng
+                $voucherModel = \App\Models\MaGiamGia::find($v->id);
+                if ($voucherModel) {
+                    $voucherModel->increment('da_dung');
+                }
+
+                $maGiamGiaId = $v->id;
+                if($v->loai === 'percent') {
+                     $giamgia = $tamtinh * ($v->gia_tri / 100);
+                } else {
+                     $giamgia = $v->gia_tri;
+                }
+            }
+
+            if($giamgia > $tamtinh) $giamgia = $tamtinh;
+            $tongTienCuoiCung = $tamtinh + $phivanchuyen - $giamgia;
             
             // Tạo đơn hàng
             $donHang = DonHang::create([
                 'user_id' => auth()->id(),
                 'ngay_dat' => now(),
                 'trang_thai' => 'cho_xac_nhan',
-                'tong_tien' => $gioHang->tong_tien,
+                'tong_tien' => $tamtinh,
+                'giam_gia' => $giamgia,
+                'phi_van_chuyen' => $phivanchuyen,
+                'thanh_toan' => $tongTienCuoiCung,
+                'ho_ten' => $request->ho_ten,
+                'so_dien_thoai' => $request->dien_thoai,
                 'dia_chi_giao' => $request->dia_chi_giao,
                 'phuong_thuc_tt' => $request->phuong_thuc_tt,
                 'trang_thai_tt' => 'chua_thanh_toan',
-                'ghi_chu' => $request->ghi_chu
+                'ghi_chu' => $request->ghi_chu,
+                'ma_giam_gia_id' => $maGiamGiaId
             ]);
 
             // Sao chép các mặt hàng từ giỏ hàng sang đơn hàng
@@ -165,9 +199,12 @@ class GioHangController extends Controller
             $gioHang->trang_thai = 'completed';
             $gioHang->save();
             
+            // Xóa session voucher
+            session()->forget('checkout_voucher');
+
             return $donHang->id;
         });
 
-        return redirect()->route('order.success')->with('success', 'Đặt hàng thành công!');
+        return redirect()->route('order.success')->with(['success' => 'Đặt hàng thành công!', 'donHangId' => $donHangId]);
     }
 }

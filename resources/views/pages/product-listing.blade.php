@@ -85,7 +85,14 @@
                                     $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
                                 @endphp
                                 <img src="{{ $imageUrl }}" class="card-img" alt="{{ $sach->tieu_de }}">
-                                @if ($sach->gia_goc > $sach->gia_ban)
+                                @php
+                                    $giaKhuyenMai = $sach->tinhGiaSauKhuyenMai();
+                                @endphp
+                                @if ($giaKhuyenMai < $sach->gia_ban)
+                                <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">
+                                    -{{ round((($sach->gia_ban - $giaKhuyenMai) / $sach->gia_ban) * 100) }}%
+                                </span>
+                                @elseif ($sach->gia_goc > $sach->gia_ban)
                                 <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">
                                     -{{ round((($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc) * 100) }}%
                                 </span>
@@ -103,7 +110,14 @@
                             <a href="{{ route('products.show', $sach->id) }}" class="card-title" style="display: block; color: var(--color-text);">{{ $sach->tieu_de }}</a>
                             <div class="card-subtitle">{{ $sach->tacGia ? $sach->tacGia->ten_tac_gia : 'Chưa cập nhật' }}</div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-2);">
-                                <div class="card-price">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</div>
+                                <div class="card-price">
+                                    @if($giaKhuyenMai < $sach->gia_ban)
+                                        {{ number_format($giaKhuyenMai, 0, ',', '.') }}đ 
+                                        <span style="font-size: 12px; color: var(--color-text-muted); text-decoration: line-through; font-weight: normal; margin-left: 4px;">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</span>
+                                    @else
+                                        {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                                    @endif
+                                </div>
                                 <form action="{{ route('cart.add') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="sach_id" value="{{ $sach->id }}">

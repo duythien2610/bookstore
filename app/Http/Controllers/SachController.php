@@ -312,6 +312,13 @@ class SachController extends Controller
             case 'gia_giam':
                 $query->orderBy('gia_ban', 'desc');
                 break;
+            case 'ban_chay':
+                $query->withSum(['chiTiets as tong_ban' => function($q) {
+                    $q->whereHas('donHang', function($dq) {
+                        $dq->where('trang_thai', '!=', 'da_huy');
+                    });
+                }], 'so_luong')->orderByDesc('tong_ban');
+                break;
             default: // moi_nhat
                 $query->orderByDesc('created_at');
                 break;
@@ -351,7 +358,7 @@ class SachController extends Controller
         // Sách liên quan (cùng thể loại, loại trừ sách hiện tại)
         $sachLienQuan = Sach::with(['tacGia'])
             ->where('id', '!=', $sach->id)
-            ->when($sach->the_loai_id, fn($q) => $q->where('the_loai_id', $sach->the_loai_id))
+            ->when($sach->the_loai_id, function($q) use ($sach) { return $q->where('the_loai_id', $sach->the_loai_id); })
             ->orderByDesc('created_at')
             ->limit(4)
             ->get();
@@ -367,7 +374,7 @@ class SachController extends Controller
             // Kiểm tra đã mua sách này chưa (đơn hàng đã giao)
             $daMua = \App\Models\DonHang::where('user_id', $userId)
                 ->where('trang_thai', 'da_giao')
-                ->whereHas('chiTiets', fn($q) => $q->where('sach_id', $sach->id))
+                ->whereHas('chiTiets', function($q) use ($sach) { return $q->where('sach_id', $sach->id); })
                 ->exists();
         }
 

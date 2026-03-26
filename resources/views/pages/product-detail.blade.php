@@ -57,14 +57,27 @@
                 @endif
 
                 <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-6);">
-                    <span style="font-size: var(--font-size-3xl); font-weight: var(--font-bold); color: var(--color-primary-dark);">
-                        {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
-                    </span>
-                    @if ($sach->gia_goc > 0 && $sach->gia_goc > $sach->gia_ban)
-                    <span style="font-size: var(--font-size-lg); color: var(--color-text-muted); text-decoration: line-through;">
-                        {{ number_format($sach->gia_goc, 0, ',', '.') }}đ
-                    </span>
-                    <span class="badge badge-danger">-{{ round(($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc * 100) }}%</span>
+                    @php 
+                        $giaKhuyenMai = $sach->tinhGiaSauKhuyenMai(); 
+                    @endphp
+                    @if ($giaKhuyenMai < $sach->gia_ban)
+                        <span style="font-size: var(--font-size-3xl); font-weight: var(--font-bold); color: var(--color-primary-dark);">
+                            {{ number_format($giaKhuyenMai, 0, ',', '.') }}đ
+                        </span>
+                        <span style="font-size: var(--font-size-lg); color: var(--color-text-muted); text-decoration: line-through;">
+                            {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                        </span>
+                        <span class="badge badge-danger">-{{ round(($sach->gia_ban - $giaKhuyenMai) / $sach->gia_ban * 100) }}%</span>
+                    @else
+                        <span style="font-size: var(--font-size-3xl); font-weight: var(--font-bold); color: var(--color-primary-dark);">
+                            {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                        </span>
+                        @if ($sach->gia_goc > 0 && $sach->gia_goc > $sach->gia_ban)
+                        <span style="font-size: var(--font-size-lg); color: var(--color-text-muted); text-decoration: line-through;">
+                            {{ number_format($sach->gia_goc, 0, ',', '.') }}đ
+                        </span>
+                        <span class="badge badge-danger">-{{ round(($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc * 100) }}%</span>
+                        @endif
                     @endif
                 </div>
 
@@ -344,7 +357,15 @@
                     <div class="card-body">
                         <div class="card-title" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-clamp:2;">{{ $lr->tieu_de }}</div>
                         <div class="card-subtitle">{{ $lr->tacGia->ten_tac_gia ?? '' }}</div>
-                        <div class="card-price">{{ number_format($lr->gia_ban, 0, ',', '.') }}đ</div>
+                        <div class="card-price">
+                            @php $lrKhuyenMai = $lr->tinhGiaSauKhuyenMai(); @endphp
+                            @if($lrKhuyenMai < $lr->gia_ban)
+                                {{ number_format($lrKhuyenMai, 0, ',', '.') }}đ 
+                                <span style="font-size: 12px; color: var(--color-text-muted); text-decoration: line-through; font-weight: normal; margin-left: 4px;">{{ number_format($lr->gia_ban, 0, ',', '.') }}đ</span>
+                            @else
+                                {{ number_format($lr->gia_ban, 0, ',', '.') }}đ
+                            @endif
+                        </div>
                     </div>
                 </a>
                 @endforeach
