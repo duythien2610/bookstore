@@ -6,6 +6,8 @@ use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\DanhGiaController;
+use App\Http\Controllers\CouponController;
+
 
 
 
@@ -168,7 +170,14 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/blogs', [\App\Http\Controllers\PostController::class, 'adminIndex'])->name('admin.blogs.index');
     Route::put('/blogs/{post}/approve', [\App\Http\Controllers\PostController::class, 'approve'])->name('admin.blogs.approve');
     Route::put('/blogs/{post}/reject', [\App\Http\Controllers\PostController::class, 'reject'])->name('admin.blogs.reject');
+
+    // Quản lý mã giảm giá (Coupon)
+    Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons.index');
+    Route::post('/coupons', [CouponController::class, 'store'])->name('admin.coupons.store');
+    Route::put('/coupons/{id}/toggle', [CouponController::class, 'toggleStatus'])->name('admin.coupons.toggle');
+    Route::delete('/coupons/{id}', [CouponController::class, 'destroy'])->name('admin.coupons.destroy');
 });
+
 
 // ─── Blog Management (User) ──────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
