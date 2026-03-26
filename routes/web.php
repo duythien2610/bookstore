@@ -7,6 +7,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\WishlistController;
 use App\Http\Controllers\DanhGiaController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\BannerController;
 
 
 
@@ -176,7 +177,15 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/coupons', [CouponController::class, 'store'])->name('admin.coupons.store');
     Route::put('/coupons/{id}/toggle', [CouponController::class, 'toggleStatus'])->name('admin.coupons.toggle');
     Route::delete('/coupons/{id}', [CouponController::class, 'destroy'])->name('admin.coupons.destroy');
+
+    // Quản lý Banner
+    Route::get('/banners', [BannerController::class, 'index'])->name('admin.banners.index');
+    Route::post('/banners', [BannerController::class, 'store'])->name('admin.banners.store');
+    Route::put('/banners/{id}', [BannerController::class, 'update'])->name('admin.banners.update');
+    Route::delete('/banners/{id}', [BannerController::class, 'destroy'])->name('admin.banners.destroy');
+    Route::put('/banners/{id}/toggle', [BannerController::class, 'toggleStatus'])->name('admin.banners.toggle');
 });
+
 
 
 // ─── Blog Management (User) ──────────────────────────────────────────────
