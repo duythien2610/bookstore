@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\WishlistController;
+use App\Http\Controllers\DanhGiaController;
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +29,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// ─── Google OAuth ─────────────────────────────────────────────────────────
+Route::get('/auth/google', [App\Http\Controllers\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [App\Http\Controllers\GoogleController::class, 'handleGoogleCallback'])->name('auth.google.callback');
 
 // Email Verification (yêu cầu đăng nhập — Security Lớp 1)
 Route::middleware('auth')->group(function () {
@@ -49,9 +57,7 @@ Route::post('/new-password', [AuthController::class, 'resetPassword'])->name('pa
 Route::get('/products', [App\Http\Controllers\SachController::class, 'list'])->name('products.index');
 Route::get('/featured-books', [App\Http\Controllers\SachController::class, 'featured'])->name('products.featured');
 
-Route::get('/products/{id}', function ($id = null) {
-    return view('pages.product-detail');
-})->name('products.show');
+Route::get('/products/{id}', [App\Http\Controllers\SachController::class, 'show'])->name('products.show');
 
 // Các route yêu cầu đăng nhập + đã xác thực email
 Route::middleware('verified')->group(function () {
@@ -71,13 +77,18 @@ Route::middleware('verified')->group(function () {
         return view('pages.order-tracking');
     })->name('order.tracking');
 
-    Route::get('/wishlist', function () {
-        return view('pages.wishlist');
-    })->name('wishlist');
+    Route::get('/wishlist', [WishlistController::class, 'show'])->name('wishlist');
+    Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
 
     Route::get('/profile', [UserController::class, 'show'])->name('profile');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
+
+    // Đánh giá sách
+    Route::post('/danh-gia', [DanhGiaController::class, 'store'])->name('danh-gia.store');
+    Route::delete('/danh-gia/{id}', [DanhGiaController::class, 'destroy'])->name('danh-gia.destroy');
 });
+
 
 Route::get('/blog', function (\Illuminate\Http\Request $request) {
     // Lấy bài nổi bật: post có nhiều lượt xem nhất

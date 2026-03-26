@@ -8,6 +8,7 @@ use App\Models\NhaXuatBan;
 use App\Models\NhaCungCap;
 use App\Models\TheLoai;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class SachController extends Controller
 {
@@ -329,5 +330,55 @@ class SachController extends Controller
         $sachs = Sach::mostSold(15)->with(['tacGia', 'theLoai'])->get();
 
         return view('pages.featured-books', compact('sachs'));
+    }
+
+    /**
+     * Hiển thị chi tiết sách (trang người dùng).
+     */
+    public function show($id)
+    {
+        $sach = Sach::with(['tacGia', 'theLoai', 'nhaXuatBan'])->findOrFail($id);
+
+        // Lấy tất cả đánh giá kèm user
+        $danhGias = $sach->danhGias()->with('user')->latest()->get();
+
+        // Điểm trung bình
+        $diemTrungBinh = $danhGias->avg('so_sao') ?? 0;
+
+        // Phân phối sao (1-5)
+        $phanPhoiSao = $danhGias->groupBy('so_sao')->map->count()->toArray();
+
+        // Sách liên quan (cùng thể loại, loại trừ sách hiện tại)
+        $sachLienQuan = Sach::with(['tacGia'])
+            ->where('id', '!=', $sach->id)
+            ->when($sach->the_loai_id, fn($q) => $q->where('the_loai_id', $sach->the_loai_id))
+            ->orderByDesc('created_at')
+            ->limit(4)
+            ->get();
+
+        // Kiểm tra user đã gửi đánh giá chưa
+        $daGuiDanhGia = false;
+        $daMua = false;
+
+        if (Auth::check()) {
+            $userId = Auth::id();
+            $daGuiDanhGia = $danhGias->where('user_id', $userId)->isNotEmpty();
+
+            // Kiểm tra đã mua sách này chưa (đơn hàng đã giao)
+            $daMua = \App\Models\DonHang::where('user_id', $userId)
+                ->where('trang_thai', 'da_giao')
+                ->whereHas('chiTiets', fn($q) => $q->where('sach_id', $sach->id))
+                ->exists();
+        }
+
+        return view('pages.product-detail', compact(
+            'sach',
+            'danhGias',
+            'diemTrungBinh',
+            'phanPhoiSao',
+            'sachLienQuan',
+            'daGuiDanhGia',
+            'daMua'
+        ));
     }
 }
