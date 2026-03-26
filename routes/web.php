@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\WishlistController;
+
 use App\Http\Controllers\DanhGiaController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\BannerController;
@@ -134,12 +136,13 @@ Route::prefix('admin')->middleware('admin')->group(function () {
 
     Route::get('/inventory', [App\Http\Controllers\SachController::class, 'index'])->name('admin.inventory');
 
-    Route::get('/orders', function () {
-        $donHangs = \App\Models\DonHang::with('user')->orderByDesc('created_at')->get();
-        return view('admin.orders', compact('donHangs'));
-    })->name('admin.orders');
+    // Quản lý đơn hàng
+    Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
+    Route::get('/orders/{id}', [OrderController::class, 'show'])->name('admin.orders.show');
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update');
 
     Route::get('/books/create', [App\Http\Controllers\SachController::class, 'create'])->name('admin.books.create');
+
     Route::post('/books', [App\Http\Controllers\SachController::class, 'store'])->name('admin.books.store');
     Route::get('/books/{sach}/edit', [App\Http\Controllers\SachController::class, 'edit'])->name('admin.books.edit');
     Route::put('/books/{sach}', [App\Http\Controllers\SachController::class, 'update'])->name('admin.books.update');
