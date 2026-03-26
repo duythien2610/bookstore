@@ -391,4 +391,24 @@ class SachController extends Controller
         $str = preg_replace('/[^a-z0-9]/', '', $str);
         return $str;
     }
+
+    /**
+     * Xóa sách khỏi database.
+     */
+    public function destroy($id)
+    {
+        $sach = Sach::findOrFail($id);
+        $tenSach = $sach->tieu_de;
+
+        // Xóa ảnh bìa nếu có
+        if ($sach->file_anh_bia && file_exists(public_path('uploads/books/' . $sach->file_anh_bia))) {
+            unlink(public_path('uploads/books/' . $sach->file_anh_bia));
+        }
+
+        $sach->delete();
+
+        return redirect()
+            ->route('admin.inventory')
+            ->with('success', 'Đã xóa sách "' . $tenSach . '" thành công!');
+    }
 }

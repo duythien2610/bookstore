@@ -52,7 +52,7 @@
             <span class="material-icons">view_carousel</span>
             Quản lý Banner
         </a>
-        <a href="{{ url('/admin/settings') }}" id="nav-settings">
+        <a href="{{ route('admin.settings') }}" class="{{ request()->is('admin/settings*') ? 'active' : '' }}" id="nav-settings">
             <span class="material-icons">settings</span>
             Cài đặt
         </a>

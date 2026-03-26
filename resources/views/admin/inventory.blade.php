@@ -360,7 +360,11 @@
                     <td>
                         <div style="display: flex; gap: var(--space-1);">
                             <a href="{{ route('admin.books.edit', $sach->id) }}" class="btn btn-ghost btn-sm" title="Sửa"><span class="material-icons" style="font-size: 18px;">edit</span></a>
-                            <button class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                            <form action="{{ route('admin.books.destroy', $sach->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa sách &quot;{{ $sach->tieu_de }}&quot;?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                            </form>
                         </div>
                     </td>
                 </tr>

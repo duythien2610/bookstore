@@ -12,6 +12,7 @@
     .tab-content.active { display: block; }
     .alert { padding: var(--space-4) var(--space-5); border-radius: var(--radius-lg); font-size: var(--font-size-sm); margin-bottom: var(--space-6); display: flex; align-items: center; gap: var(--space-3); }
     .alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
     .stat-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
     .stat-card { background: var(--color-white); border-radius: var(--radius-xl); border: 1px solid var(--color-border-light); padding: var(--space-5); display: flex; align-items: center; gap: var(--space-4); }
     .stat-card .stat-icon { width: 48px; height: 48px; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center; font-size: 24px; }
@@ -20,6 +21,19 @@
     .stat-card .stat-icon.suppliers { background: #fef3c7; color: #d97706; }
     .stat-card .stat-value { font-size: var(--font-size-2xl); font-weight: var(--font-bold); }
     .stat-card .stat-label { font-size: var(--font-size-xs); color: var(--color-text-muted); }
+
+    /* Inline edit form */
+    .inline-edit-form { display: none; }
+    .inline-edit-form.show { display: flex; align-items: center; gap: var(--space-2); }
+    .inline-edit-name { display: flex; align-items: center; gap: var(--space-3); }
+    .inline-edit-form .form-control { padding: var(--space-2) var(--space-3); font-size: var(--font-size-sm); }
+
+    /* Modal overlay */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: var(--color-white); border-radius: var(--radius-xl); padding: var(--space-6); max-width: 420px; width: 90%; box-shadow: var(--shadow-xl); }
+    .modal-box h3 { margin-bottom: var(--space-4); }
+    .modal-box .modal-actions { display: flex; gap: var(--space-3); justify-content: flex-end; margin-top: var(--space-5); }
 </style>
 @endpush
 
@@ -38,6 +52,13 @@
         <div class="alert alert-success">
             <span class="material-icons" style="font-size: 20px;">check_circle</span>
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-error">
+            <span class="material-icons" style="font-size: 20px;">error</span>
+            {{ session('error') }}
         </div>
     @endif
 
@@ -107,19 +128,36 @@
                         <td><input type="checkbox"></td>
                         <td style="color: var(--color-text-muted);">#{{ $tg->id }}</td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: var(--space-3);">
+                            {{-- Hiển thị tên (ẩn khi đang sửa) --}}
+                            <div class="inline-edit-name" id="tg-name-{{ $tg->id }}">
                                 <div style="width: 36px; height: 36px; background: #eff6ff; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <span class="material-icons" style="font-size: 18px; color: #2563eb;">person</span>
                                 </div>
                                 <span style="font-weight: var(--font-medium);">{{ $tg->ten_tac_gia }}</span>
                             </div>
+                            {{-- Form sửa inline --}}
+                            <form class="inline-edit-form" id="tg-edit-{{ $tg->id }}" action="{{ route('admin.tac-gia.update', $tg->id) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="ten_tac_gia" class="form-control" value="{{ $tg->ten_tac_gia }}" style="max-width: 220px;" required>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <span class="material-icons" style="font-size: 16px;">check</span>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleEdit('tg', {{ $tg->id }})">
+                                    <span class="material-icons" style="font-size: 16px;">close</span>
+                                </button>
+                            </form>
                         </td>
                         <td><span class="badge badge-primary">{{ $tg->sachs->count() }} sách</span></td>
                         <td style="color: var(--color-text-muted); font-size: var(--font-size-sm);">{{ $tg->created_at->format('d/m/Y') }}</td>
                         <td>
                             <div style="display: flex; gap: var(--space-1);">
-                                <button class="btn btn-ghost btn-sm" title="Sửa"><span class="material-icons" style="font-size: 18px;">edit</span></button>
-                                <button class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                                <button class="btn btn-ghost btn-sm" title="Sửa" onclick="toggleEdit('tg', {{ $tg->id }})"><span class="material-icons" style="font-size: 18px;">edit</span></button>
+                                <form action="{{ route('admin.tac-gia.destroy', $tg->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa tác giả &quot;{{ $tg->ten_tac_gia }}&quot;?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -156,19 +194,34 @@
                         <td><input type="checkbox"></td>
                         <td style="color: var(--color-text-muted);">#{{ $nxb->id }}</td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: var(--space-3);">
+                            <div class="inline-edit-name" id="nxb-name-{{ $nxb->id }}">
                                 <div style="width: 36px; height: 36px; background: #f0fdf4; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <span class="material-icons" style="font-size: 18px; color: #16a34a;">business</span>
                                 </div>
                                 <span style="font-weight: var(--font-medium);">{{ $nxb->ten_nxb }}</span>
                             </div>
+                            <form class="inline-edit-form" id="nxb-edit-{{ $nxb->id }}" action="{{ route('admin.nha-xuat-ban.update', $nxb->id) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="ten_nxb" class="form-control" value="{{ $nxb->ten_nxb }}" style="max-width: 220px;" required>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <span class="material-icons" style="font-size: 16px;">check</span>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleEdit('nxb', {{ $nxb->id }})">
+                                    <span class="material-icons" style="font-size: 16px;">close</span>
+                                </button>
+                            </form>
                         </td>
                         <td><span class="badge badge-primary">{{ $nxb->sachs->count() }} sách</span></td>
                         <td style="color: var(--color-text-muted); font-size: var(--font-size-sm);">{{ $nxb->created_at->format('d/m/Y') }}</td>
                         <td>
                             <div style="display: flex; gap: var(--space-1);">
-                                <button class="btn btn-ghost btn-sm" title="Sửa"><span class="material-icons" style="font-size: 18px;">edit</span></button>
-                                <button class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                                <button class="btn btn-ghost btn-sm" title="Sửa" onclick="toggleEdit('nxb', {{ $nxb->id }})"><span class="material-icons" style="font-size: 18px;">edit</span></button>
+                                <form action="{{ route('admin.nha-xuat-ban.destroy', $nxb->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa NXB &quot;{{ $nxb->ten_nxb }}&quot;?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -205,19 +258,34 @@
                         <td><input type="checkbox"></td>
                         <td style="color: var(--color-text-muted);">#{{ $ncc->id }}</td>
                         <td>
-                            <div style="display: flex; align-items: center; gap: var(--space-3);">
+                            <div class="inline-edit-name" id="ncc-name-{{ $ncc->id }}">
                                 <div style="width: 36px; height: 36px; background: #fef3c7; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                     <span class="material-icons" style="font-size: 18px; color: #d97706;">local_shipping</span>
                                 </div>
                                 <span style="font-weight: var(--font-medium);">{{ $ncc->ten_ncc }}</span>
                             </div>
+                            <form class="inline-edit-form" id="ncc-edit-{{ $ncc->id }}" action="{{ route('admin.nha-cung-cap.update', $ncc->id) }}" method="POST">
+                                @csrf
+                                @method('PUT')
+                                <input type="text" name="ten_ncc" class="form-control" value="{{ $ncc->ten_ncc }}" style="max-width: 220px;" required>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <span class="material-icons" style="font-size: 16px;">check</span>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm" onclick="toggleEdit('ncc', {{ $ncc->id }})">
+                                    <span class="material-icons" style="font-size: 16px;">close</span>
+                                </button>
+                            </form>
                         </td>
                         <td><span class="badge badge-primary">{{ $ncc->sachs->count() }} sách</span></td>
                         <td style="color: var(--color-text-muted); font-size: var(--font-size-sm);">{{ $ncc->created_at->format('d/m/Y') }}</td>
                         <td>
                             <div style="display: flex; gap: var(--space-1);">
-                                <button class="btn btn-ghost btn-sm" title="Sửa"><span class="material-icons" style="font-size: 18px;">edit</span></button>
-                                <button class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                                <button class="btn btn-ghost btn-sm" title="Sửa" onclick="toggleEdit('ncc', {{ $ncc->id }})"><span class="material-icons" style="font-size: 18px;">edit</span></button>
+                                <form action="{{ route('admin.nha-cung-cap.destroy', $ncc->id) }}" method="POST" onsubmit="return confirm('Bạn có chắc muốn xóa NCC &quot;{{ $ncc->ten_ncc }}&quot;?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-sm" title="Xóa" style="color: var(--color-danger);"><span class="material-icons" style="font-size: 18px;">delete</span></button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -241,5 +309,20 @@
             document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
         });
     });
+
+    // Toggle inline edit
+    function toggleEdit(prefix, id) {
+        const nameEl = document.getElementById(prefix + '-name-' + id);
+        const editEl = document.getElementById(prefix + '-edit-' + id);
+
+        if (editEl.classList.contains('show')) {
+            nameEl.style.display = '';
+            editEl.classList.remove('show');
+        } else {
+            nameEl.style.display = 'none';
+            editEl.classList.add('show');
+            editEl.querySelector('input[type="text"]').focus();
+        }
+    }
 </script>
 @endpush

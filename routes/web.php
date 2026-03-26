@@ -162,24 +162,33 @@ Route::prefix('admin')->middleware(['admin', 'audit_log'])->group(function () {
     Route::post('/books/import-json', [App\Http\Controllers\SachController::class, 'importJson'])->name('admin.books.import-json');
     Route::get('/books/{sach}/edit', [App\Http\Controllers\SachController::class, 'edit'])->name('admin.books.edit');
     Route::put('/books/{sach}', [App\Http\Controllers\SachController::class, 'update'])->name('admin.books.update');
+    Route::delete('/books/{sach}', [App\Http\Controllers\SachController::class, 'destroy'])->name('admin.books.destroy');
 
     // Đối tác
     Route::get('/partners', [App\Http\Controllers\TacGiaController::class, 'index'])->name('admin.partners');
     Route::get('/tac-gia/create', [App\Http\Controllers\TacGiaController::class, 'create'])->name('admin.tac-gia.create');
     Route::post('/tac-gia', [App\Http\Controllers\TacGiaController::class, 'store'])->name('admin.tac-gia.store');
+    Route::put('/tac-gia/{id}', [App\Http\Controllers\TacGiaController::class, 'update'])->name('admin.tac-gia.update');
+    Route::delete('/tac-gia/{id}', [App\Http\Controllers\TacGiaController::class, 'destroy'])->name('admin.tac-gia.destroy');
 
     // Nhà xuất bản
     Route::get('/nha-xuat-ban/create', [App\Http\Controllers\NhaXuatBanController::class, 'create'])->name('admin.nha-xuat-ban.create');
     Route::post('/nha-xuat-ban', [App\Http\Controllers\NhaXuatBanController::class, 'store'])->name('admin.nha-xuat-ban.store');
+    Route::put('/nha-xuat-ban/{id}', [App\Http\Controllers\NhaXuatBanController::class, 'update'])->name('admin.nha-xuat-ban.update');
+    Route::delete('/nha-xuat-ban/{id}', [App\Http\Controllers\NhaXuatBanController::class, 'destroy'])->name('admin.nha-xuat-ban.destroy');
 
     // Nhà cung cấp
     Route::get('/nha-cung-cap/create', [App\Http\Controllers\NhaCungCapController::class, 'create'])->name('admin.nha-cung-cap.create');
     Route::post('/nha-cung-cap', [App\Http\Controllers\NhaCungCapController::class, 'store'])->name('admin.nha-cung-cap.store');
+    Route::put('/nha-cung-cap/{id}', [App\Http\Controllers\NhaCungCapController::class, 'update'])->name('admin.nha-cung-cap.update');
+    Route::delete('/nha-cung-cap/{id}', [App\Http\Controllers\NhaCungCapController::class, 'destroy'])->name('admin.nha-cung-cap.destroy');
 
     // Thể loại
     Route::get('/the-loai', [App\Http\Controllers\TheLoaiController::class, 'index'])->name('admin.the-loai.index');
     Route::get('/the-loai/create', [App\Http\Controllers\TheLoaiController::class, 'create'])->name('admin.the-loai.create');
     Route::post('/the-loai', [App\Http\Controllers\TheLoaiController::class, 'store'])->name('admin.the-loai.store');
+    Route::put('/the-loai/{id}', [App\Http\Controllers\TheLoaiController::class, 'update'])->name('admin.the-loai.update');
+    Route::delete('/the-loai/{id}', [App\Http\Controllers\TheLoaiController::class, 'destroy'])->name('admin.the-loai.destroy');
 
     // Quản lý người dùng
     Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
@@ -203,6 +212,38 @@ Route::prefix('admin')->middleware(['admin', 'audit_log'])->group(function () {
     Route::put('/banners/{id}', [App\Http\Controllers\BannerController::class, 'update'])->name('admin.banners.update');
     Route::delete('/banners/{id}', [App\Http\Controllers\BannerController::class, 'destroy'])->name('admin.banners.destroy');
     Route::patch('/banners/{id}/toggle', [App\Http\Controllers\BannerController::class, 'toggleStatus'])->name('admin.banners.toggle');
+
+    // Cài đặt Admin
+    Route::get('/settings', function () {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        $tongSach = \App\Models\Sach::count();
+        $tongDonHang = \App\Models\DonHang::count();
+        $tongKhachHang = \App\Models\User::count();
+        $tongTheLoai = \App\Models\TheLoai::count();
+        return view('admin.settings', compact('user', 'tongSach', 'tongDonHang', 'tongKhachHang', 'tongTheLoai'));
+    })->name('admin.settings');
+
+    Route::put('/settings/password', function (\Illuminate\Http\Request $request) {
+        $request->validate([
+            'current_password' => 'required',
+            'new_password'     => 'required|string|min:6|confirmed',
+        ], [
+            'current_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
+            'new_password.required'     => 'Vui lòng nhập mật khẩu mới.',
+            'new_password.min'          => 'Mật khẩu mới phải có ít nhất 6 ký tự.',
+            'new_password.confirmed'    => 'Xác nhận mật khẩu không khớp.',
+        ]);
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return back()->with('error', 'Mật khẩu hiện tại không đúng.');
+        }
+
+        $user->update(['password' => \Illuminate\Support\Facades\Hash::make($request->new_password)]);
+
+        return back()->with('success', 'Đổi mật khẩu thành công!');
+    })->name('admin.settings.password');
 });
 
 // ─── Blog Management (User) ──────────────────────────────────────────────

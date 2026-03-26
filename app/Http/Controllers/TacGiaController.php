@@ -43,7 +43,48 @@ class TacGiaController extends Controller
         TacGia::create($validated);
 
         return redirect()
-            ->route('admin.tac-gia.create')
+            ->route('admin.partners')
             ->with('success', 'Thêm tác giả "' . $validated['ten_tac_gia'] . '" thành công!');
+    }
+
+    /**
+     * Cập nhật tác giả.
+     */
+    public function update(Request $request, $id)
+    {
+        $tacGia = TacGia::findOrFail($id);
+
+        $validated = $request->validate([
+            'ten_tac_gia' => 'required|string|max:150|unique:tac_gia,ten_tac_gia,' . $id,
+        ], [
+            'ten_tac_gia.required' => 'Tên tác giả là bắt buộc.',
+            'ten_tac_gia.max'      => 'Tên tác giả không quá 150 ký tự.',
+            'ten_tac_gia.unique'   => 'Tác giả này đã tồn tại.',
+        ]);
+
+        $tacGia->update($validated);
+
+        return redirect()
+            ->route('admin.partners')
+            ->with('success', 'Cập nhật tác giả "' . $validated['ten_tac_gia'] . '" thành công!');
+    }
+
+    /**
+     * Xóa tác giả.
+     */
+    public function destroy($id)
+    {
+        $tacGia = TacGia::withCount('sachs')->findOrFail($id);
+
+        if ($tacGia->sachs_count > 0) {
+            return back()->with('error', 'Không thể xóa tác giả "' . $tacGia->ten_tac_gia . '" vì vẫn còn ' . $tacGia->sachs_count . ' sách liên kết.');
+        }
+
+        $ten = $tacGia->ten_tac_gia;
+        $tacGia->delete();
+
+        return redirect()
+            ->route('admin.partners')
+            ->with('success', 'Đã xóa tác giả "' . $ten . '" thành công!');
     }
 }
