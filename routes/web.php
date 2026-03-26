@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Cache;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\UserController;
@@ -14,50 +13,20 @@ use App\Http\Controllers\UserController;
 
 // ─── Homepage ────────────────────────────────────────────────────────────
 Route::get('/', function () {
-    $sachMoi = Cache::remember('home_sach_moi', 3600, function () {
-        return \App\Models\Sach::with('tacGia')
-            ->where('so_luong_ton', '>', 0)
-            ->orderByDesc('created_at')
-            ->limit(8)->get();
-    });
+    // Lấy 8 cuốn sách bán chạy nhất sử dụng scope đã viết trong Model
+    $sachNoiBat = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
 
-    $sachBanChay = Cache::remember('home_sach_ban_chay', 3600, function () {
-        return \App\Models\Sach::with('tacGia')
-            ->where('so_luong_ton', '>', 0)
-            ->where('gia_goc', '>', 0)
-            ->orderBy('so_luong_ton', 'asc')
-            ->limit(8)->get();
-    });
-
-    $theLoais = Cache::remember('home_the_loais', 86400, function () {
-        return \App\Models\TheLoai::whereNull('parent_id')
-            ->orderBy('ten_the_loai')
-            ->limit(6)->get();
-    });
-
-    $banners = Cache::remember('home_banners', 86400, function () {
-        return \App\Models\Banner::where('trang_thai', true)
-            ->where('vi_tri', 'hero')
-            ->orderBy('thu_tu')
-            ->orderByDesc('created_at')
-            ->get();
-    });
-
-    return view('pages.home', compact('sachMoi', 'sachBanChay', 'theLoais', 'banners'));
+    return view('pages.home', compact('sachNoiBat'));
 })->name('home');
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1'); // Giới hạn 5 lần/phút để tránh brute-force
+Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:3,1'); // Giới hạn 3 lần đăng ký/phút
+Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-// Google Auth
-Route::get('auth/google', [\App\Http\Controllers\GoogleController::class, 'redirectToGoogle'])->name('auth.google');
-Route::get('auth/google/callback', [\App\Http\Controllers\GoogleController::class, 'handleGoogleCallback']);
-
-// Email Verification
+// Email Verification (yêu cầu đăng nhập — Security Lớp 1)
 Route::middleware('auth')->group(function () {
     Route::get('/verify-email', [AuthController::class, 'showVerifyEmail'])->name('verification.notice');
     Route::post('/verify-email', [AuthController::class, 'verifyEmail'])->name('verification.verify');
@@ -67,7 +36,7 @@ Route::middleware('auth')->group(function () {
     })->name('verification.success');
 });
 
-// Forgot Password / Reset Password
+// Forgot Password / Reset Password (2 bước)
 Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('auth.forgot-password');
 Route::post('/forgot-password', [AuthController::class, 'sendResetCode'])->name('password.send');
 Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->name('password.reset');
@@ -77,39 +46,41 @@ Route::get('/new-password', [AuthController::class, 'showNewPassword'])->name('p
 Route::post('/new-password', [AuthController::class, 'resetPassword'])->name('password.update');
 
 // ─── Public Pages ────────────────────────────────────────────────────────
-Route::get('/products', [App\Http\Controllers\SachController::class, 'indexPublic'])->name('products.index');
-Route::get('/products/{id}', [App\Http\Controllers\SachController::class, 'showPublic'])->where('id', '[0-9]+')->name('products.show');
+Route::get('/products', [App\Http\Controllers\SachController::class, 'list'])->name('products.index');
+Route::get('/featured-books', [App\Http\Controllers\SachController::class, 'featured'])->name('products.featured');
+
+Route::get('/products/{id}', function ($id = null) {
+    return view('pages.product-detail');
+})->name('products.show');
 
 // Các route yêu cầu đăng nhập + đã xác thực email
 Route::middleware('verified')->group(function () {
-    Route::get('/cart', [App\Http\Controllers\CartController::class, 'show'])->name('cart');
-    Route::post('/cart/add', [App\Http\Controllers\CartController::class, 'add'])->name('cart.add');
-    Route::put('/cart/{id}', [App\Http\Controllers\CartController::class, 'update'])->name('cart.update');
-    Route::delete('/cart/{id}', [App\Http\Controllers\CartController::class, 'remove'])->name('cart.remove');
-    Route::delete('/cart', [App\Http\Controllers\CartController::class, 'clear'])->name('cart.clear');
-    Route::post('/cart/coupon', [App\Http\Controllers\CartController::class, 'applyCoupon'])->name('cart.coupon');
+    Route::get('/cart', [App\Http\Controllers\GioHangController::class, 'index'])->name('cart');
+    Route::post('/cart/add', [App\Http\Controllers\GioHangController::class, 'add'])->name('cart.add');
+    Route::post('/cart/update/{id}', [App\Http\Controllers\GioHangController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove/{id}', [App\Http\Controllers\GioHangController::class, 'destroy'])->name('cart.remove');
 
-    Route::post('/checkout/prepare', [App\Http\Controllers\CheckoutController::class, 'prepare'])->name('checkout.prepare');
-    Route::get('/checkout', [App\Http\Controllers\CheckoutController::class, 'show'])->name('checkout');
-    Route::post('/checkout', [App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.store')->middleware('throttle:5,1'); // Tránh spam click thanh toán liên tục
+    Route::get('/checkout', [App\Http\Controllers\GioHangController::class, 'showCheckout'])->name('checkout');
+    Route::post('/checkout', [App\Http\Controllers\GioHangController::class, 'processCheckout'])->name('checkout.process');
 
-    Route::get('/payos/return', [App\Http\Controllers\PayosController::class, 'handlePayosReturn'])->name('payos.return');
+    Route::get('/order-success', function () {
+        return view('pages.order-success');
+    })->name('order.success');
 
-    Route::get('/order-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('order.success');
-    Route::get('/order-tracking/{id}', [App\Http\Controllers\CheckoutController::class, 'tracking'])->name('order.tracking');
+    Route::get('/order-tracking', function () {
+        return view('pages.order-tracking');
+    })->name('order.tracking');
 
-    Route::get('/wishlist', [App\Http\Controllers\WishlistController::class, 'show'])->name('wishlist');
-    Route::post('/wishlist/toggle', [App\Http\Controllers\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+    Route::get('/wishlist', function () {
+        return view('pages.wishlist');
+    })->name('wishlist');
 
     Route::get('/profile', [UserController::class, 'show'])->name('profile');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
-
-    // Đánh giá sách
-    Route::post('/danh-gia', [App\Http\Controllers\DanhGiaController::class, 'store'])->name('danh-gia.store');
-    Route::delete('/danh-gia/{id}', [App\Http\Controllers\DanhGiaController::class, 'destroy'])->name('danh-gia.destroy');
 });
 
 Route::get('/blog', function (\Illuminate\Http\Request $request) {
+    // Lấy bài nổi bật: post có nhiều lượt xem nhất
     $featuredPost = \App\Models\Post::where('status', 'published')
                         ->with('user')
                         ->orderBy('views', 'desc')
@@ -134,12 +105,9 @@ Route::get('/contact', function () {
 // ─── Chatbot AI ──────────────────────────────────────────────────────────
 Route::post('/chatbot/send', [ChatbotController::class, 'chat'])->name('chatbot.send');
 
-// ─── PayOS Webhook (Must be outside CSRF middleware if possible, but let's check VerifyCsrfToken as well) ────────────────────
-Route::post('/payos/webhook', [\App\Http\Controllers\PayosController::class, 'handleWebhook'])->name('payos.webhook');
 
-
-// ─── Admin Routes ────────────────────────────────────────────────────────
-Route::prefix('admin')->middleware(['admin', 'audit_log'])->group(function () {
+// ─── Admin Routes (chỉ admin mới vào được) ───────────────────────────────
+Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/', function () {
         $tongSach     = \App\Models\Sach::count();
         $tongDonHang  = \App\Models\DonHang::count();
@@ -152,18 +120,17 @@ Route::prefix('admin')->middleware(['admin', 'audit_log'])->group(function () {
 
     Route::get('/inventory', [App\Http\Controllers\SachController::class, 'index'])->name('admin.inventory');
 
-    // Đơn hàng
-    Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->name('admin.orders');
-    Route::get('/orders/{id}', [App\Http\Controllers\OrderController::class, 'show'])->name('admin.orders.show');
-    Route::patch('/orders/{id}/status', [App\Http\Controllers\OrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
+    Route::get('/orders', function () {
+        $donHangs = \App\Models\DonHang::with('user')->orderByDesc('created_at')->get();
+        return view('admin.orders', compact('donHangs'));
+    })->name('admin.orders');
 
     Route::get('/books/create', [App\Http\Controllers\SachController::class, 'create'])->name('admin.books.create');
     Route::post('/books', [App\Http\Controllers\SachController::class, 'store'])->name('admin.books.store');
-    Route::post('/books/import-json', [App\Http\Controllers\SachController::class, 'importJson'])->name('admin.books.import-json');
     Route::get('/books/{sach}/edit', [App\Http\Controllers\SachController::class, 'edit'])->name('admin.books.edit');
     Route::put('/books/{sach}', [App\Http\Controllers\SachController::class, 'update'])->name('admin.books.update');
 
-    // Đối tác
+    // Đối tác (Tác giả, NXB, NCC)
     Route::get('/partners', [App\Http\Controllers\TacGiaController::class, 'index'])->name('admin.partners');
     Route::get('/tac-gia/create', [App\Http\Controllers\TacGiaController::class, 'create'])->name('admin.tac-gia.create');
     Route::post('/tac-gia', [App\Http\Controllers\TacGiaController::class, 'store'])->name('admin.tac-gia.store');
@@ -187,22 +154,9 @@ Route::prefix('admin')->middleware(['admin', 'audit_log'])->group(function () {
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 
     // Quản lý Blog
-    Route::get('/blogs', [App\Http\Controllers\PostController::class, 'adminIndex'])->name('admin.blogs.index');
-    Route::put('/blogs/{post}/approve', [App\Http\Controllers\PostController::class, 'approve'])->name('admin.blogs.approve');
-    Route::put('/blogs/{post}/reject', [App\Http\Controllers\PostController::class, 'reject'])->name('admin.blogs.reject');
-
-    // Mã giảm giá
-    Route::get('/coupons', [App\Http\Controllers\CouponController::class, 'index'])->name('admin.coupons.index');
-    Route::post('/coupons', [App\Http\Controllers\CouponController::class, 'store'])->name('admin.coupons.store');
-    Route::patch('/coupons/{id}/toggle', [App\Http\Controllers\CouponController::class, 'toggleStatus'])->name('admin.coupons.toggle');
-    Route::delete('/coupons/{id}', [App\Http\Controllers\CouponController::class, 'destroy'])->name('admin.coupons.destroy');
-
-    // Banner
-    Route::get('/banners', [App\Http\Controllers\BannerController::class, 'index'])->name('admin.banners.index');
-    Route::post('/banners', [App\Http\Controllers\BannerController::class, 'store'])->name('admin.banners.store');
-    Route::put('/banners/{id}', [App\Http\Controllers\BannerController::class, 'update'])->name('admin.banners.update');
-    Route::delete('/banners/{id}', [App\Http\Controllers\BannerController::class, 'destroy'])->name('admin.banners.destroy');
-    Route::patch('/banners/{id}/toggle', [App\Http\Controllers\BannerController::class, 'toggleStatus'])->name('admin.banners.toggle');
+    Route::get('/blogs', [\App\Http\Controllers\PostController::class, 'adminIndex'])->name('admin.blogs.index');
+    Route::put('/blogs/{post}/approve', [\App\Http\Controllers\PostController::class, 'approve'])->name('admin.blogs.approve');
+    Route::put('/blogs/{post}/reject', [\App\Http\Controllers\PostController::class, 'reject'])->name('admin.blogs.reject');
 });
 
 // ─── Blog Management (User) ──────────────────────────────────────────────
@@ -212,15 +166,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/blog/upload-image', [\App\Http\Controllers\PostController::class, 'uploadImage'])->name('blog.upload-image');
 });
 
-// Route blog/{slug} phải sau các route tĩnh
+// Chú ý: Route chứa tham số động {slug} phải nằm dưới các route tĩnh (như /blog/create)
 Route::get('/blog/{slug}', function ($slug) {
     $post = \App\Models\Post::where('slug', $slug)
                 ->where('status', 'published')
                 ->with('user')
                 ->firstOrFail();
 
+    // Tăng lượt xem mỗi lần có người vào đọc
     $post->increment('views');
 
+    // Bài viết liên quan: cùng category, loại trừ bài hiện tại, nhiều view trước
     $relatedPosts = \App\Models\Post::where('status', 'published')
                         ->where('category', $post->category)
                         ->where('id', '!=', $post->id)
@@ -230,6 +186,7 @@ Route::get('/blog/{slug}', function ($slug) {
                         ->limit(3)
                         ->get();
 
+    // Nếu chưa đủ 3, bổ sung bài mới nhất từ category khác
     if ($relatedPosts->count() < 3) {
         $extra = \App\Models\Post::where('status', 'published')
                      ->where('id', '!=', $post->id)
@@ -244,3 +201,6 @@ Route::get('/blog/{slug}', function ($slug) {
 
     return view('pages.blog-detail', compact('post', 'relatedPosts'));
 })->name('blog.show');
+
+// Live search AJAX
+Route::get('/api/search', [App\Http\Controllers\SachController::class, 'searchAjax'])->name('api.search');

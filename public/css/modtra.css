@@ -221,29 +221,21 @@ h5 {
     gap: var(--space-8);
 }
 
-.nav-links > a, 
-.nav-dropdown > .nav-dropbtn {
+.nav-links a {
     color: var(--color-text-secondary);
     font-size: var(--font-size-sm);
     font-weight: var(--font-medium);
     transition: color var(--transition-fast);
     position: relative;
     padding: var(--space-2) 0;
-    text-decoration: none;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
 }
 
-.nav-links > a:hover,
-.nav-links > a.active,
-.nav-dropdown > .nav-dropbtn:hover,
-.nav-dropdown > .nav-dropbtn.active {
+.nav-links a:hover,
+.nav-links a.active {
     color: var(--color-primary-dark);
 }
 
-.nav-links > a.active::after,
-.nav-dropdown > .nav-dropbtn.active::after {
+.nav-links a.active::after {
     content: '';
     position: absolute;
     bottom: -2px;
@@ -252,133 +244,6 @@ h5 {
     height: 2px;
     background: var(--color-primary);
     border-radius: var(--radius-full);
-}
-
-/* ================================================================
-   MULTILEVEL NAVIGATION DROPDOWN (THỂ LOẠI)
-   ================================================================ */
-.nav-dropdown {
-    position: relative;
-    display: inline-block;
-}
-
-/* Level 1 Content */
-.dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: var(--color-white);
-    min-width: 220px;
-    box-shadow: var(--shadow-md);
-    border-radius: var(--radius-md);
-    z-index: 1000;
-    top: 100%;
-    left: 0;
-    border: 1px solid var(--color-border);
-    padding: var(--space-2) 0;
-    margin: 0;
-    list-style: none;
-}
-
-.nav-dropdown:hover > .dropdown-content {
-    display: block;
-    animation: fadeIn 0.2s ease-in-out;
-}
-
-/* Level 2 Submenu (Sách trong nước / Nước ngoài) */
-.dropdown-submenu {
-    position: relative;
-}
-
-.dropdown-submenu > a {
-    color: var(--color-text);
-    padding: var(--space-3) var(--space-4);
-    text-decoration: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: var(--font-size-sm);
-    transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-.dropdown-submenu > a:hover {
-    background-color: var(--color-bg);
-    color: var(--color-primary);
-}
-
-.submenu-content {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 100%;
-    background-color: var(--color-white);
-    min-width: 240px;
-    box-shadow: var(--shadow-md);
-    border-radius: var(--radius-md);
-    z-index: 1001;
-    border: 1px solid var(--color-border);
-    padding: var(--space-2) 0;
-    margin: 0;
-    list-style: none;
-}
-
-.dropdown-submenu:hover > .submenu-content {
-    display: block;
-    animation: fadeIn 0.15s ease-in-out;
-}
-
-/* Level 3 Nested Submenu (Thể loại con) */
-.dropdown-submenu-nested {
-    position: relative;
-}
-
-.dropdown-submenu-nested > a {
-    color: var(--color-text);
-    padding: var(--space-2) var(--space-4);
-    text-decoration: none;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: var(--font-size-sm);
-    transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-.dropdown-submenu-nested > a:hover {
-    background-color: var(--color-bg);
-    color: var(--color-primary);
-}
-
-.submenu-content-nested {
-    display: none;
-    position: absolute;
-    top: 0;
-    left: 100%;
-    background-color: var(--color-white);
-    min-width: 200px;
-    box-shadow: var(--shadow-sm);
-    border-radius: var(--radius-md);
-    z-index: 1002;
-    border: 1px solid var(--color-border);
-    padding: var(--space-2) 0;
-    margin: 0;
-    list-style: none;
-}
-
-.dropdown-submenu-nested:hover > .submenu-content-nested {
-    display: block;
-}
-
-.submenu-content-nested li a {
-    display: block;
-    padding: var(--space-2) var(--space-4);
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    font-size: var(--font-size-sm);
-    transition: background-color var(--transition-base), color var(--transition-base);
-}
-
-.submenu-content-nested li a:hover {
-    background-color: var(--color-bg);
-    color: var(--color-primary);
 }
 
 .header-search {
@@ -412,6 +277,77 @@ h5 {
     transform: translateY(-50%);
     color: var(--color-text-muted);
     font-size: 20px;
+}
+
+/* --- Search Results Dropdown --- */
+.search-results-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-light);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-height: 480px;
+    overflow-y: auto;
+    display: none;
+}
+
+.search-result-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--color-border-light);
+    transition: background var(--transition-fast);
+}
+
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+.search-result-item:hover {
+    background: var(--color-bg-alt);
+    color: inherit;
+}
+
+.result-img {
+    width: 40px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-alt);
+}
+
+.result-info {
+    flex: 1;
+}
+
+.result-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-semibold);
+    color: var(--color-text);
+    margin-bottom: 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.result-price {
+    font-size: var(--font-size-xs);
+    color: var(--color-primary-dark);
+    font-weight: var(--font-bold);
+}
+
+.no-results {
+    padding: var(--space-4);
+    text-align: center;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
 }
 
 .header-actions {
@@ -723,10 +659,6 @@ select.form-control {
     background: #eff6ff;
     color: #1d4ed8;
 }
-
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--color-warning); }
-.text-danger  { color: var(--color-danger);  }
 
 /* --- Tables --- */
 .table-wrapper {
@@ -2230,102 +2162,3 @@ select.form-control {
         height: 52px;
     }
 }
-
-/* ================================================================
-   REVIEW / RATING SYSTEM
-   ================================================================ */
-
-/* Layout: tổng quan bên trái + danh sách bên phải */
-.review-layout {
-    display: flex;
-    gap: var(--space-8);
-    align-items: flex-start;
-}
-
-/* Box tổng quan điểm */
-.review-summary-box {
-    width: 200px;
-    flex-shrink: 0;
-    background: var(--color-white);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6) var(--space-4);
-    text-align: center;
-    position: sticky;
-    top: calc(var(--header-height) + var(--space-4));
-}
-
-.review-score {
-    font-size: 3.5rem;
-    font-weight: var(--font-bold);
-    color: var(--color-text);
-    line-height: 1;
-    margin-bottom: var(--space-2);
-}
-
-.review-stars-big {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-    font-size: 20px;
-    margin-bottom: var(--space-1);
-}
-
-/* Star picker (form đánh giá) */
-.star-picker {
-    display: flex;
-    gap: var(--space-1);
-}
-
-.star-pick {
-    font-size: 36px;
-    cursor: pointer;
-    color: #d1d5db;
-    transition: color 0.15s, transform 0.1s;
-    user-select: none;
-}
-
-.star-pick:hover {
-    transform: scale(1.15);
-}
-
-/* Form card */
-.review-form-card {
-    background: var(--color-white);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-xl);
-    padding: var(--space-6);
-    margin-bottom: var(--space-6);
-    box-shadow: var(--shadow-sm);
-}
-
-/* Individual review card */
-.review-card {
-    background: var(--color-white);
-    border: 1px solid var(--color-border-light);
-    border-radius: var(--radius-xl);
-    padding: var(--space-5) var(--space-6);
-    transition: box-shadow var(--transition-fast);
-}
-
-.review-card:hover {
-    box-shadow: var(--shadow-md);
-}
-
-.review-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-2);
-}
-
-/* Responsive */
-@media (max-width: 640px) {
-    .review-layout {
-        flex-direction: column;
-    }
-    .review-summary-box {
-        width: 100%;
-        position: static;
-    }
-}
