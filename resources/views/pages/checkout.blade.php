@@ -146,7 +146,23 @@
                     @else
                         <form action="{{ route('checkout.voucher.apply') }}" method="POST" style="display: flex; gap: 8px;">
                             @csrf
-                            <input type="text" name="ma_code" class="form-control" placeholder="Mã giảm giá..." style="flex: 1; border-radius: 8px;" required>
+                            <input type="text" name="ma_code" list="voucher-list" class="form-control" placeholder="Mã giảm giá..." style="flex: 1; border-radius: 8px;" required>
+                            <datalist id="voucher-list">
+                                @php
+                                    $availableVouchers = \App\Models\MaGiamGia::where('trang_thai', 1)
+                                        ->whereNull('the_loai_id')
+                                        ->where(function($q) {
+                                            $q->whereNull('ngay_het_han')->orWhereDate('ngay_het_han', '>=', now());
+                                        })
+                                        ->where(function($q) {
+                                            $q->whereNull('so_luong')->orWhereRaw('da_dung < so_luong');
+                                        })
+                                        ->get();
+                                @endphp
+                                @foreach($availableVouchers as $voucher)
+                                    <option value="{{ $voucher->ma_code }}">Giảm {{ $voucher->loai === 'percent' ? $voucher->gia_tri . '%' : number_format($voucher->gia_tri, 0, ',', '.') . 'đ' }} ({{ $voucher->so_luong === null ? 'Không giới hạn' : 'Còn ' . ($voucher->so_luong - $voucher->da_dung) }})</option>
+                                @endforeach
+                            </datalist>
                             <button type="submit" class="btn btn-outline" style="border-radius: 8px;">Áp dụng</button>
                         </form>
                         @if(session('error'))
