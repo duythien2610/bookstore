@@ -81,22 +81,20 @@ class Sach extends Model
             });
         });
 
-        // 2. Lọc theo thể loại — tự động mở rộng sang con nếu click vào cha
-        $query->when($filters['the_loai_id'] ?? false, function ($q, $categoryId) {
-            // Kiểm tra xem đây có phải là danh mục cha không (có children)
+        // 2. Lọc theo thể loại — hỗ trợ mảng nhiều category (chọn nhiều)
+        $query->when($filters['the_loai_id'] ?? false, function ($q, $categoryIds) {
+            if (!is_array($categoryIds)) {
+                $categoryIds = [$categoryIds];
+            }
+
+            // Lấy tất cả danh mục con của các danh mục được chọn
             $childIds = DB::table('the_loai')
-                ->where('parent_id', $categoryId)
+                ->whereIn('parent_id', $categoryIds)
                 ->pluck('id')
                 ->toArray();
 
-            if (!empty($childIds)) {
-                // Là danh mục cha: lọc cả cha lẫn con
-                $allIds = array_merge([(int)$categoryId], $childIds);
-                $q->whereIn('sach.the_loai_id', $allIds);
-            } else {
-                // Là danh mục lá: lọc chính xác
-                $q->where('sach.the_loai_id', $categoryId);
-            }
+            $allIds = array_unique(array_merge($categoryIds, $childIds));
+            $q->whereIn('sach.the_loai_id', $allIds);
         });
 
         // 3. Lọc theo loại sách (trong nước / nước ngoài)
