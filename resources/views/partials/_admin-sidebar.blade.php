@@ -36,9 +36,13 @@
         <div style="padding: var(--space-3) var(--space-4) var(--space-1); font-size: 10px; font-weight: var(--font-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: var(--space-2);">
             Hệ thống
         </div>
-        <a href="{{ route('admin.users.index') }}" class="{{ request()->is('admin/users*') ? 'active' : '' }}" id="nav-users">
+        <a href="{{ route('admin.customers.index') }}" class="{{ request()->is('admin/customers*') ? 'active' : '' }}" id="nav-customers">
             <span class="material-icons">group</span>
             Khách hàng
+        </a>
+        <a href="{{ route('admin.admins.index') }}" class="{{ request()->is('admin/admins*') ? 'active' : '' }}" id="nav-admins">
+            <span class="material-icons">admin_panel_settings</span>
+            Quản trị viên
         </a>
         <a href="{{ route('admin.blogs.index') }}" class="{{ request()->is('admin/blogs*') ? 'active' : '' }}" id="nav-blog">
             <span class="material-icons">article</span>

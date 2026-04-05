@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Quản lý người dùng')
+@section('title', $pageTitle ?? 'Quản lý người dùng')
 
 @push('styles')
 <style>
@@ -25,7 +25,7 @@
 
 @section('content')
     <div class="admin-topbar">
-        <h1>Quản lý người dùng</h1>
+        <h1>{{ $pageTitle ?? 'Quản lý người dùng' }}</h1>
     </div>
 
     {{-- Flash messages --}}
@@ -68,23 +68,15 @@
     </div>
 
     {{-- Filter Bar --}}
-    <form method="GET" action="{{ route('admin.users.index') }}" class="filter-bar">
+    <form method="GET" action="{{ request()->url() }}" class="filter-bar">
         <div class="header-search" style="flex: 1; max-width: 320px;">
             <span class="material-icons search-icon">search</span>
             <input type="text" name="search" placeholder="Tìm theo tên, email, SĐT..."
                    value="{{ request('search') }}">
         </div>
-        <select name="role_id" class="role-select" style="padding: 8px 12px; font-size: var(--font-size-sm);">
-            <option value="">Tất cả vai trò</option>
-            @foreach($roles as $role)
-                <option value="{{ $role->id }}" {{ request('role_id') == $role->id ? 'selected' : '' }}>
-                    {{ ucfirst($role->ten_vai_tro) }}
-                </option>
-            @endforeach
-        </select>
-        <button type="submit" class="btn btn-primary btn-sm">Lọc</button>
-        @if(request()->hasAny(['search','role_id']))
-            <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Xóa lọc</a>
+        <button type="submit" class="btn btn-primary btn-sm">Tìm kiếm</button>
+        @if(request()->has('search'))
+            <a href="{{ request()->url() }}" class="btn btn-ghost btn-sm">Xóa lọc</a>
         @endif
     </form>
 
