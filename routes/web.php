@@ -166,7 +166,8 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/the-loai', [App\Http\Controllers\TheLoaiController::class, 'store'])->name('admin.the-loai.store');
 
     // Quản lý người dùng
-    Route::get('/users', [UserController::class, 'index'])->name('admin.users.index');
+    Route::get('/customers', [UserController::class, 'customers'])->name('admin.customers.index');
+    Route::get('/admins', [UserController::class, 'admins'])->name('admin.admins.index');
     Route::put('/users/{user}/role', [UserController::class, 'updateRole'])->name('admin.users.updateRole');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 

@@ -50,7 +50,7 @@ class UserController extends Controller
     /**
      * Danh sách người dùng với tìm kiếm & lọc theo vai trò.
      */
-    public function index(Request $request)
+    public function index(Request $request, $pageTitle = 'Quản lý người dùng')
     {
         $query = User::with('role');
 
@@ -74,7 +74,25 @@ class UserController extends Controller
         $tongAdmin  = User::where('role_id', 1)->count();
         $tongUser   = User::where('role_id', 2)->count();
 
-        return view('admin.users', compact('users', 'roles', 'tongTatCa', 'tongAdmin', 'tongUser'));
+        return view('admin.users', compact('users', 'roles', 'tongTatCa', 'tongAdmin', 'tongUser', 'pageTitle'));
+    }
+
+    /**
+     * Tham chiếu danh sách Khách hàng
+     */
+    public function customers(Request $request)
+    {
+        $request->merge(['role_id' => 2]);
+        return $this->index($request, 'Khách hàng');
+    }
+
+    /**
+     * Tham chiếu danh sách Quản trị viên
+     */
+    public function admins(Request $request)
+    {
+        $request->merge(['role_id' => 1]);
+        return $this->index($request, 'Quản trị viên');
     }
 
     /**

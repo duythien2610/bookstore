@@ -26,6 +26,63 @@
         </div>
     </section>
 
+    {{-- Categories --}}
+    <section class="section" id="categories">
+        <div class="container">
+            <div class="section-header">
+                <h2>Thể loại phổ biến</h2>
+                <a href="{{ url('/products?view=categories') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-4);">
+                @php
+                    $categories = [
+                        ['icon' => 'psychology', 'name' => 'Tâm lý'],
+                        ['icon' => 'business', 'name' => 'Kinh doanh'],
+                        ['icon' => 'science', 'name' => 'Khoa học'],
+                        ['icon' => 'auto_stories', 'name' => 'Tiểu thuyết'],
+                        ['icon' => 'child_care', 'name' => 'Thiếu nhi'],
+                        ['icon' => 'school', 'name' => 'Giáo dục'],
+                    ];
+                @endphp
+                @foreach ($categories as $cat)
+                <a href="{{ url('/products?category=' . $cat['name']) }}" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
+                    <span class="material-icons" style="font-size: 36px; color: var(--color-primary); margin-bottom: var(--space-3);">{{ $cat['icon'] }}</span>
+                    <div class="card-title" style="font-size: var(--font-size-sm);">{{ $cat['name'] }}</div>
+                </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Bestsellers --}}
+    <section class="section" style="background: var(--color-white);" id="bestsellers">
+        <div class="container">
+            <div class="section-header">
+                <h2>Sách bán chạy</h2>
+                <a href="{{ url('/products?sort=bestseller') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
+            </div>
+            <div class="book-grid book-grid-4">
+                @for ($i = 1; $i <= 4; $i++)
+                <div class="card" id="bestseller-{{ $i }}">
+                    <div style="position: relative;">
+                        <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
+                            <span class="material-icons" style="font-size: 64px; color: var(--color-text-muted);">book</span>
+                        </div>
+                        <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">-{{ rand(10, 40) }}%</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title">Sách bán chạy {{ $i }}</div>
+                        <div class="card-subtitle">Tác giả {{ $i }}</div>
+                        <div class="card-price">
+                            {{ number_format(rand(89, 199) * 1000, 0, ',', '.') }}đ
+                        </div>
+                    </div>
+                </div>
+                @endfor
+            </div>
+        </div>
+    </section>
+
     {{-- Featured Books --}}
     <section class="section" id="featured-books">
         <div class="container">
@@ -80,48 +137,33 @@
     <section class="section" style="background: var(--color-white);" id="bestsellers">
         <div class="container">
             <div class="section-header">
-                <h2>Sách bán chạy nhất</h2>
+                <h2>Sách bán chạy</h2>
                 <a href="{{ url('/products?sort=bestseller') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
             </div>
             <div class="book-grid book-grid-4">
-                @foreach($sachNoiBat->skip(4)->take(4) as $sach)
-                <div class="card" id="bestseller-{{ $sach->id }}">
-                    <div class="card-img" style="position: relative;">
-                        @php
-                            $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
-                        @endphp
-                        <a href="{{ route('products.show', $sach->id) }}">
-                            <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
-                        </a>
-                        @if($sach->gia_goc > $sach->gia_ban)
-                            <span class="badge badge-error" style="position: absolute; top: 10px; left: 10px;">-{{ round((($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc) * 100) }}%</span>
-                        @endif
-                        <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
-                            @csrf
-                            <input type="hidden" name="sach_id" value="{{ $sach->id }}">
-                            <input type="hidden" name="so_luong" value="1">
-                            <button type="submit" class="btn btn-primary btn-sm" style="position: absolute; bottom: 10px; right: 10px; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
-                                <span class="material-icons">shopping_cart</span>
-                            </button>
-                        </form>
+                @for ($i = 1; $i <= 4; $i++)
+                <div class="card" id="bestseller-{{ $i }}">
+                    <div style="position: relative;">
+                        <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
+                            <span class="material-icons" style="font-size: 64px; color: var(--color-text-muted);">book</span>
+                        </div>
+                        <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">-{{ rand(10, 40) }}%</span>
                     </div>
                     <div class="card-body">
-                        <a href="{{ route('products.show', $sach->id) }}" style="text-decoration: none; color: inherit;">
-                            <div class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $sach->tieu_de }}</div>
-                        </a>
-                        <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
+                        <div class="card-title">Sách bán chạy {{ $i }}</div>
+                        <div class="card-subtitle">Tác giả {{ $i }}</div>
                         <div class="card-price">
-                            {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
+                            {{ number_format(rand(89, 199) * 1000, 0, ',', '.') }}đ
                         </div>
                     </div>
                 </div>
-                @endforeach
+                @endfor
             </div>
         </div>
     </section>
 
     {{-- Why Choose Us --}}
-    <section class="section" id="why-choose-us">
+    <section class="section" style="background: var(--color-white);" id="why-choose-us">
         <div class="container">
             <div class="section-header" style="text-align: center; display: block; margin-bottom: var(--space-8);">
                 <h2>Tại sao chọn Modtra Books?</h2>
@@ -168,7 +210,7 @@
     </section>
 
     {{-- Testimonials --}}
-    <section class="section" style="background: var(--color-white);" id="testimonials">
+    <section class="section" id="testimonials">
         <div class="container">
             <div class="section-header">
                 <h2>Cảm nhận từ độc giả</h2>
@@ -193,34 +235,6 @@
                     </div>
                 </div>
                 @endfor
-            </div>
-        </div>
-    </section>
-
-    {{-- Categories --}}
-    <section class="section" id="categories">
-        <div class="container">
-            <div class="section-header">
-                <h2>Thể loại phổ biến</h2>
-                <a href="{{ url('/products?view=categories') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
-            </div>
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-4);">
-                @php
-                    $categories = [
-                        ['icon' => 'psychology', 'name' => 'Tâm lý'],
-                        ['icon' => 'business', 'name' => 'Kinh doanh'],
-                        ['icon' => 'science', 'name' => 'Khoa học'],
-                        ['icon' => 'auto_stories', 'name' => 'Tiểu thuyết'],
-                        ['icon' => 'child_care', 'name' => 'Thiếu nhi'],
-                        ['icon' => 'school', 'name' => 'Giáo dục'],
-                    ];
-                @endphp
-                @foreach ($categories as $cat)
-                <a href="{{ url('/products?category=' . $cat['name']) }}" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
-                    <span class="material-icons" style="font-size: 36px; color: var(--color-primary); margin-bottom: var(--space-3);">{{ $cat['icon'] }}</span>
-                    <div class="card-title" style="font-size: var(--font-size-sm);">{{ $cat['name'] }}</div>
-                </a>
-                @endforeach
             </div>
         </div>
     </section>
