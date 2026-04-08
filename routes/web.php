@@ -70,6 +70,7 @@ Route::middleware('verified')->group(function () {
     Route::post('/cart/add', [App\Http\Controllers\GioHangController::class, 'add'])->name('cart.add');
     Route::post('/cart/update/{id}', [App\Http\Controllers\GioHangController::class, 'update'])->name('cart.update');
     Route::post('/cart/remove/{id}', [App\Http\Controllers\GioHangController::class, 'destroy'])->name('cart.remove');
+    Route::post('/cart/coupon', [App\Http\Controllers\CartController::class, 'applyCoupon'])->name('cart.coupon');
 
     Route::get('/checkout', [App\Http\Controllers\GioHangController::class, 'showCheckout'])->name('checkout');
     Route::post('/checkout', [App\Http\Controllers\GioHangController::class, 'processCheckout'])->name('checkout.process');
@@ -119,7 +120,8 @@ Route::get('/contact', function () {
 })->name('contact');
 
 // ─── Chatbot AI ──────────────────────────────────────────────────────────
-Route::post('/chatbot/send', [ChatbotController::class, 'chat'])->name('chatbot.send');
+Route::get('/chat/messege', [ChatbotController::class, 'fetchMessage'])->name('chatbot.fetchMessage');
+Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 
 
 // ─── Admin Routes (chỉ admin mới vào được) ───────────────────────────────

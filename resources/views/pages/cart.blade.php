@@ -68,9 +68,23 @@
             {{-- Order Summary --}}
             <div class="order-summary" id="order-summary">
                 <h3>Tóm tắt đơn hàng</h3>
+                {{-- Coupon Input --}}
+                <div style="background: var(--color-bg-alt); padding: var(--space-4); border-radius: var(--radius-lg); margin-bottom: var(--space-6);">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px;">Mã giảm giá</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="coupon-input" value="{{ $couponCode }}" placeholder="Nhập mã..." style="flex: 1; height: 40px; border: 1px solid var(--color-border); border-radius: 8px; padding: 0 12px;">
+                        <button type="button" id="btn-apply-coupon" class="btn btn-outline" style="height: 40px; padding: 0 var(--space-4);">Áp dụng</button>
+                    </div>
+                    <div id="coupon-message" style="margin-top: 8px; font-size: 12px; display: none;"></div>
+                </div>
+
                 <div class="summary-row">
                     <span>Tạm tính ({{ $items->count() }} sản phẩm)</span>
                     <span>{{ number_format($gioHang->tong_tien, 0, ',', '.') }}đ</span>
+                </div>
+                <div class="summary-row" id="discount-row" @if(!$discount) style="display: none;" @endif>
+                    <span style="color: var(--color-primary-dark);">Giảm giá</span>
+                    <span style="color: var(--color-primary-dark);" id="discount-amount">-{{ number_format($discount, 0, ',', '.') }}đ</span>
                 </div>
                 <div class="summary-row">
                     <span>Phí vận chuyển</span>
@@ -78,7 +92,7 @@
                 </div>
                 <div class="summary-row total">
                     <span>Tổng cộng</span>
-                    <span style="color: var(--color-text); font-size: 24px;">{{ number_format($gioHang->tong_tien, 0, ',', '.') }}đ</span>
+                    <span style="color: var(--color-text); font-size: 24px;" id="final-total">{{ number_format($gioHang->tong_tien - $discount, 0, ',', '.') }}đ</span>
                 </div>
 
                 <a href="{{ url('/checkout') }}" class="btn btn-primary btn-block btn-lg" id="btn-checkout" style="margin-top: var(--space-8);">
@@ -93,4 +107,40 @@
         </div>
         @endif
     </div>
+    <script>
+        document.getElementById('btn-apply-coupon').addEventListener('click', function() {
+            const coupon = document.getElementById('coupon-input').value;
+            if (!coupon) return;
+
+            const btn = this;
+            const messageEl = document.getElementById('coupon-message');
+            btn.disabled = true;
+
+            fetch('{{ route("cart.coupon") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ coupon: coupon })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                messageEl.style.display = 'block';
+                messageEl.textContent = data.message;
+                messageEl.style.color = data.success ? 'var(--color-success)' : 'var(--color-danger)';
+
+                if (data.success) {
+                    document.getElementById('discount-row').style.display = 'flex';
+                    document.getElementById('discount-amount').textContent = '-' + new Intl.NumberFormat('vi-VN').format(data.discount) + 'đ';
+                    document.getElementById('final-total').textContent = new Intl.NumberFormat('vi-VN').format(data.final_total) + 'đ';
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                console.error(err);
+            });
+        });
+    </script>
 @endsection

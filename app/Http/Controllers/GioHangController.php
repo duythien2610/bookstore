@@ -20,8 +20,10 @@ class GioHangController extends Controller
             ->first();
         
         $items = $gioHang ? $gioHang->chiTiets()->with('sach')->get() : collect();
+        $discount = session('cart_discount', 0);
+        $couponCode = session('cart_coupon', null);
         
-        return view('pages.cart', compact('items', 'gioHang'));
+        return view('pages.cart', compact('items', 'gioHang', 'discount', 'couponCode'));
     }
 
     public function add(Request $request)

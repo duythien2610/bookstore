@@ -136,15 +136,17 @@
                     </div>
                     <div class="summary-row" style="margin-bottom: 20px;">
                         <span style="color: var(--color-text-secondary);">Phí vận chuyển</span>
-                        <span style="font-weight: 600;">30.000đ</span>
+                        <span style="font-weight: 600;">{{ $phi_ship > 0 ? number_format($phi_ship, 0, ',', '.') . 'đ' : 'Miễn phí' }}</span>
                     </div>
+                    @if($discount > 0)
                     <div class="summary-row" style="margin-bottom: 25px;">
                         <span style="color: var(--color-primary-dark);">Giảm giá</span>
-                        <span style="color: var(--color-primary-dark); font-weight: 600;">-50.000đ</span>
+                        <span style="color: var(--color-primary-dark); font-weight: 600;">-{{ number_format($discount, 0, ',', '.') }}đ</span>
                     </div>
+                    @endif
                     <div class="summary-row total" style="border-top: none; padding-top: 0;">
                         <span style="font-size: 22px; font-weight: 700;">Tổng cộng</span>
-                        <span style="font-size: 24px; font-weight: 800;">{{ number_format($gioHang->tong_tien + 30000 - 50000, 0, ',', '.') }}đ</span>
+                        <span style="font-size: 24px; font-weight: 800;">{{ number_format($total, 0, ',', '.') }}đ</span>
                     </div>
                 </div>
 

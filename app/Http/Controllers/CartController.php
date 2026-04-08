@@ -217,8 +217,21 @@ class CartController extends Controller
             }
         }
 
-        $cart   = $this->getCart();
-        $total  = $this->getCartTotal($cart);
+        // Lấy tổng tiền từ giỏ hàng (DB nếu đã login, session nếu chưa - nhưng app hiện dùng DB cho /cart)
+        $total = 0;
+        if (Auth::check()) {
+            $total = \App\Models\GioHang::where('user_id', Auth::id())
+                ->where('trang_thai', 'active')
+                ->first()?->chiTiets()->sum('thanh_tien') ?? 0;
+        } else {
+            $cart = $this->getCart();
+            $total = $this->getCartTotal($cart);
+        }
+
+        if ($total <= 0) {
+            return response()->json(['success' => false, 'message' => 'Giỏ hàng trống, không thể áp dụng mã.']);
+        }
+
         $discount = $ma->loai === 'percent'
             ? (int)($total * $ma->gia_tri / 100)
             : (int)$ma->gia_tri;
