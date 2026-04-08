@@ -58,16 +58,20 @@ class Sach extends Model
         return $this->hasMany(DonHangChiTiet::class, 'sach_id');
     }
 
-    // Lấy top sách bán chạy (đơn giản hóa logic)
+    // Lấy top sách bán chạy dựa trên lượt bán thành công thực tế
     public function scopeMostSold($query, $limit = 8)
     {
-        return $query->withSum(['chiTiets as tong_ban' => function($q) {
-            $q->whereHas('donHang', function($dq) {
-                $dq->where('trang_thai', '!=', 'da_huy');
-            });
-        }], 'so_luong')
-        ->orderByDesc('tong_ban')
-        ->take($limit);
+        return $query
+            ->withSum([
+                'chiTiets as tong_ban' => function ($q) {
+                    // Chỉ tính đơn hàng đã giao thành công hoặc hoàn thành
+                    $q->whereHas('donHang', function ($dq) {
+                        $dq->whereIn('trang_thai', ['da_giao', 'hoan_thanh']);
+                    });
+                }
+            ], 'so_luong')
+            ->orderByDesc('tong_ban')
+            ->take($limit);
     }
 
     // Kiểm tra còn hàng

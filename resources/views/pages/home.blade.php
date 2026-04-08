@@ -54,34 +54,6 @@
         </div>
     </section>
 
-    {{-- Bestsellers --}}
-    <section class="section" style="background: var(--color-white);" id="bestsellers">
-        <div class="container">
-            <div class="section-header">
-                <h2>Sách bán chạy</h2>
-                <a href="{{ url('/products?sort=bestseller') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
-            </div>
-            <div class="book-grid book-grid-4">
-                @for ($i = 1; $i <= 4; $i++)
-                <div class="card" id="bestseller-{{ $i }}">
-                    <div style="position: relative;">
-                        <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
-                            <span class="material-icons" style="font-size: 64px; color: var(--color-text-muted);">book</span>
-                        </div>
-                        <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">-{{ rand(10, 40) }}%</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="card-title">Sách bán chạy {{ $i }}</div>
-                        <div class="card-subtitle">Tác giả {{ $i }}</div>
-                        <div class="card-price">
-                            {{ number_format(rand(89, 199) * 1000, 0, ',', '.') }}đ
-                        </div>
-                    </div>
-                </div>
-                @endfor
-            </div>
-        </div>
-    </section>
 
     {{-- Featured Books --}}
     <section class="section" id="featured-books">
@@ -164,31 +136,84 @@
         </div>
     </section>
 
-    {{-- Bestsellers --}}
+    {{-- Sách Bán Chạy (dữ liệu thật từ đơn hàng thành công) --}}
     <section class="section" style="background: var(--color-white);" id="bestsellers">
         <div class="container">
             <div class="section-header">
                 <h2>Sách bán chạy</h2>
-                <a href="{{ url('/products?sort=bestseller') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
+                <a href="{{ route('products.bestselling') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
             </div>
             <div class="book-grid book-grid-4">
-                @for ($i = 1; $i <= 4; $i++)
-                <div class="card" id="bestseller-{{ $i }}">
-                    <div style="position: relative;">
-                        <div class="card-img" style="display: flex; align-items: center; justify-content: center;">
-                            <span class="material-icons" style="font-size: 64px; color: var(--color-text-muted);">book</span>
-                        </div>
-                        <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">-{{ rand(10, 40) }}%</span>
-                    </div>
+                @forelse($sachBanChay as $sach)
+                @php
+                    $giaBan = (float)$sach->gia_ban;
+                    $giaSauGiam = null;
+                    if ($activeCoupons) {
+                        $giaSauGiam = $activeCoupons->loai === 'percent'
+                            ? $giaBan * (1 - $activeCoupons->gia_tri / 100)
+                            : max(0, $giaBan - $activeCoupons->gia_tri);
+                        $giaSauGiam = round($giaSauGiam);
+                    }
+                    $pctOff = ($giaSauGiam && $giaSauGiam < $giaBan)
+                        ? round((1 - $giaSauGiam/$giaBan)*100)
+                        : ($sach->gia_goc > $giaBan ? round(($sach->gia_goc - $giaBan)/$sach->gia_goc*100) : 0);
+                    $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : null);
+                @endphp
+                <div class="card" id="bestseller-{{ $sach->id }}">
+                    <a href="{{ route('products.show', $sach->id) }}" style="display:block; position:relative;">
+                        @if($imageUrl)
+                            <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" class="card-img" style="display:block; width:100%; object-fit:cover;">
+                        @else
+                            <div class="card-img" style="display:flex; align-items:center; justify-content:center;">
+                                <span class="material-icons" style="font-size:64px; color:var(--color-text-muted);">book</span>
+                            </div>
+                        @endif
+                        {{-- Badge giảm giá --}}
+                        @if($pctOff > 0)
+                            <span class="badge badge-danger" style="position:absolute; top:var(--space-3); left:var(--space-3);">-{{ $pctOff }}%</span>
+                        @endif
+                        {{-- Badge lượt bán --}}
+                        @if($sach->tong_ban > 0)
+                            <span style="position:absolute; bottom:var(--space-3); left:var(--space-3); background:rgba(0,0,0,.55); color:#fff; font-size:11px; padding:2px 8px; border-radius:20px;">
+                                🔥 {{ $sach->tong_ban }} đã bán
+                            </span>
+                        @endif
+                    </a>
                     <div class="card-body">
-                        <div class="card-title">Sách bán chạy {{ $i }}</div>
-                        <div class="card-subtitle">Tác giả {{ $i }}</div>
-                        <div class="card-price">
-                            {{ number_format(rand(89, 199) * 1000, 0, ',', '.') }}đ
+                        <div class="stars" style="margin-bottom:var(--space-2);">
+                            @php $avgStar = round($sach->trungBinhSao()); @endphp
+                            @for ($s = 1; $s <= 5; $s++)
+                                <span class="material-icons" style="font-size:14px; color:{{ $s <= $avgStar ? '#f59e0b' : '#e2e8f0' }};">star</span>
+                            @endfor
+                        </div>
+                        <a href="{{ route('products.show', $sach->id) }}" class="card-title" style="display:block; color:var(--color-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $sach->tieu_de }}</a>
+                        <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-2);">
+                            <div>
+                                @if($giaSauGiam && $giaSauGiam < $giaBan)
+                                    <span class="card-price" style="color:var(--color-danger);">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
+                                    <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                @else
+                                    <span class="card-price">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                    @if($sach->gia_goc > $giaBan)
+                                        <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                                    @endif
+                                @endif
+                            </div>
+                            <form action="{{ route('cart.add') }}" method="POST">
+                                @csrf
+                                <input type="hidden" name="sach_id" value="{{ $sach->id }}">
+                                <input type="hidden" name="so_luong" value="1">
+                                <button type="submit" style="background:var(--color-primary-light); border:none; border-radius:var(--radius-lg); width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="Thêm vào giỏ">
+                                    <span class="material-icons" style="font-size:18px; color:var(--color-primary-dark);">add_shopping_cart</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
-                @endfor
+                @empty
+                <p style="color:var(--color-text-muted); grid-column:1/-1;">Chưa có dữ liệu sách bán chạy.</p>
+                @endforelse
             </div>
         </div>
     </section>

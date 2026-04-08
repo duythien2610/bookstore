@@ -325,6 +325,16 @@ class SachController extends Controller
         return view('pages.product-listing', compact('sachs', 'theLoais', 'queryText', 'activeCoupon'));
     }
 
+    /**
+     * Trang "Xem tất cả sách bán chạy" — xếp theo đơn da_giao/hoan_thanh
+     */
+    public function bestSelling()
+    {
+        $sachs = Sach::mostSold(40)->with(['tacGia', 'theLoai'])->get();
+        $activeCoupon = $this->getActiveCoupon();
+        return view('pages.best-selling', compact('sachs', 'activeCoupon'));
+    }
+
     public function featured()
     {
         // Lấy top 15 sách nổi bật (sử dụng scope trong Model)

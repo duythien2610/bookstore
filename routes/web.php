@@ -22,11 +22,15 @@ use App\Http\Controllers\BannerController;
 
 // ─── Homepage ────────────────────────────────────────────────────────────
 Route::get('/', function () {
-    // Lấy 8 cuốn sách bán chạy nhất sử dụng scope đã viết trong Model
+    // Sách nổi bật (8 cuốn): dùng cho section "Sách nổi bật"
     $sachNoiBat = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
 
-    // Lấy mã giảm giá chung đang hoạt động (sẽ hiển thị giá đã giảm trên trang chủ)
+    // Sách bán chạy (8 cuốn dựa trên đơn da_giao/hoan_thanh): dùng cho section "Sách bán chạy"
+    $sachBanChay = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
+
+    // Mã giảm giá chung đang hoạt động (chỉ áp dụng toàn bộ - pham_vi = 'all')
     $activeCoupons = \App\Models\MaGiamGia::where('trang_thai', 1)
+        ->where('pham_vi', 'all')
         ->where(function ($q) {
             $q->whereNull('ngay_het_han')->orWhere('ngay_het_han', '>=', now());
         })
@@ -34,9 +38,9 @@ Route::get('/', function () {
             $q->whereNull('so_luong')->orWhereRaw('da_dung < so_luong');
         })
         ->orderBy('gia_tri', 'desc')
-        ->first(); // Lấy mã giảm cao nhất hiển thị trên trang chủ
+        ->first();
 
-    return view('pages.home', compact('sachNoiBat', 'activeCoupons'));
+    return view('pages.home', compact('sachNoiBat', 'sachBanChay', 'activeCoupons'));
 })->name('home');
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
@@ -72,6 +76,7 @@ Route::post('/new-password', [AuthController::class, 'resetPassword'])->name('pa
 // ─── Public Pages ────────────────────────────────────────────────────────
 Route::get('/products', [App\Http\Controllers\SachController::class, 'list'])->name('products.index');
 Route::get('/featured-books', [App\Http\Controllers\SachController::class, 'featured'])->name('products.featured');
+Route::get('/best-selling', [App\Http\Controllers\SachController::class, 'bestSelling'])->name('products.bestselling');
 
 Route::get('/products/{id}', [App\Http\Controllers\SachController::class, 'show'])->name('products.show');
 
