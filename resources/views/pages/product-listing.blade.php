@@ -76,21 +76,39 @@
                     </select>
                 </div>
 
+                @if($activeCoupon ?? null)
+                <div style="display:flex; align-items:center; gap:var(--space-3); background:linear-gradient(135deg,#fff3cd,#ffe69c); border:1px solid #ffc107; border-radius:var(--radius-lg); padding:var(--space-3) var(--space-4); margin-bottom:var(--space-5);">
+                    <span class="material-icons" style="color:#856404; font-size:18px;">local_offer</span>
+                    <span style="color:#856404; font-size:13px;">Dùng mã <strong>{{ $activeCoupon->ma_code }}</strong> để giảm {{ $activeCoupon->loai === 'percent' ? $activeCoupon->gia_tri . '%' : number_format($activeCoupon->gia_tri, 0, ',', '.') . 'đ' }} khi thanh toán!</span>
+                </div>
+                @endif
+
                 <div class="book-grid book-grid-3">
                     @forelse ($sachs as $sach)
+                    @php
+                        $giaBan = (float)$sach->gia_ban;
+                        $giaSauGiam = null;
+                        if (!empty($activeCoupon)) {
+                            $giaSauGiam = $activeCoupon->loai === 'percent'
+                                ? $giaBan * (1 - $activeCoupon->gia_tri / 100)
+                                : max(0, $giaBan - $activeCoupon->gia_tri);
+                            $giaSauGiam = round($giaSauGiam);
+                        }
+                        $pctOff = ($giaSauGiam && $giaSauGiam < $giaBan) ? round((1 - $giaSauGiam/$giaBan)*100) : 0;
+                        // Fallback: gia_goc discount badge
+                        if (!$pctOff && $sach->gia_goc > $sach->gia_ban) {
+                            $pctOff = round((($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc) * 100);
+                        }
+                    @endphp
                     <div class="card" id="product-{{ $sach->id }}">
-                        <a href="{{ route('products.show', $sach->id) }}">
-                            <div style="position: relative;">
-                                @php
-                                    $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
-                                @endphp
-                                <img src="{{ $imageUrl }}" class="card-img" alt="{{ $sach->tieu_de }}">
-                                @if ($sach->gia_goc > $sach->gia_ban)
-                                <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">
-                                    -{{ round((($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc) * 100) }}%
-                                </span>
-                                @endif
-                            </div>
+                        <a href="{{ route('products.show', $sach->id) }}" style="display:block; position:relative;">
+                            @php
+                                $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
+                            @endphp
+                            <img src="{{ $imageUrl }}" class="card-img" alt="{{ $sach->tieu_de }}" style="display:block;">
+                            @if($pctOff > 0)
+                            <span class="badge badge-danger" style="position: absolute; top: var(--space-3); left: var(--space-3);">-{{ $pctOff }}%</span>
+                            @endif
                         </a>
                         <div class="card-body">
                             <div class="stars" style="margin-bottom: var(--space-2);">
@@ -103,12 +121,22 @@
                             <a href="{{ route('products.show', $sach->id) }}" class="card-title" style="display: block; color: var(--color-text);">{{ $sach->tieu_de }}</a>
                             <div class="card-subtitle">{{ $sach->tacGia ? $sach->tacGia->ten_tac_gia : 'Chưa cập nhật' }}</div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: var(--space-2);">
-                                <div class="card-price">{{ number_format($sach->gia_ban, 0, ',', '.') }}đ</div>
+                                <div>
+                                    @if($giaSauGiam && $giaSauGiam < $giaBan)
+                                        <span class="card-price" style="color:var(--color-danger);">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
+                                        <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                    @else
+                                        <span class="card-price">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                        @if($sach->gia_goc > $sach->gia_ban)
+                                            <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                                        @endif
+                                    @endif
+                                </div>
                                 <form action="{{ route('cart.add') }}" method="POST">
                                     @csrf
                                     <input type="hidden" name="sach_id" value="{{ $sach->id }}">
                                     <input type="hidden" name="so_luong" value="1">
-                                    <button type="submit" class="icon-btn" title="Thêm vào giỏ" style="background: var(--color-primary-light); border-radius: var(--radius-lg); width: 36px; height: 36px; border: none; cursor: pointer;">
+                                    <button type="submit" class="icon-btn" title="Thêm vào giỏ" style="background: var(--color-primary-light); border-radius: var(--radius-lg); width: 36px; height: 36px; border: none; cursor: pointer; display:flex; align-items:center; justify-content:center;">
                                         <span class="material-icons" style="font-size: 18px; color: var(--color-primary-dark);">add_shopping_cart</span>
                                     </button>
                                 </form>

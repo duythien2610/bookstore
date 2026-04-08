@@ -320,16 +320,18 @@ class SachController extends Controller
         $sachs = $query->paginate(12)->withQueryString();
         
         $theLoais = TheLoai::whereNull('parent_id')->get();
+        $activeCoupon = $this->getActiveCoupon();
 
-        return view('pages.product-listing', compact('sachs', 'theLoais', 'queryText'));
+        return view('pages.product-listing', compact('sachs', 'theLoais', 'queryText', 'activeCoupon'));
     }
 
     public function featured()
     {
         // Lấy top 15 sách nổi bật (sử dụng scope trong Model)
         $sachs = Sach::mostSold(15)->with(['tacGia', 'theLoai'])->get();
+        $activeCoupon = $this->getActiveCoupon();
 
-        return view('pages.featured-books', compact('sachs'));
+        return view('pages.featured-books', compact('sachs', 'activeCoupon'));
     }
 
     /**
@@ -371,6 +373,8 @@ class SachController extends Controller
                 ->exists();
         }
 
+        $activeCoupon = $this->getActiveCoupon();
+
         return view('pages.product-detail', compact(
             'sach',
             'danhGias',
@@ -378,7 +382,26 @@ class SachController extends Controller
             'phanPhoiSao',
             'sachLienQuan',
             'daGuiDanhGia',
-            'daMua'
+            'daMua',
+            'activeCoupon'
         ));
+    }
+
+    // =========================================================================
+    //  Helper: lấy mã khuyến mãi đang hoạt động cao nhất (dùng chung)
+    // =========================================================================
+    private function getActiveCoupon(): ?\App\Models\MaGiamGia
+    {
+        return \App\Models\MaGiamGia::where('trang_thai', 1)
+            ->where(function ($q) {
+                $q->whereNull('ngay_het_han')
+                  ->orWhere('ngay_het_han', '>=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('so_luong')
+                  ->orWhereRaw('da_dung < so_luong');
+            })
+            ->orderBy('gia_tri', 'desc')
+            ->first();
     }
 }

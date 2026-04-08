@@ -187,6 +187,12 @@ class CartController extends Controller
 
     public function applyCoupon(Request $request)
     {
+        // Hỗ trợ xóa mã giảm giá
+        if ($request->input('remove')) {
+            session()->forget(['cart_discount', 'cart_coupon', 'cart_ma_id']);
+            return response()->json(['success' => true, 'message' => 'Đã xóa mã giảm giá.']);
+        }
+
         $request->validate(['coupon' => 'required|string']);
 
         $ma = MaGiamGia::where('ma_code', $request->coupon)
@@ -217,6 +223,22 @@ class CartController extends Controller
             }
         }
 
+        // KIỂM TRA ĐIỀU KIỆN TÀI KHOẢN
+        if ($ma->dieu_kien_tai_khoan === 'new') {
+            if (!Auth::check()) {
+                return response()->json(['success' => false, 'message' => 'Mã này chỉ dành cho tài khoản mới. Vui lòng đăng nhập.']);
+            }
+            $daysSinceRegister = Auth::user()->created_at->diffInDays(now());
+            if ($daysSinceRegister > 30) {
+                return response()->json(['success' => false, 'message' => 'Mã này chỉ dành cho tài khoản đăng ký trong 30 ngày gần đây.']);
+            }
+        }
+        if ($ma->dieu_kien_tai_khoan === 'verified') {
+            if (!Auth::check() || !Auth::user()->email_verified_at) {
+                return response()->json(['success' => false, 'message' => 'Mã này yêu cầu tài khoản đã xác thực email.']);
+            }
+        }
+
         // Lấy tổng tiền từ giỏ hàng (DB nếu đã login, session nếu chưa - nhưng app hiện dùng DB cho /cart)
         $total = 0;
         if (Auth::check()) {
@@ -230,6 +252,14 @@ class CartController extends Controller
 
         if ($total <= 0) {
             return response()->json(['success' => false, 'message' => 'Giỏ hàng trống, không thể áp dụng mã.']);
+        }
+
+        // KIỂM TRA GIÁ TRỊ ĐƠN HÀNG TỐI THIỂU
+        if ($ma->don_hang_toi_thieu && $total < $ma->don_hang_toi_thieu) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Đơn hàng phải đạt tối thiểu ' . number_format((float)$ma->don_hang_toi_thieu, 0, ',', '.') . 'đ để dùng mã này.',
+            ]);
         }
 
         $discount = $ma->loai === 'percent'

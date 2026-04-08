@@ -123,7 +123,11 @@ class GioHangController extends Controller
         $items = $gioHang->chiTiets()->with('sach')->get();
         if ($items->isEmpty()) return redirect()->route('cart');
 
-        return view('pages.checkout', compact('items', 'gioHang'));
+        $discount = session('cart_discount', 0);
+        $phi_ship = $gioHang->tong_tien >= 300000 ? 0 : 30000;
+        $total = max(0, $gioHang->tong_tien - $discount) + $phi_ship;
+
+        return view('pages.checkout', compact('items', 'gioHang', 'discount', 'phi_ship', 'total'));
     }
 
     public function processCheckout(Request $request)
@@ -140,12 +144,21 @@ class GioHangController extends Controller
                 ->where('trang_thai', 'active')
                 ->firstOrFail();
             
+            $discount = session('cart_discount', 0);
+            $phi_ship = $gioHang->tong_tien >= 300000 ? 0 : 30000;
+            $thanh_toan = max(0, $gioHang->tong_tien - $discount) + $phi_ship;
+
             // Tạo đơn hàng
             $donHang = DonHang::create([
                 'user_id' => auth()->id(),
+                'ho_ten' => $request->ho_ten,
+                'so_dien_thoai' => $request->dien_thoai,
                 'ngay_dat' => now(),
                 'trang_thai' => 'cho_xac_nhan',
                 'tong_tien' => $gioHang->tong_tien,
+                'giam_gia' => $discount,
+                'phi_van_chuyen' => $phi_ship,
+                'thanh_toan' => $thanh_toan,
                 'dia_chi_giao' => $request->dia_chi_giao,
                 'phuong_thuc_tt' => $request->phuong_thuc_tt,
                 'trang_thai_tt' => 'chua_thanh_toan',
@@ -170,6 +183,8 @@ class GioHangController extends Controller
             return $donHang->id;
         });
 
-        return redirect()->route('order.success')->with('success', 'Đặt hàng thành công!');
+        session()->forget(['cart_discount', 'cart_coupon', 'cart_ma_id']);
+
+        return redirect()->route('order.success', ['order_id' => $donHangId])->with('success', 'Đặt hàng thành công!');
     }
 }

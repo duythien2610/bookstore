@@ -90,16 +90,42 @@
                 <h2>Sách nổi bật</h2>
                 <a href="{{ route('products.featured') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
             </div>
+            @if($activeCoupons)
+            <div style="display:flex; align-items:center; gap:var(--space-3); background:linear-gradient(135deg,#fff3cd,#ffe69c); border:1px solid #ffc107; border-radius:var(--radius-lg); padding:var(--space-3) var(--space-5); margin-bottom:var(--space-6);">
+                <span class="material-icons" style="color:#856404; font-size:22px;">local_offer</span>
+                <div>
+                    <strong style="color:#856404;">Khuyến mãi đang diễn ra!</strong>
+                    <span style="color:#856404; margin-left:8px;">Dùng mã <strong>{{ $activeCoupons->ma_code }}</strong> để giảm {{ $activeCoupons->loai === 'percent' ? $activeCoupons->gia_tri . '%' : number_format($activeCoupons->gia_tri, 0, ',', '.') . 'đ' }} cho đơn hàng của bạn!</span>
+                </div>
+            </div>
+            @endif
             <div class="book-grid book-grid-4">
                 @foreach($sachNoiBat->take(4) as $sach)
+                @php
+                    // Tính giá đã giảm nếu có mã khuyến mãi đang chạy
+                    $giaBan = (float)$sach->gia_ban;
+                    $giaSauGiam = null;
+                    if ($activeCoupons) {
+                        $giaSauGiam = $activeCoupons->loai === 'percent'
+                            ? $giaBan * (1 - $activeCoupons->gia_tri / 100)
+                            : max(0, $giaBan - $activeCoupons->gia_tri);
+                        $giaSauGiam = round($giaSauGiam);
+                    }
+                @endphp
                 <div class="card" id="featured-book-{{ $sach->id }}">
-                    <div class="card-img">
+                    <div class="card-img" style="position:relative;">
                         @php
                             $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
                         @endphp
                         <a href="{{ route('products.show', $sach->id) }}">
                             <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
                         </a>
+                        @if($giaSauGiam && $giaSauGiam < $giaBan)
+                            @php
+                                $pctOff = round((1 - $giaSauGiam/$giaBan)*100);
+                            @endphp
+                            <span class="badge badge-danger" style="position:absolute; top:var(--space-3); left:var(--space-3);">-{{ $pctOff }}%</span>
+                        @endif
                         <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
                             @csrf
                             <input type="hidden" name="sach_id" value="{{ $sach->id }}">
@@ -121,9 +147,14 @@
                         </a>
                         <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
                         <div class="card-price">
-                            {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
-                            @if($sach->gia_goc > $sach->gia_ban)
-                                <span class="original">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                            @if($giaSauGiam && $giaSauGiam < $giaBan)
+                                <span style="color:var(--color-danger); font-weight:700;">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
+                                <span class="original" style="margin-left:6px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                            @else
+                                {{ number_format($giaBan, 0, ',', '.') }}đ
+                                @if($sach->gia_goc > $sach->gia_ban)
+                                    <span class="original">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                                @endif
                             @endif
                         </div>
                     </div>

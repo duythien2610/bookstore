@@ -13,7 +13,7 @@
         <div style="display:flex; gap: var(--space-2);">
             <form action="{{ route('admin.orders.updateStatus', $donHang->id) }}" method="POST" style="display:flex; gap:var(--space-2);">
                 @csrf
-                @method('PATCH')
+                @method('PUT')
                 <select name="trang_thai" class="input" style="width:200px;" required>
                     <option value="cho_thanh_toan" {{ $donHang->trang_thai == 'cho_thanh_toan' ? 'selected' : '' }}>Chờ thanh toán</option>
                     <option value="cho_xac_nhan" {{ $donHang->trang_thai == 'cho_xac_nhan' ? 'selected' : '' }}>Chờ xác nhận</option>
@@ -100,7 +100,7 @@
                     <strong>Email:</strong> {{ $donHang->user->email ?? 'N/A' }}
                 </div>
                 <div style="margin-bottom: var(--space-3);">
-                    <strong>Địa chỉ:</strong> {{ $donHang->dia_chi_giao_hang }}
+                    <strong>Địa chỉ:</strong> {{ $donHang->dia_chi_giao }}
                 </div>
                 <div style="margin-bottom: var(--space-3);">
                     <strong>Ghi chú:</strong> {{ $donHang->ghi_chu ?? 'Không có' }}
@@ -108,7 +108,7 @@
                 <hr style="margin: var(--space-4) 0; border: none; border-top: 1px solid var(--color-border-light);">
                 <div>
                     <strong>Phương thức TT:</strong> 
-                    <span style="text-transform: uppercase; font-weight: var(--font-medium);">{{ $donHang->phuong_thuc_thanh_toan }}</span>
+                    <span style="text-transform: uppercase; font-weight: var(--font-medium);">{{ $donHang->phuong_thuc_tt }}</span>
                 </div>
                 @if($donHang->ngay_thanh_toan)
                 <div style="margin-top: var(--space-2); color: var(--color-success);">

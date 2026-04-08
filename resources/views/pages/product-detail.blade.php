@@ -56,15 +56,45 @@
                 </div>
                 @endif
 
-                <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-6);">
-                    <span style="font-size: var(--font-size-3xl); font-weight: var(--font-bold); color: var(--color-primary-dark);">
-                        {{ number_format($sach->gia_ban, 0, ',', '.') }}đ
-                    </span>
-                    @if ($sach->gia_goc > 0 && $sach->gia_goc > $sach->gia_ban)
-                    <span style="font-size: var(--font-size-lg); color: var(--color-text-muted); text-decoration: line-through;">
-                        {{ number_format($sach->gia_goc, 0, ',', '.') }}đ
-                    </span>
-                    <span class="badge badge-danger">-{{ round(($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc * 100) }}%</span>
+                @php
+                    $giaBan = (float)$sach->gia_ban;
+                    $giaSauGiam = null;
+                    if (!empty($activeCoupon)) {
+                        $giaSauGiam = $activeCoupon->loai === 'percent'
+                            ? $giaBan * (1 - $activeCoupon->gia_tri / 100)
+                            : max(0, $giaBan - $activeCoupon->gia_tri);
+                        $giaSauGiam = round($giaSauGiam);
+                    }
+                @endphp
+
+                @if(!empty($activeCoupon))
+                <div style="display:flex; align-items:center; gap:8px; background:linear-gradient(135deg,#fff3cd,#ffe69c); border:1px solid #ffc107; border-radius:var(--radius-md); padding:var(--space-2) var(--space-4); margin-bottom:var(--space-4); font-size:13px;">
+                    <span class="material-icons" style="color:#856404; font-size:17px;">local_offer</span>
+                    <span style="color:#856404;">Áp mã <strong>{{ $activeCoupon->ma_code }}</strong> để giảm {{ $activeCoupon->loai === 'percent' ? $activeCoupon->gia_tri . '%' : number_format($activeCoupon->gia_tri, 0, ',', '.') . 'đ' }} khi thanh toán!</span>
+                </div>
+                @endif
+
+                <div style="display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-6); flex-wrap:wrap;">
+                    @if($giaSauGiam && $giaSauGiam < $giaBan)
+                        {{-- Giá sau giảm (từ mã coupon) --}}
+                        <span style="font-size: var(--font-size-3xl); font-weight: var(--font-bold); color: var(--color-danger);">
+                            {{ number_format($giaSauGiam, 0, ',', '.') }}đ
+                        </span>
+                        <span style="font-size: var(--font-size-lg); color: var(--color-text-muted); text-decoration: line-through;">
+                            {{ number_format($giaBan, 0, ',', '.') }}đ
+                        </span>
+                        @php $off = round((1 - $giaSauGiam/$giaBan)*100); @endphp
+                        <span class="badge badge-danger">-{{ $off }}%</span>
+                    @else
+                        <span style="font-size: var(--font-size-3xl); font-weight: var(--font-bold); color: var(--color-primary-dark);">
+                            {{ number_format($giaBan, 0, ',', '.') }}đ
+                        </span>
+                        @if ($sach->gia_goc > 0 && $sach->gia_goc > $sach->gia_ban)
+                        <span style="font-size: var(--font-size-lg); color: var(--color-text-muted); text-decoration: line-through;">
+                            {{ number_format($sach->gia_goc, 0, ',', '.') }}đ
+                        </span>
+                        <span class="badge badge-danger">-{{ round(($sach->gia_goc - $sach->gia_ban) / $sach->gia_goc * 100) }}%</span>
+                        @endif
                     @endif
                 </div>
 
@@ -331,6 +361,16 @@
             </div>
             <div class="book-grid book-grid-4">
                 @foreach ($sachLienQuan as $lr)
+                @php
+                    $lrGiaBan = (float)$lr->gia_ban;
+                    $lrGiaSauGiam = null;
+                    if (!empty($activeCoupon)) {
+                        $lrGiaSauGiam = $activeCoupon->loai === 'percent'
+                            ? $lrGiaBan * (1 - $activeCoupon->gia_tri / 100)
+                            : max(0, $lrGiaBan - $activeCoupon->gia_tri);
+                        $lrGiaSauGiam = round($lrGiaSauGiam);
+                    }
+                @endphp
                 <a href="{{ route('products.show', $lr->id) }}" class="card" style="text-decoration: none; color: inherit;">
                     <div class="card-img" style="display: flex; align-items: center; justify-content: center; overflow: hidden;">
                         @if ($lr->file_anh_bia)
@@ -344,7 +384,14 @@
                     <div class="card-body">
                         <div class="card-title" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-clamp:2;">{{ $lr->tieu_de }}</div>
                         <div class="card-subtitle">{{ $lr->tacGia->ten_tac_gia ?? '' }}</div>
-                        <div class="card-price">{{ number_format($lr->gia_ban, 0, ',', '.') }}đ</div>
+                        <div class="card-price">
+                            @if($lrGiaSauGiam && $lrGiaSauGiam < $lrGiaBan)
+                                <span style="color:var(--color-danger);">{{ number_format($lrGiaSauGiam, 0, ',', '.') }}đ</span>
+                                <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($lrGiaBan, 0, ',', '.') }}đ</span>
+                            @else
+                                {{ number_format($lrGiaBan, 0, ',', '.') }}đ
+                            @endif
+                        </div>
                     </div>
                 </a>
                 @endforeach

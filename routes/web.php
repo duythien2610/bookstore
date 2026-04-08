@@ -25,7 +25,18 @@ Route::get('/', function () {
     // Lấy 8 cuốn sách bán chạy nhất sử dụng scope đã viết trong Model
     $sachNoiBat = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
 
-    return view('pages.home', compact('sachNoiBat'));
+    // Lấy mã giảm giá chung đang hoạt động (sẽ hiển thị giá đã giảm trên trang chủ)
+    $activeCoupons = \App\Models\MaGiamGia::where('trang_thai', 1)
+        ->where(function ($q) {
+            $q->whereNull('ngay_het_han')->orWhere('ngay_het_han', '>=', now());
+        })
+        ->where(function ($q) {
+            $q->whereNull('so_luong')->orWhereRaw('da_dung < so_luong');
+        })
+        ->orderBy('gia_tri', 'desc')
+        ->first(); // Lấy mã giảm cao nhất hiển thị trên trang chủ
+
+    return view('pages.home', compact('sachNoiBat', 'activeCoupons'));
 })->name('home');
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
@@ -71,17 +82,14 @@ Route::middleware('verified')->group(function () {
     Route::post('/cart/update/{id}', [App\Http\Controllers\GioHangController::class, 'update'])->name('cart.update');
     Route::post('/cart/remove/{id}', [App\Http\Controllers\GioHangController::class, 'destroy'])->name('cart.remove');
     Route::post('/cart/coupon', [App\Http\Controllers\CartController::class, 'applyCoupon'])->name('cart.coupon');
+    Route::get('/cart/coupons-available', [CouponController::class, 'availableForCart'])->name('cart.coupons.available');
 
     Route::get('/checkout', [App\Http\Controllers\GioHangController::class, 'showCheckout'])->name('checkout');
     Route::post('/checkout', [App\Http\Controllers\GioHangController::class, 'processCheckout'])->name('checkout.process');
 
-    Route::get('/order-success', function () {
-        return view('pages.order-success');
-    })->name('order.success');
+    Route::get('/order-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('order.success');
 
-    Route::get('/order-tracking', function () {
-        return view('pages.order-tracking');
-    })->name('order.tracking');
+    Route::get('/order-tracking/{id}', [App\Http\Controllers\CheckoutController::class, 'tracking'])->name('order.tracking');
 
     Route::get('/wishlist', [WishlistController::class, 'show'])->name('wishlist');
     Route::post('/wishlist/toggle', [WishlistController::class, 'toggle'])->name('wishlist.toggle');
@@ -141,7 +149,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // Quản lý đơn hàng
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('admin.orders.show');
-    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update');
+    Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
 
     Route::get('/books/create', [App\Http\Controllers\SachController::class, 'create'])->name('admin.books.create');
 
@@ -183,6 +191,8 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::post('/coupons', [CouponController::class, 'store'])->name('admin.coupons.store');
     Route::put('/coupons/{id}/toggle', [CouponController::class, 'toggleStatus'])->name('admin.coupons.toggle');
     Route::delete('/coupons/{id}', [CouponController::class, 'destroy'])->name('admin.coupons.destroy');
+    Route::get('/coupons/export-csv', [CouponController::class, 'exportCsv'])->name('admin.coupons.export');
+    Route::post('/coupons/import-csv', [CouponController::class, 'importCsv'])->name('admin.coupons.import');
 
     // Quản lý Banner
     Route::get('/banners', [BannerController::class, 'index'])->name('admin.banners.index');
