@@ -5,12 +5,19 @@
 @section('content')
     <div class="admin-topbar">
         <h1>Quản lý đơn hàng ({{ $tongTatCa }})</h1>
-        <form action="{{ route('admin.orders') }}" method="GET" style="display: flex; align-items: center; gap: var(--space-4);">
-            <div class="header-search" style="max-width: 300px;">
+        <form action="{{ route('admin.orders') }}" method="GET" style="display: flex; align-items: center; gap: var(--space-3);">
+            <div class="header-search" style="max-width: 250px;">
                 <span class="material-icons search-icon">search</span>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Tìm mã ĐH, SĐT, Tên..." id="order-search">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Mã đơn, tên, SĐT..." id="order-search">
             </div>
-            <button type="submit" class="btn btn-primary btn-sm">Tìm kiếm</button>
+            <div style="display: flex; align-items: center; gap: var(--space-2);">
+                <span style="font-size: 13px; color: var(--color-text-muted);">Ngày:</span>
+                <input type="date" name="date" value="{{ request('date') }}" class="form-control" style="padding: 6px 10px; font-size: 13px; width: 140px; height: 40px; border-radius: 8px;">
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm" style="height: 40px; padding: 0 20px;">Lọc</button>
+            @if(request()->hasAny(['search', 'date', 'trang_thai']))
+                <a href="{{ route('admin.orders') }}" class="btn btn-ghost btn-sm" style="height: 40px;">Xóa bộ lọc</a>
+            @endif
         </form>
     </div>
 

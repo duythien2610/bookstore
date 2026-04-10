@@ -9,9 +9,9 @@
 
         {{-- Navigation --}}
         <nav class="nav-links" id="main-nav">
-            <a href="{{ url('/products') }}" class="{{ request()->is('products') ? 'active' : '' }}">Sách mới</a>
-
-            <a href="{{ url('/products?view=categories') }}">Thể loại</a>
+            <a href="{{ url('/products') }}" class="{{ (request()->is('products') && !request()->has('view')) ? 'active' : '' }}">Sách mới</a>
+            <a href="{{ url('/products?view=categories') }}" class="{{ request('view') == 'categories' ? 'active' : '' }}">Thể loại</a>
+            <a href="{{ route('tracking.search') }}" class="{{ request()->is('track-order*') ? 'active' : '' }}">Theo dõi đơn</a>
             <a href="{{ url('/blog') }}" class="{{ request()->is('blog*') ? 'active' : '' }}">Blog</a>
             <a href="{{ url('/contact') }}" class="{{ request()->is('contact') ? 'active' : '' }}">Liên hệ</a>
         </nav>
@@ -85,6 +85,16 @@
             </a>
             <a href="{{ url('/cart') }}" class="icon-btn" id="btn-cart" title="Giỏ hàng">
                 <span class="material-icons">shopping_cart</span>
+                @php
+                    $cartCount = 0;
+                    if (Auth::check()) {
+                        $gioHang = \App\Models\GioHang::where('user_id', Auth::id())->where('trang_thai', 'active')->first();
+                        $cartCount = $gioHang ? $gioHang->chiTiets()->sum('so_luong') : 0;
+                    } else {
+                        $cartCount = session('cart') ? array_sum(array_column(session('cart'), 'so_luong')) : 0;
+                    }
+                @endphp
+                <span class="badge" id="cart-badge" style="{{ $cartCount > 0 ? '' : 'display: none;' }}">{{ $cartCount }}</span>
             </a>
             @guest
                 <a href="{{ route('login') }}" class="btn btn-primary btn-sm" id="btn-login">Đăng nhập</a>

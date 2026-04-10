@@ -98,7 +98,7 @@
                             @endphp
                             <span class="badge badge-danger" style="position:absolute; top:var(--space-3); left:var(--space-3);">-{{ $pctOff }}%</span>
                         @endif
-                        <form action="{{ route('cart.add') }}" method="POST" class="add-to-cart-form">
+                        <form action="{{ route('cart.add') }}" method="POST" class="ajax-cart-form">
                             @csrf
                             <input type="hidden" name="sach_id" value="{{ $sach->id }}">
                             <input type="hidden" name="so_luong" value="1">
@@ -200,7 +200,7 @@
                                     @endif
                                 @endif
                             </div>
-                            <form action="{{ route('cart.add') }}" method="POST">
+                            <form action="{{ route('cart.add') }}" method="POST" class="ajax-cart-form">
                                 @csrf
                                 <input type="hidden" name="sach_id" value="{{ $sach->id }}">
                                 <input type="hidden" name="so_luong" value="1">

@@ -18,13 +18,25 @@ class OrderController extends Controller
             $query->where('trang_thai', $request->trang_thai);
         }
 
+        // Tìm kiếm theo ID đơn hàng (Mã đơn), Tên khách, SĐT
         if ($request->filled('search')) {
             $s = $request->search;
-            $query->where(function ($q) use ($s) {
-                $q->where('id', 'like', "%{$s}%")
+            // Xử lý nếu người dùng nhập mã có tiền tố MB (ví dụ MB000108 -> ID 108)
+            $cleanId = preg_replace('/[^0-9]/', '', $s);
+            
+            $query->where(function ($q) use ($s, $cleanId) {
+                if (!empty($cleanId)) {
+                    $q->where('id', $cleanId);
+                }
+                $q->orWhere('id', 'like', "%{$s}%")
                   ->orWhere('ho_ten', 'like', "%{$s}%")
                   ->orWhere('so_dien_thoai', 'like', "%{$s}%");
             });
+        }
+
+        // Lọc theo ngày đặt
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
         }
 
         $donHangs     = $query->paginate(15);

@@ -161,6 +161,34 @@ class AuthController extends Controller
         return redirect('/');
     }
 
+    /**
+     * Đổi mật khẩu cho user đang đăng nhập.
+     */
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'old_password' => 'required',
+            'password'     => 'required|string|min:8|confirmed',
+        ], [
+            'old_password.required' => 'Vui lòng nhập mật khẩu hiện tại.',
+            'password.required'     => 'Vui lòng nhập mật khẩu mới.',
+            'password.min'          => 'Mật khẩu mới phải có ít nhất 8 ký tự.',
+            'password.confirmed'    => 'Xác nhận mật khẩu không khớp.',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->old_password, $user->password)) {
+            return back()->withErrors(['old_password' => 'Mật khẩu hiện tại không chính xác.']);
+        }
+
+        /** @var \App\Models\User $user */
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return back()->with('success', 'Đã cập nhật mật khẩu thành công!');
+    }
+
     // =====================================================================
     //  XÁC THỰC EMAIL — SECURITY 3 LỚP
     // =====================================================================

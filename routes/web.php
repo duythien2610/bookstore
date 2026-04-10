@@ -79,6 +79,9 @@ Route::get('/featured-books', [App\Http\Controllers\SachController::class, 'feat
 Route::get('/best-selling', [App\Http\Controllers\SachController::class, 'bestSelling'])->name('products.bestselling');
 
 Route::get('/products/{id}', [App\Http\Controllers\SachController::class, 'show'])->name('products.show');
+Route::get('/track-order', [App\Http\Controllers\CheckoutController::class, 'showTrackingSearch'])->name('tracking.search');
+Route::post('/track-order', [App\Http\Controllers\CheckoutController::class, 'findOrder'])->name('tracking.find');
+Route::get('/track-order/result/{id}', [App\Http\Controllers\CheckoutController::class, 'trackingResult'])->name('tracking.result');
 
 // Các route yêu cầu đăng nhập + đã xác thực email
 Route::middleware('verified')->group(function () {
@@ -94,6 +97,7 @@ Route::middleware('verified')->group(function () {
 
     Route::get('/order-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('order.success');
 
+    // Theo dõi đơn hàng (Yêu cầu login)
     Route::get('/order-tracking/{id}', [App\Http\Controllers\CheckoutController::class, 'tracking'])->name('order.tracking');
 
     Route::get('/wishlist', [WishlistController::class, 'show'])->name('wishlist');
@@ -101,7 +105,9 @@ Route::middleware('verified')->group(function () {
 
 
     Route::get('/profile', [UserController::class, 'show'])->name('profile');
+    Route::get('/my-orders', [UserController::class, 'orders'])->name('my-orders');
     Route::put('/profile', [UserController::class, 'update'])->name('profile.update');
+    Route::put('/change-password', [AuthController::class, 'changePassword'])->name('profile.password.update');
 
     // Đánh giá sách
     Route::post('/danh-gia', [DanhGiaController::class, 'store'])->name('danh-gia.store');
@@ -205,6 +211,11 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::put('/banners/{id}', [BannerController::class, 'update'])->name('admin.banners.update');
     Route::delete('/banners/{id}', [BannerController::class, 'destroy'])->name('admin.banners.destroy');
     Route::put('/banners/{id}/toggle', [BannerController::class, 'toggleStatus'])->name('admin.banners.toggle');
+    
+    // Cài đặt hệ thống
+    Route::get('/settings', function() {
+        return view('admin.settings');
+    })->name('admin.settings');
 });
 
 

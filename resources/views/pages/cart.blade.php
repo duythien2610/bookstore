@@ -78,6 +78,21 @@
                         <button type="button" id="btn-remove-coupon" style="margin-left:auto; background:none; border:none; cursor:pointer; color:#721c24; font-size:18px;" title="Xóa mã">✕</button>
                     </div>
                     @endif
+
+                    {{-- Gợi ý mã từ trang chủ --}}
+                    @if($suggestedCoupon && $couponCode !== $suggestedCoupon->ma_code)
+                    <div style="background: #fff9db; border: 1px dashed #fab005; border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+                        <span class="material-icons" style="color:#f08c00; font-size:18px;">local_offer</span>
+                        <div style="flex:1;">
+                            <div style="font-size:12px; color:#856404; font-weight:600;">Khuyến mãi hot @Trang chủ:</div>
+                            <div style="font-size:13px; color:#1a202c;">Tặng bạn mã <strong>{{ $suggestedCoupon->ma_code }}</strong> (giảm {{ $suggestedCoupon->loai === 'percent' ? $suggestedCoupon->gia_tri . '%' : number_format($suggestedCoupon->gia_tri, 0, ',', '.') . 'đ' }})</div>
+                        </div>
+                        <button type="button" onclick="document.getElementById('coupon-input').value='{{ $suggestedCoupon->ma_code }}'; document.getElementById('btn-apply-coupon').click();" 
+                            style="background: #fab005; color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                            Dùng ngay
+                        </button>
+                    </div>
+                    @endif
                     <div style="display: flex; gap: 8px;">
                         <div style="flex:1; position:relative;">
                             <input type="text" id="coupon-input" value="" placeholder="Nhập mã hoặc chọn từ danh sách..." style="width:100%; height: 40px; border: 1px solid var(--color-border); border-radius: 8px; padding: 0 12px; box-sizing:border-box;" autocomplete="off">

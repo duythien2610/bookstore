@@ -137,10 +137,12 @@
 
                         if (data && data.success) {
                             // Cập nhật số lượng giỏ hàng trên header
-                            const cartBadge = document.querySelector('.icon-btn .badge');
+                            const cartBadge = document.getElementById('cart-badge');
                             if (cartBadge) {
                                 cartBadge.textContent = data.cart_count;
-                                // Hiệu ứng giật nhẹ (pulse) thay vì xoay
+                                cartBadge.style.display = data.cart_count > 0 ? 'flex' : 'none';
+                                
+                                // Hiệu ứng giật nhẹ (pulse)
                                 cartBadge.style.transition = 'transform 0.2s';
                                 cartBadge.style.transform = 'scale(1.5)';
                                 setTimeout(() => { cartBadge.style.transform = 'scale(1)'; }, 200);

@@ -282,14 +282,52 @@ class CheckoutController extends Controller
     }
 
     // =========================================================================
-    //  Theo dõi đơn hàng
+    //  Theo dõi đơn hàng (Yêu cầu đăng nhập)
     // =========================================================================
-
     public function tracking($id)
     {
         $donHang = DonHang::with(['chiTiets.sach.tacGia'])
             ->where('user_id', Auth::id())
             ->findOrFail($id);
+
+        return view('pages.order-tracking', compact('donHang'));
+    }
+
+    // =========================================================================
+    //  Theo dõi đơn hàng (Dành cho khách - Qua SĐT + Mã ĐH)
+    // =========================================================================
+    public function showTrackingSearch()
+    {
+        return view('pages.order-tracking-search');
+    }
+
+    public function findOrder(Request $request)
+    {
+        $request->validate([
+            'order_id' => 'required|string',
+            'phone'    => 'required|string',
+        ]);
+
+        // Xử lý mã đơn (bỏ prefix MB nếu có)
+        $id = preg_replace('/[^0-9]/', '', $request->order_id);
+
+        $donHang = DonHang::where('id', $id)
+            ->where('so_dien_thoai', $request->phone)
+            ->first();
+
+        if (!$donHang) {
+            return back()->with('error', 'Không tìm thấy đơn hàng phù hợp với thông tin đã nhập.');
+        }
+
+        return redirect()->route('tracking.result', ['id' => $donHang->id, 'phone' => $donHang->so_dien_thoai]);
+    }
+
+    public function trackingResult($id, Request $request)
+    {
+        $donHang = DonHang::with(['chiTiets.sach.tacGia'])
+            ->where('id', $id)
+            ->where('so_dien_thoai', $request->phone)
+            ->firstOrFail();
 
         return view('pages.order-tracking', compact('donHang'));
     }

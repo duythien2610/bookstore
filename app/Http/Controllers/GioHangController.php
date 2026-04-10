@@ -22,8 +22,20 @@ class GioHangController extends Controller
         $items = $gioHang ? $gioHang->chiTiets()->with('sach')->get() : collect();
         $discount = session('cart_discount', 0);
         $couponCode = session('cart_coupon', null);
+
+        // Lấy mã giảm giá "all" tốt nhất để gợi ý
+        $suggestedCoupon = \App\Models\MaGiamGia::where('trang_thai', 1)
+            ->where('pham_vi', 'all')
+            ->where(function ($q) {
+                $q->whereNull('ngay_het_han')->orWhere('ngay_het_han', '>=', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('so_luong')->orWhereRaw('da_dung < so_luong');
+            })
+            ->orderBy('gia_tri', 'desc')
+            ->first();
         
-        return view('pages.cart', compact('items', 'gioHang', 'discount', 'couponCode'));
+        return view('pages.cart', compact('items', 'gioHang', 'discount', 'couponCode', 'suggestedCoupon'));
     }
 
     public function add(Request $request)
@@ -65,9 +77,11 @@ class GioHangController extends Controller
         $gioHang->save();
 
         if ($request->ajax()) {
+            $totalQty = $gioHang->chiTiets()->sum('so_luong');
             return response()->json([
+                'success' => true,
                 'message' => 'Đã thêm vào giỏ hàng', 
-                'cart_count' => $gioHang->chiTiets()->count(),
+                'cart_count' => $totalQty,
                 'total_html' => number_format($gioHang->tong_tien, 0, ',', '.') . 'đ'
             ]);
         }

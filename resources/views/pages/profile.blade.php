@@ -28,7 +28,7 @@
                         <span class="material-icons" style="font-size:20px">person</span>
                         Thông tin cá nhân
                     </a>
-                    <a href="{{ url('/order-tracking') }}" id="nav-my-orders">
+                    <a href="{{ route('my-orders') }}" id="nav-my-orders">
                         <span class="material-icons" style="font-size:20px">receipt_long</span>
                         Đơn hàng của tôi
                     </a>
@@ -180,12 +180,86 @@
                     </div>
                 </form>
             </div>
+
+            {{-- ─── Content: Đổi mật khẩu (Mặc định ẩn) ─── --}}
+            <div class="profile-content" id="password-form-section" style="display: none;">
+                <h3 style="margin-bottom:var(--space-6)">Đổi mật khẩu</h3>
+
+                <form method="POST" action="{{ route('profile.password.update') }}">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="form-group" style="margin-bottom:var(--space-4)">
+                        <label class="form-label" for="old_password">Mật khẩu hiện tại <span style="color:var(--color-danger)">*</span></label>
+                        <input type="password" name="old_password" id="old_password" class="form-control" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:var(--space-4)">
+                        <label class="form-label" for="password">Mật khẩu mới <span style="color:var(--color-danger)">*</span></label>
+                        <input type="password" name="password" id="password" class="form-control" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom:var(--space-6)">
+                        <label class="form-label" for="password_confirmation">Xác nhận mật khẩu mới <span style="color:var(--color-danger)">*</span></label>
+                        <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required>
+                    </div>
+
+                    <div style="display:flex;gap:var(--space-4);justify-content:flex-end">
+                        <button type="button" class="btn btn-ghost" onclick="toggleSection('profile')">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Cập nhật mật khẩu</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 @endsection
 
 @push('scripts')
 <script>
+    // Hàm chuyển đổi giữa các mục hồ sơ
+    function toggleSection(section) {
+        const profileSec = document.getElementById('profile-form-section');
+        const passwordSec = document.getElementById('password-form-section');
+        const navProfile = document.getElementById('nav-profile-info');
+        const navPass    = document.getElementById('nav-change-pw');
+        const sidebarLinks = document.querySelectorAll('.profile-nav a');
+
+        sidebarLinks.forEach(link => link.classList.remove('active'));
+
+        if (section === 'password') {
+            profileSec.style.display = 'none';
+            passwordSec.style.display = 'block';
+            navPass.classList.add('active');
+        } else {
+            profileSec.style.display = 'block';
+            passwordSec.style.display = 'none';
+            navProfile.classList.add('active');
+        }
+    }
+
+    // Gắn sự kiện cho các link sidebar (ngăn reload trang khi chuyển mục nội bộ)
+    document.getElementById('nav-change-pw').addEventListener('click', function(e) {
+        if (document.getElementById('password-form-section')) {
+            e.preventDefault();
+            toggleSection('password');
+        }
+    });
+
+    document.getElementById('nav-profile-info').addEventListener('click', function(e) {
+        if (document.getElementById('profile-form-section')) {
+            e.preventDefault();
+            toggleSection('profile');
+        }
+    });
+
+    // Tự động chuyển tab nếu có query param ?action=change-password
+    window.addEventListener('load', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'change-password') {
+            toggleSection('password');
+        }
+    });
+
 (function () {
     // ── Dữ liệu lưu sẵn ──────────────────────────────────────────────────
     const savedAddress = @json($user->dia_chi ?? '');

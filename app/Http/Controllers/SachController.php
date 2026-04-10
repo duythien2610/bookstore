@@ -24,9 +24,16 @@ class SachController extends Controller
             $query->where('tieu_de', 'like', '%' . $request->search . '%');
         }
 
-        // Lọc theo thể loại
+        // Lọc theo thể loại (hỗ trợ nhiều thể loại và tự động lấy con)
         if ($request->filled('the_loai_id')) {
-            $query->where('the_loai_id', $request->the_loai_id);
+            $ids = (array) $request->the_loai_id;
+            
+            // Lấy thêm tất cả ID của thể loại con của các thể loại đã chọn
+            $allIds = $ids;
+            $childIds = TheLoai::whereIn('parent_id', $ids)->pluck('id')->toArray();
+            $allIds = array_unique(array_merge($allIds, $childIds));
+
+            $query->whereIn('the_loai_id', $allIds);
         }
 
         // Lọc theo trạng thái tồn kho
@@ -63,7 +70,7 @@ class SachController extends Controller
         }
 
         $sachs = $query->get();
-        $theLoais = TheLoai::orderBy('ten_the_loai')->get();
+        $theLoais = TheLoai::whereNull('parent_id')->with('children')->orderBy('ten_the_loai')->get();
 
         // Đếm tổng (không filter) cho tabs
         $tongTatCa  = Sach::count();
@@ -291,9 +298,15 @@ class SachController extends Controller
 
         // Lọc theo thể loại (nếu có)
         if ($request->filled('category')) {
-            $query->whereHas('theLoai', function($q) use ($request) {
-                $q->whereIn('ten_the_loai', (array)$request->category);
-            });
+            $categoryNames = (array)$request->category;
+            $categoryIds = TheLoai::whereIn('ten_the_loai', $categoryNames)->pluck('id')->toArray();
+            
+            // Lấy thêm tất cả ID của thể loại con của các thể loại đã chọn
+            $allIds = $categoryIds;
+            $childIds = TheLoai::whereIn('parent_id', $categoryIds)->pluck('id')->toArray();
+            $allIds = array_merge($allIds, $childIds);
+
+            $query->whereIn('the_loai_id', $allIds);
         }
 
         // Lọc theo khoảng giá
@@ -319,7 +332,7 @@ class SachController extends Controller
 
         $sachs = $query->paginate(12)->withQueryString();
         
-        $theLoais = TheLoai::whereNull('parent_id')->get();
+        $theLoais = TheLoai::whereNull('parent_id')->with('children')->orderBy('ten_the_loai')->get();
         $activeCoupon = $this->getActiveCoupon();
 
         return view('pages.product-listing', compact('sachs', 'theLoais', 'queryText', 'activeCoupon'));
