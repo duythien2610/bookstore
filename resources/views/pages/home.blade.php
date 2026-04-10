@@ -35,19 +35,37 @@
             </div>
             <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: var(--space-4);">
                 @php
-                    $categories = [
-                        ['icon' => 'psychology', 'name' => 'Tâm lý'],
-                        ['icon' => 'business', 'name' => 'Kinh doanh'],
-                        ['icon' => 'science', 'name' => 'Khoa học'],
-                        ['icon' => 'auto_stories', 'name' => 'Tiểu thuyết'],
-                        ['icon' => 'child_care', 'name' => 'Thiếu nhi'],
-                        ['icon' => 'school', 'name' => 'Giáo dục'],
+                    $iconMap = [
+                        'tâm lý'      => 'psychology',
+                        'kỹ năng'     => 'psychology',
+                        'kinh'        => 'business',
+                        'business'    => 'business',
+                        'management'  => 'business',
+                        'khoa học'    => 'science',
+                        'science'     => 'science',
+                        'tiểu thuyết' => 'auto_stories',
+                        'văn học'     => 'auto_stories',
+                        'fiction'     => 'auto_stories',
+                        'thiếu nhi'   => 'child_care',
+                        'nuôi dạy'    => 'child_care',
+                        'giáo dục'    => 'school',
+                        'personal'    => 'self_improvement',
+                        'development' => 'self_improvement',
+                        'tiểu sử'     => 'person',
+                        'hồi ký'      => 'person',
                     ];
+                    function getCatIcon($name, $map) {
+                        $lower = mb_strtolower($name);
+                        foreach ($map as $keyword => $icon) {
+                            if (str_contains($lower, $keyword)) return $icon;
+                        }
+                        return 'menu_book';
+                    }
                 @endphp
-                @foreach ($categories as $cat)
-                <a href="{{ url('/products?category=' . $cat['name']) }}" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
-                    <span class="material-icons" style="font-size: 36px; color: var(--color-primary); margin-bottom: var(--space-3);">{{ $cat['icon'] }}</span>
-                    <div class="card-title" style="font-size: var(--font-size-sm);">{{ $cat['name'] }}</div>
+                @foreach ($theLoais as $cat)
+                <a href="{{ url('/products?category=' . urlencode($cat->ten_the_loai)) }}" class="card" style="text-align: center; padding: var(--space-6); text-decoration: none;">
+                    <span class="material-icons" style="font-size: 36px; color: var(--color-primary); margin-bottom: var(--space-3);">{{ getCatIcon($cat->ten_the_loai, $iconMap) }}</span>
+                    <div class="card-title" style="font-size: var(--font-size-sm);">{{ $cat->ten_the_loai }}</div>
                 </a>
                 @endforeach
             </div>
@@ -72,7 +90,7 @@
             </div>
             @endif
             <div class="book-grid book-grid-4">
-                @foreach($sachNoiBat->take(4) as $sach)
+                @foreach($sachNoiBat->take(4) as $index => $sach)
                 @php
                     // Tính giá đã giảm nếu có mã khuyến mãi đang chạy
                     $giaBan = (float)$sach->gia_ban;
@@ -83,31 +101,43 @@
                             : max(0, $giaBan - $activeCoupons->gia_tri);
                         $giaSauGiam = round($giaSauGiam);
                     }
+                    $pctOff = ($giaSauGiam && $giaSauGiam < $giaBan)
+                        ? round((1 - $giaSauGiam/$giaBan)*100)
+                        : ($sach->gia_goc > $giaBan ? round(($sach->gia_goc - $giaBan)/$sach->gia_goc*100) : 0);
+                    $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
+                    $rank = $index + 1;
+                    $rankColor = $rank === 1 ? '#f59e0b' : ($rank === 2 ? '#94a3b8' : ($rank === 3 ? '#cd7c3a' : 'var(--color-primary)'));
                 @endphp
-                <div class="card" id="featured-book-{{ $sach->id }}">
-                    <div class="card-img" style="position:relative;">
-                        @php
-                            $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
-                        @endphp
-                        <a href="{{ route('products.show', $sach->id) }}">
-                            <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: var(--radius-md);">
+                <div class="card" id="featured-book-{{ $sach->id }}" style="position: relative;">
+                    {{-- Rank badge --}}
+                    <div style="position: absolute; top: -10px; left: -10px; width: 40px; height: 40px; background: {{ $rankColor }}; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; z-index: 10; box-shadow: var(--shadow-md);">
+                        {{ $rank }}
+                    </div>
+
+                    <div style="position: relative;">
+                        <a href="{{ route('products.show', $sach->id) }}" style="display:block;">
+                            <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" style="width: 100%; height: 280px; object-fit: cover; border-radius: var(--radius-md) var(--radius-md) 0 0; display:block;">
                         </a>
-                        @if($giaSauGiam && $giaSauGiam < $giaBan)
-                            @php
-                                $pctOff = round((1 - $giaSauGiam/$giaBan)*100);
-                            @endphp
-                            <span class="badge badge-danger" style="position:absolute; top:var(--space-3); left:var(--space-3);">-{{ $pctOff }}%</span>
+
+                        {{-- Discount badge --}}
+                        @if($pctOff > 0)
+                        <span class="badge badge-danger" style="position:absolute; top:var(--space-3); right:var(--space-3); z-index:5;">-{{ $pctOff }}%</span>
                         @endif
-                        <form action="{{ route('cart.add') }}" method="POST" class="ajax-cart-form">
+
+
+
+                        {{-- Add to cart --}}
+                        <form action="{{ route('cart.add') }}" method="POST" class="ajax-cart-form" style="position:absolute; bottom:var(--space-3); right:var(--space-3); z-index:5;">
                             @csrf
                             <input type="hidden" name="sach_id" value="{{ $sach->id }}">
                             <input type="hidden" name="so_luong" value="1">
-                            <button type="submit" class="btn btn-primary btn-sm" style="position: absolute; bottom: 10px; right: 10px; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                            <button type="submit" class="btn btn-primary btn-sm" style="border-radius: 50%; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg);" title="Thêm vào giỏ">
                                 <span class="material-icons">shopping_cart</span>
                             </button>
                         </form>
                     </div>
-                    <div class="card-body">
+
+                    <div class="card-body" style="padding: var(--space-4);">
                         <div class="stars" style="color: #ffc107; font-size: 14px; margin-bottom: 5px;">
                             @php $avgRating = $sach->trungBinhSao(); @endphp
                             @for ($i = 1; $i <= 5; $i++)
@@ -115,19 +145,24 @@
                             @endfor
                         </div>
                         <a href="{{ route('products.show', $sach->id) }}" style="text-decoration: none; color: inherit;">
-                            <div class="card-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $sach->tieu_de }}</div>
+                            <h3 class="card-title" style="font-size: 16px; min-height: 48px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $sach->tieu_de }}</h3>
                         </a>
-                        <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
-                        <div class="card-price">
-                            @if($giaSauGiam && $giaSauGiam < $giaBan)
-                                <span style="color:var(--color-danger); font-weight:700;">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
-                                <span class="original" style="margin-left:6px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
-                            @else
-                                {{ number_format($giaBan, 0, ',', '.') }}đ
-                                @if($sach->gia_goc > $sach->gia_ban)
-                                    <span class="original">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                        <div class="card-subtitle" style="margin-bottom: var(--space-3);">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:4px;">
+                            <div>
+                                @if($giaSauGiam && $giaSauGiam < $giaBan)
+                                    <span class="card-price" style="font-size: 16px; font-weight: 700; color: var(--color-danger);">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
+                                    <span style="font-size:12px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                @else
+                                    <span class="card-price" style="font-size: 16px; font-weight: 700;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                    @if($sach->gia_goc > $giaBan)
+                                        <span style="font-size:12px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                                    @endif
                                 @endif
-                            @endif
+                            </div>
+                            <div style="font-size: 12px; color: var(--color-text-muted); font-weight: 500;">
+                                <span style="color: var(--color-success);">{{ $sach->tong_ban ?? 0 }}</span> đã bán
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -144,7 +179,7 @@
                 <a href="{{ route('products.bestselling') }}">Xem tất cả <span class="material-icons" style="font-size: 16px;">arrow_forward</span></a>
             </div>
             <div class="book-grid book-grid-4">
-                @forelse($sachBanChay as $sach)
+                @forelse($sachBanChay as $index => $sach)
                 @php
                     $giaBan = (float)$sach->gia_ban;
                     $giaSauGiam = null;
@@ -157,57 +192,65 @@
                     $pctOff = ($giaSauGiam && $giaSauGiam < $giaBan)
                         ? round((1 - $giaSauGiam/$giaBan)*100)
                         : ($sach->gia_goc > $giaBan ? round(($sach->gia_goc - $giaBan)/$sach->gia_goc*100) : 0);
-                    $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : null);
+                    $imageUrl = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : 'https://placehold.co/300x400?text=No+Image');
+                    $rank = $index + 1;
+                    $rankColor = $rank === 1 ? '#f59e0b' : ($rank === 2 ? '#94a3b8' : ($rank === 3 ? '#cd7c3a' : 'var(--color-primary)'));
                 @endphp
-                <div class="card" id="bestseller-{{ $sach->id }}">
-                    <a href="{{ route('products.show', $sach->id) }}" style="display:block; position:relative;">
-                        @if($imageUrl)
-                            <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" class="card-img" style="display:block; width:100%; object-fit:cover;">
-                        @else
-                            <div class="card-img" style="display:flex; align-items:center; justify-content:center;">
-                                <span class="material-icons" style="font-size:64px; color:var(--color-text-muted);">book</span>
-                            </div>
-                        @endif
-                        {{-- Badge giảm giá --}}
+                <div class="card" id="bestseller-{{ $sach->id }}" style="position: relative;">
+                    {{-- Rank badge --}}
+                    <div style="position: absolute; top: -10px; left: -10px; width: 40px; height: 40px; background: {{ $rankColor }}; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 18px; z-index: 10; box-shadow: var(--shadow-md);">
+                        {{ $rank }}
+                    </div>
+
+                    <div style="position: relative;">
+                        <a href="{{ route('products.show', $sach->id) }}" style="display:block;">
+                            <img src="{{ $imageUrl }}" alt="{{ $sach->tieu_de }}" style="width: 100%; height: 280px; object-fit: cover; border-radius: var(--radius-md) var(--radius-md) 0 0; display:block;">
+                        </a>
+
+                        {{-- Discount badge --}}
                         @if($pctOff > 0)
-                            <span class="badge badge-danger" style="position:absolute; top:var(--space-3); left:var(--space-3);">-{{ $pctOff }}%</span>
+                        <span class="badge badge-danger" style="position:absolute; top:var(--space-3); right:var(--space-3); z-index:5;">-{{ $pctOff }}%</span>
                         @endif
-                        {{-- Badge lượt bán --}}
-                        @if($sach->tong_ban > 0)
-                            <span style="position:absolute; bottom:var(--space-3); left:var(--space-3); background:rgba(0,0,0,.55); color:#fff; font-size:11px; padding:2px 8px; border-radius:20px;">
-                                🔥 {{ $sach->tong_ban }} đã bán
-                            </span>
-                        @endif
-                    </a>
-                    <div class="card-body">
-                        <div class="stars" style="margin-bottom:var(--space-2);">
+
+
+
+                        {{-- Add to cart --}}
+                        <form action="{{ route('cart.add') }}" method="POST" class="ajax-cart-form" style="position:absolute; bottom:var(--space-3); right:var(--space-3); z-index:5;">
+                            @csrf
+                            <input type="hidden" name="sach_id" value="{{ $sach->id }}">
+                            <input type="hidden" name="so_luong" value="1">
+                            <button type="submit" class="btn btn-primary btn-sm" style="border-radius: 50%; width: 44px; height: 44px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg);" title="Thêm vào giỏ">
+                                <span class="material-icons">shopping_cart</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="card-body" style="padding: var(--space-4);">
+                        <div class="stars" style="color: #ffc107; font-size: 14px; margin-bottom: 5px;">
                             @php $avgStar = round($sach->trungBinhSao()); @endphp
                             @for ($s = 1; $s <= 5; $s++)
-                                <span class="material-icons" style="font-size:14px; color:{{ $s <= $avgStar ? '#f59e0b' : '#e2e8f0' }};">star</span>
+                                <span class="material-icons" style="font-size: 16px;">{{ $s <= $avgStar ? 'star' : ($s - $avgStar < 1 ? 'star_half' : 'star_outline') }}</span>
                             @endfor
                         </div>
-                        <a href="{{ route('products.show', $sach->id) }}" class="card-title" style="display:block; color:var(--color-text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ $sach->tieu_de }}</a>
-                        <div class="card-subtitle">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:var(--space-2);">
+                        <a href="{{ route('products.show', $sach->id) }}" style="text-decoration: none; color: inherit;">
+                            <h3 class="card-title" style="font-size: 16px; min-height: 48px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ $sach->tieu_de }}</h3>
+                        </a>
+                        <div class="card-subtitle" style="margin-bottom: var(--space-3);">{{ $sach->tacGia->ten_tac_gia ?? 'Đang cập nhật' }}</div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap:wrap; gap:4px;">
                             <div>
                                 @if($giaSauGiam && $giaSauGiam < $giaBan)
-                                    <span class="card-price" style="color:var(--color-danger);">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
-                                    <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                    <span class="card-price" style="font-size: 16px; font-weight: 700; color: var(--color-danger);">{{ number_format($giaSauGiam, 0, ',', '.') }}đ</span>
+                                    <span style="font-size:12px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
                                 @else
-                                    <span class="card-price">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
+                                    <span class="card-price" style="font-size: 16px; font-weight: 700;">{{ number_format($giaBan, 0, ',', '.') }}đ</span>
                                     @if($sach->gia_goc > $giaBan)
-                                        <span style="font-size:11px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
+                                        <span style="font-size:12px; color:var(--color-text-muted); text-decoration:line-through; margin-left:4px;">{{ number_format($sach->gia_goc, 0, ',', '.') }}đ</span>
                                     @endif
                                 @endif
                             </div>
-                            <form action="{{ route('cart.add') }}" method="POST" class="ajax-cart-form">
-                                @csrf
-                                <input type="hidden" name="sach_id" value="{{ $sach->id }}">
-                                <input type="hidden" name="so_luong" value="1">
-                                <button type="submit" style="background:var(--color-primary-light); border:none; border-radius:var(--radius-lg); width:36px; height:36px; cursor:pointer; display:flex; align-items:center; justify-content:center;" title="Thêm vào giỏ">
-                                    <span class="material-icons" style="font-size:18px; color:var(--color-primary-dark);">add_shopping_cart</span>
-                                </button>
-                            </form>
+                            <div style="font-size: 12px; color: var(--color-text-muted); font-weight: 500;">
+                                <span style="color: var(--color-success);">{{ $sach->tong_ban ?? 0 }}</span> đã bán
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -40,7 +40,13 @@ Route::get('/', function () {
         ->orderBy('gia_tri', 'desc')
         ->first();
 
-    return view('pages.home', compact('sachNoiBat', 'sachBanChay', 'activeCoupons'));
+    // Thể loại phổ biến từ DB (parent only, tối đa 6)
+    $theLoais = \App\Models\TheLoai::whereNull('parent_id')
+        ->orderBy('ten_the_loai')
+        ->limit(6)
+        ->get();
+
+    return view('pages.home', compact('sachNoiBat', 'sachBanChay', 'activeCoupons', 'theLoais'));
 })->name('home');
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────
@@ -137,6 +143,20 @@ Route::get('/blog', function (\Illuminate\Http\Request $request) {
 Route::get('/contact', function () {
     return view('pages.contact');
 })->name('contact');
+
+Route::post('/contact', function (\Illuminate\Http\Request $request) {
+    $request->validate([
+        'name'    => 'required|string|max:255',
+        'email'   => 'required|email|max:255',
+        'subject' => 'required|string|max:255',
+        'message' => 'required|string|max:5000',
+    ]);
+
+    // Lưu hoặc gửi mail tại đây nếu cần
+    // Mail::to('support@modtrabooks.vn')->send(new ContactMail($request->all()));
+
+    return redirect()->route('contact')->with('success', 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.');
+})->name('contact.send');
 
 // ─── Chatbot AI ──────────────────────────────────────────────────────────
 Route::get('/chat/messege', [ChatbotController::class, 'fetchMessage'])->name('chatbot.fetchMessage');

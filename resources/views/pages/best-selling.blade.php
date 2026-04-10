@@ -75,12 +75,7 @@
                     <span class="badge badge-danger" style="position:absolute; top:var(--space-3); right:var(--space-3); z-index:5;">-{{ $pctOff }}%</span>
                     @endif
 
-                    {{-- Sold count badge --}}
-                    @if(($sach->tong_ban ?? 0) > 0)
-                    <span style="position:absolute; bottom:var(--space-3); left:var(--space-3); background:rgba(0,0,0,.6); color:#fff; font-size:11px; padding:3px 10px; border-radius:20px; font-weight:600; z-index:5;">
-                        🔥 {{ $sach->tong_ban }} đã bán
-                    </span>
-                    @endif
+
 
                     {{-- Add to cart --}}
                     <form action="{{ route('cart.add') }}" method="POST" style="position:absolute; bottom:var(--space-3); right:var(--space-3); z-index:5;">
