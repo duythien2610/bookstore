@@ -25,9 +25,6 @@ Route::get('/', function () {
     // Sách nổi bật (8 cuốn): dùng cho section "Sách nổi bật"
     $sachNoiBat = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
 
-    // Sách bán chạy (8 cuốn dựa trên đơn da_giao/hoan_thanh): dùng cho section "Sách bán chạy"
-    $sachBanChay = \App\Models\Sach::mostSold(8)->with(['tacGia'])->get();
-
     // Mã giảm giá chung đang hoạt động (chỉ áp dụng toàn bộ - pham_vi = 'all')
     $activeCoupons = \App\Models\MaGiamGia::where('trang_thai', 1)
         ->where('pham_vi', 'all')
@@ -46,7 +43,37 @@ Route::get('/', function () {
         ->limit(6)
         ->get();
 
-    return view('pages.home', compact('sachNoiBat', 'sachBanChay', 'activeCoupons', 'theLoais'));
+    // Sách bán chạy theo từng thể loại cho homepage ranking widget
+    $allCats = \App\Models\TheLoai::whereNull('parent_id')->orderBy('ten_the_loai')->get();
+    $rankingByCategory = [];
+    foreach ($allCats as $tl) {
+        $childIds = $tl->children()->pluck('id')->toArray();
+        $allIds   = array_merge([$tl->id], $childIds);
+        $top = \App\Models\Sach::with(['tacGia', 'nhaXuatBan'])
+            ->whereIn('the_loai_id', $allIds)
+            ->withSum([
+                'chiTiets as tong_ban' => function ($q) {
+                    $q->whereHas('donHang', function ($dq) {
+                        $dq->whereIn('trang_thai', ['da_giao', 'hoan_thanh']);
+                    });
+                }
+            ], 'so_luong')
+            ->orderByDesc('tong_ban')
+            ->take(8)
+            ->get();
+        if ($top->isNotEmpty()) {
+            $rankingByCategory[] = [
+                'id'    => $tl->id,
+                'name'  => $tl->ten_the_loai,
+                'books' => $top,
+            ];
+        }
+    }
+
+    // Fallback nếu chưa có đơn hàng nào
+    $sachBanChay = \App\Models\Sach::mostSold(8)->with(['tacGia', 'nhaXuatBan'])->get();
+
+    return view('pages.home', compact('sachNoiBat', 'sachBanChay', 'rankingByCategory', 'activeCoupons', 'theLoais'));
 })->name('home');
 
 // ─── Auth Routes ─────────────────────────────────────────────────────────

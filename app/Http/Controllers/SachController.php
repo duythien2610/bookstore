@@ -339,13 +339,60 @@ class SachController extends Controller
     }
 
     /**
-     * Trang "Xem tất cả sách bán chạy" — xếp theo đơn da_giao/hoan_thanh
+     * Trang "Xem tất cả sách bán chạy" — layout bảng xếp hạng theo thể loại
      */
     public function bestSelling()
     {
-        $sachs = Sach::mostSold(40)->with(['tacGia', 'theLoai'])->get();
+        // Lấy tất cả thể loại cha
+        $theLoais = TheLoai::whereNull('parent_id')
+            ->orderBy('ten_the_loai')
+            ->get();
+
+        // Với mỗi thể loại, lấy top 10 sách bán chạy (dùng scope mostSold để tính đúng)
+        $rankingByCategory = [];
+        foreach ($theLoais as $tl) {
+            // Gộp cả thể loại con
+            $childIds = $tl->children()->pluck('id')->toArray();
+            $allIds   = array_merge([$tl->id], $childIds);
+
+            // Dùng scope mostSold (withSum lên donHangChiTiet đã giao)
+            $top = Sach::with(['tacGia', 'theLoai', 'nhaXuatBan'])
+                ->whereIn('the_loai_id', $allIds)
+                ->withSum([
+                    'chiTiets as tong_ban' => function ($q) {
+                        $q->whereHas('donHang', function ($dq) {
+                            $dq->whereIn('trang_thai', ['da_giao', 'hoan_thanh']);
+                        });
+                    }
+                ], 'so_luong')
+                ->orderByDesc('tong_ban')
+                ->take(10)
+                ->get();
+
+            if ($top->isNotEmpty()) {
+                $rankingByCategory[] = [
+                    'id'    => $tl->id,
+                    'name'  => $tl->ten_the_loai,
+                    'books' => $top,
+                ];
+            }
+        }
+
+        // Fallback: nếu không có thể loại nào, lấy top 10 chung
+        if (empty($rankingByCategory)) {
+            $top = Sach::mostSold(10)->with(['tacGia', 'theLoai', 'nhaXuatBan'])->get();
+            if ($top->isNotEmpty()) {
+                $rankingByCategory[] = [
+                    'id'    => 0,
+                    'name'  => 'Tất cả thể loại',
+                    'books' => $top,
+                ];
+            }
+        }
+
         $activeCoupon = $this->getActiveCoupon();
-        return view('pages.best-selling', compact('sachs', 'activeCoupon'));
+
+        return view('pages.best-selling', compact('rankingByCategory', 'activeCoupon'));
     }
 
     public function featured()

@@ -191,9 +191,9 @@ class CouponController extends Controller
     // =========================================================================
     //  API: Lấy danh sách mã khả dụng cho khách hàng (AJAX)
     // =========================================================================
-    public function availableForCart()
+    public function availableForCart(Request $request)
     {
-        $now = Carbon::now();
+        $now    = Carbon::now();
         $userId = Auth::id();
 
         // Lấy tất cả mã còn hạn, còn lượt, đang kích hoạt
@@ -206,26 +206,99 @@ class CouponController extends Controller
                 $q->whereNull('so_luong')
                   ->orWhereRaw('da_dung < so_luong');
             })
+            ->orderBy('gia_tri', 'desc')
             ->get();
 
         // Lọc những mã user chưa dùng
-        $usedIds = DonHang::where('user_id', $userId)
-            ->where('trang_thai', '!=', 'huy')
-            ->whereNotNull('ma_giam_gia_id')
-            ->pluck('ma_giam_gia_id')
-            ->toArray();
+        $usedIds = [];
+        if ($userId) {
+            $usedIds = DonHang::where('user_id', $userId)
+                ->where('trang_thai', '!=', 'huy')
+                ->whereNotNull('ma_giam_gia_id')
+                ->pluck('ma_giam_gia_id')
+                ->toArray();
+        }
 
         $available = $coupons->filter(fn($c) => !in_array($c->id, $usedIds))->values();
 
-        return response()->json($available->map(function ($c) {
+        // Lấy tổng tiền giỏ hàng hiện tại để xác định mã "đề xuất tốt nhất"
+        $cartTotal = 0;
+        if ($userId) {
+            $cartTotal = \App\Models\GioHang::where('user_id', $userId)
+                ->where('trang_thai', 'active')
+                ->first()?->chiTiets()->sum('thanh_tien') ?? 0;
+        }
+
+        // Xác định mã tốt nhất có thể áp dụng ngay (thỏa điều kiện đơn tối thiểu)
+        $bestId = null;
+        $bestDiscount = -1;
+        foreach ($available as $c) {
+            if ($c->don_hang_toi_thieu && $cartTotal < $c->don_hang_toi_thieu) continue;
+            $disc = $c->loai === 'percent' ? $cartTotal * $c->gia_tri / 100 : $c->gia_tri;
+            if ($disc > $bestDiscount) {
+                $bestDiscount = $disc;
+                $bestId = $c->id;
+            }
+        }
+
+        return response()->json($available->map(function ($c) use ($bestId, $cartTotal, $now) {
+            // Tỷ lệ đã dùng (cho thanh tiến trình)
+            $usedPercent = ($c->so_luong && $c->so_luong > 0)
+                ? min(100, round($c->da_dung / $c->so_luong * 100))
+                : 0;
+
+            // Văn bản điều kiện
+            $conditions = [];
+            if ($c->don_hang_toi_thieu) {
+                $conditions[] = 'Đơn tối thiểu ' . number_format((float)$c->don_hang_toi_thieu, 0, ',', '.') . 'đ';
+            }
+            if ($c->dieu_kien_tai_khoan === 'new') {
+                $conditions[] = 'Tài khoản mới (đăng ký trong 30 ngày)';
+            } elseif ($c->dieu_kien_tai_khoan === 'verified') {
+                $conditions[] = 'Tài khoản đã xác thực email';
+            }
+            if ($c->pham_vi === 'category') {
+                $conditions[] = 'Chỉ áp dụng cho danh mục được chọn';
+            } elseif ($c->pham_vi === 'book') {
+                $conditions[] = 'Chỉ áp dụng cho sách được chọn';
+            }
+
+            // Thời gian còn lại
+            $timeLeft = null;
+            if ($c->ngay_het_han) {
+                $diffDays = (int) $now->diffInDays($c->ngay_het_han, false);
+                if ($diffDays <= 0) {
+                    $timeLeft = 'Hết hạn hôm nay';
+                } elseif ($diffDays <= 3) {
+                    $timeLeft = 'Còn ' . $diffDays . ' ngày';
+                }
+            }
+
+            // Kiểm tra có thể dùng ngay không
+            $canApply = !($c->don_hang_toi_thieu && $cartTotal < $c->don_hang_toi_thieu);
+
             return [
-                'ma_code'  => $c->ma_code,
-                'loai'     => $c->loai,
-                'gia_tri'  => $c->gia_tri,
-                'label'    => $c->loai === 'percent'
+                'id'                  => $c->id,
+                'ma_code'             => $c->ma_code,
+                'loai'                => $c->loai,
+                'gia_tri'             => $c->gia_tri,
+                'label'               => $c->loai === 'percent'
                     ? 'Giảm ' . $c->gia_tri . '%'
                     : 'Giảm ' . number_format($c->gia_tri, 0, ',', '.') . 'đ',
-                'het_han'  => $c->ngay_het_han ? $c->ngay_het_han->format('d/m/Y') : 'Vĩnh viễn',
+                'het_han'             => $c->ngay_het_han ? $c->ngay_het_han->format('d/m/Y') : 'Vĩnh viễn',
+                'don_hang_toi_thieu'  => $c->don_hang_toi_thieu,
+                'don_hang_toi_thieu_fmt' => $c->don_hang_toi_thieu
+                    ? number_format((float)$c->don_hang_toi_thieu, 0, ',', '.') . 'đ'
+                    : null,
+                'used_percent'        => $usedPercent,
+                'so_luong'            => $c->so_luong,
+                'da_dung'             => $c->da_dung,
+                'conditions'          => $conditions,
+                'condition_text'      => implode(' • ', $conditions) ?: 'Không có điều kiện',
+                'time_left'           => $timeLeft,
+                'is_best'             => $c->id === $bestId,
+                'can_apply'           => $canApply,
+                'pham_vi'             => $c->pham_vi,
             ];
         }));
     }
