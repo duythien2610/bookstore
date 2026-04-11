@@ -153,6 +153,136 @@ class SachController extends Controller
     }
 
     /**
+     * Nhập sách hàng loạt từ file JSON.
+     */
+    public function importJson(Request $request)
+    {
+        $request->validate([
+            'json_files' => 'required|array',
+            'json_files.*' => 'required|file|mimes:json,txt'
+        ]);
+
+        $successCount = 0;
+        $duplicateCount = 0;
+        $errors = [];
+
+        foreach ($request->file('json_files') as $file) {
+            $content = file_get_contents($file->getRealPath());
+            $data = json_decode($content, true);
+
+            if (is_null($data)) {
+                $errors[] = "File {$file->getClientOriginalName()} không đúng định dạng JSON.";
+                continue;
+            }
+
+            $items = isset($data['tieu_de']) ? [$data] : $data;
+
+            foreach ($items as $item) {
+                if (empty($item['tieu_de'])) {
+                    $errors[] = "Có một bản ghi thiếu tên sách nên bị bỏ qua.";
+                    continue;
+                }
+
+                try {
+                    // Kiểm tra trùng lặp (Tên + ISBN nếu có)
+                    $checkQuery = Sach::where('tieu_de', $item['tieu_de']);
+                    if (!empty($item['isbn'])) {
+                        $checkQuery->where('isbn', $item['isbn']);
+                    }
+                    
+                    if ($checkQuery->exists()) {
+                        $duplicateCount++;
+                        continue;
+                    }
+
+                    // Xử lý năm xuất bản (MySQL YEAR: 1901 - 2155)
+                    $namXuatBan = $item['nam_xuat_ban'] ?? null;
+                    if ($namXuatBan) {
+                        // Nếu là chuỗi dài (VD: 2012007), cố gắng lấy 4 số đầu
+                        if (strlen((string)$namXuatBan) > 4) {
+                            $namXuatBan = substr((string)$namXuatBan, 0, 4);
+                        }
+                        // Kiểm tra tính hợp lệ của năm
+                        if (!is_numeric($namXuatBan) || $namXuatBan < 1901 || $namXuatBan > 2155) {
+                            $namXuatBan = null;
+                        }
+                    }
+
+                    // Chuẩn bị dữ liệu
+                    $bookData = [
+                        'tieu_de'         => substr($item['tieu_de'], 0, 199),
+                        'isbn'            => isset($item['isbn']) ? substr($item['isbn'], 0, 99) : null,
+                        'loai_sach'       => $item['loai_sach'] ?? 'trong_nuoc',
+                        'mo_ta'           => $item['mo_ta'] ?? null,
+                        'gia_ban'         => $item['gia_ban'] ?? 0,
+                        'gia_goc'         => $item['gia_goc'] ?? null,
+                        'so_luong_ton'    => $item['so_luong_ton'] ?? 0,
+                        'nam_xuat_ban'    => $namXuatBan,
+                        'so_trang'        => $item['so_trang'] ?? null,
+                        'hinh_thuc_bia'   => isset($item['hinh_thuc_bia']) ? substr($item['hinh_thuc_bia'], 0, 49) : null,
+                        'link_anh_bia'    => $item['link_anh_bia'] ?? null,
+                        'tac_gia_id'      => null,
+                        'the_loai_id'     => null,
+                        'nha_xuat_ban_id' => null,
+                        'nha_cung_cap_id' => null,
+                    ];
+
+                    // Xử lý quan hệ
+                    if (!empty($item['ten_tac_gia'])) {
+                        $tg = TacGia::firstOrCreate(['ten_tac_gia' => $item['ten_tac_gia']]);
+                        $bookData['tac_gia_id'] = $tg->id;
+                    } elseif (!empty($item['tac_gia_id'])) {
+                        $bookData['tac_gia_id'] = is_numeric($item['tac_gia_id']) 
+                            ? $item['tac_gia_id'] 
+                            : TacGia::firstOrCreate(['ten_tac_gia' => $item['tac_gia_id']])->id;
+                    }
+
+                    if (!empty($item['ten_the_loai'])) {
+                        $tl = TheLoai::firstOrCreate(['ten_the_loai' => $item['ten_the_loai']]);
+                        $bookData['the_loai_id'] = $tl->id;
+                    } elseif (!empty($item['the_loai_id'])) {
+                        $bookData['the_loai_id'] = is_numeric($item['the_loai_id']) 
+                            ? $item['the_loai_id'] 
+                            : TheLoai::firstOrCreate(['ten_the_loai' => $item['the_loai_id']])->id;
+                    }
+
+                    if (!empty($item['ten_nxb'])) {
+                        $nxb = NhaXuatBan::firstOrCreate(['ten_nxb' => $item['ten_nxb']]);
+                        $bookData['nha_xuat_ban_id'] = $nxb->id;
+                    } elseif (!empty($item['nha_xuat_ban_id'])) {
+                        $bookData['nha_xuat_ban_id'] = is_numeric($item['nha_xuat_ban_id']) 
+                            ? $item['nha_xuat_ban_id'] 
+                            : NhaXuatBan::firstOrCreate(['ten_nxb' => $item['nha_xuat_ban_id']])->id;
+                    }
+
+                    if (!empty($item['ten_ncc'])) {
+                        $ncc = NhaCungCap::firstOrCreate(['ten_ncc' => $item['ten_ncc']]);
+                        $bookData['nha_cung_cap_id'] = $ncc->id;
+                    } elseif (!empty($item['nha_cung_cap_id'])) {
+                        $bookData['nha_cung_cap_id'] = is_numeric($item['nha_cung_cap_id']) 
+                            ? $item['nha_cung_cap_id'] 
+                            : NhaCungCap::firstOrCreate(['ten_ncc' => $item['nha_cung_cap_id']])->id;
+                    }
+
+                    Sach::create($bookData);
+                    $successCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Lỗi nhập sách '{$item['tieu_de']}': " . $e->getMessage();
+                }
+            }
+        }
+
+        $msg = "Nhập sách hoàn tất! Thành công: $successCount.";
+        if ($duplicateCount > 0) $msg .= " Trùng lặp: $duplicateCount.";
+        
+        if (count($errors) > 0) {
+            return redirect()->back()->with('success', $msg)->withErrors($errors);
+        }
+
+        return redirect()->back()->with('success', $msg);
+    }
+
+    /**
      * Hiển thị form chỉnh sửa sách.
      */
     public function edit($id)

@@ -165,15 +165,8 @@ Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('c
 
 // ─── Admin Routes (chỉ admin mới vào được) ───────────────────────────────
 Route::prefix('admin')->middleware('admin')->group(function () {
-    Route::get('/', function () {
-        $tongSach     = \App\Models\Sach::count();
-        $tongDonHang  = \App\Models\DonHang::count();
-        $tongKhachHang = \App\Models\User::count();
-        $tongTheLoai  = \App\Models\TheLoai::count();
-        $sachMoi      = \App\Models\Sach::with('tacGia')->orderByDesc('created_at')->take(5)->get();
-
-        return view('admin.dashboard', compact('tongSach', 'tongDonHang', 'tongKhachHang', 'tongTheLoai', 'sachMoi'));
-    })->name('admin.dashboard');
+    Route::get('/', [App\Http\Controllers\AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard/export', [App\Http\Controllers\AdminDashboardController::class, 'exportReport'])->name('admin.dashboard.export');
 
     Route::get('/inventory', [App\Http\Controllers\SachController::class, 'index'])->name('admin.inventory');
 
@@ -185,6 +178,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/books/create', [App\Http\Controllers\SachController::class, 'create'])->name('admin.books.create');
 
     Route::post('/books', [App\Http\Controllers\SachController::class, 'store'])->name('admin.books.store');
+    Route::post('/books/import-json', [App\Http\Controllers\SachController::class, 'importJson'])->name('admin.books.import-json');
     Route::get('/books/{sach}/edit', [App\Http\Controllers\SachController::class, 'edit'])->name('admin.books.edit');
     Route::put('/books/{sach}', [App\Http\Controllers\SachController::class, 'update'])->name('admin.books.update');
 
