@@ -214,18 +214,18 @@
                 <div class="hbs-layout">
                     {{-- LEFT: Danh sách xếp hạng --}}
                     <div class="hbs-left">
-                        @foreach($catBooks->take(8) as $idx => $sach)
+                        @foreach($catBooks->take(8) as $sach)
                         @php
                             $imgUrl  = $sach->link_anh_bia ?: ($sach->file_anh_bia ? asset('uploads/books/'.$sach->file_anh_bia) : 'https://placehold.co/80x110?text=No');
-                            $rankNum = $idx + 1;
+                            $rankNum = $loop->index + 1;
                             $rColor  = $rankNum === 1 ? '#f59e0b' : ($rankNum === 2 ? '#94a3b8' : ($rankNum === 3 ? '#cd7c3a' : '#a0aec0'));
                             $isExtra = $rankNum > 5;
                             $catId   = $useCategories ? $cat['id'] : 0;
                         @endphp
-                        <div class="hbs-row {{ $isExtra ? 'hbs-extra' : '' }} {{ $idx === 0 ? 'hbs-active' : '' }}"
-                             data-idx="{{ $idx }}"
+                        <div class="hbs-row {{ $isExtra ? 'hbs-extra' : '' }} {{ $loop->index === 0 ? 'hbs-active' : '' }}"
+                             data-idx="{{ $loop->index }}"
                              data-cat="{{ $catId }}"
-                             onclick="hbsSelect(this, {{ $idx }}, {{ $catId }})"
+                             onclick="hbsSelect(this, {{ $loop->index }}, {{ $catId }})"
                              style="{{ $isExtra ? 'display:none;' : '' }}">
                             <div class="hbs-rank" style="color:{{ $rColor }};">
                                 <span style="font-size:20px; font-weight:900;">{{ str_pad($rankNum, 2, '0', STR_PAD_LEFT) }}</span>
@@ -331,17 +331,17 @@
                 @endphp
                 {
                     "id": {{ $s->id }},
-                    "tieu_de": {{ json_encode($s->tieu_de) }},
-                    "tac_gia": {{ json_encode($s->tacGia->ten_tac_gia ?? 'Chưa cập nhật') }},
-                    "nxb": {{ json_encode($s->nhaXuatBan->ten_nxb ?? '') }},
-                    "img": {{ json_encode($sImg) }},
+                    "tieu_de": {!! json_encode($s->tieu_de) !!},
+                    "tac_gia": {!! json_encode($s->tacGia->ten_tac_gia ?? 'Chưa cập nhật') !!},
+                    "nxb": {!! json_encode($s->nhaXuatBan->ten_nxb ?? '') !!},
+                    "img": {!! json_encode($sImg) !!},
                     "gia_ban": {{ $sGia }},
                     "gia_sau_giam": {{ $sGiam ?? 'null' }},
                     "gia_goc": {{ (float)($s->gia_goc ?? 0) }},
                     "pct_off": {{ $sPct }},
-                    "mo_ta": {{ json_encode(Str::limit(strip_tags($s->mo_ta ?? ''), 220)) }},
-                    "url": {{ json_encode(route('products.show', $s->id)) }},
-                    "cart_url": {{ json_encode(route('cart.add')) }},
+                    "mo_ta": {!! json_encode(Str::limit(strip_tags($s->mo_ta ?? ''), 220)) !!},
+                    "url": {!! json_encode(route('products.show', $s->id)) !!},
+                    "cart_url": {!! json_encode(route('cart.add')) !!},
                     "tong_ban": {{ $s->tong_ban ?? 0 }}
                 }{{ !$loop->last ? ',' : '' }}
                 @endforeach
