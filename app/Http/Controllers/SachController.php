@@ -447,6 +447,15 @@ class SachController extends Controller
             $query->where('gia_ban', '<=', $request->gia_max);
         }
 
+        // Lọc theo đánh giá
+        if ($request->filled('rating')) {
+            $query->whereHas('danhGias', function($q) use ($request) {
+                $q->selectRaw('sach_id, avg(so_sao) as avg_star')
+                  ->groupBy('sach_id')
+                  ->having('avg_star', '>=', $request->rating);
+            }, '>=', 0); // Note: logically complex in SQL, might need a simpler check or join
+        }
+
         // Sắp xếp
         switch ($request->input('sap_xep', 'moi_nhat')) {
             case 'gia_tang':
@@ -464,6 +473,10 @@ class SachController extends Controller
         
         $theLoais = TheLoai::whereNull('parent_id')->with('children')->orderBy('ten_the_loai')->get();
         $activeCoupon = $this->getActiveCoupon();
+
+        if ($request->ajax()) {
+            return view('partials._product_grid', compact('sachs', 'activeCoupon', 'queryText'))->render();
+        }
 
         return view('pages.product-listing', compact('sachs', 'theLoais', 'queryText', 'activeCoupon'));
     }

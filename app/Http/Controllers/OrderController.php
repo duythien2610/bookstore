@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DonHang;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -70,8 +71,31 @@ class OrderController extends Controller
         ]);
 
         $donHang = DonHang::findOrFail($id);
+        
+        // Phục hồi lại số lượng tồn kho nếu đơn hàng bị MỚI HỦY
+        if ($request->trang_thai === 'huy' && $donHang->trang_thai !== 'huy') {
+            DB::transaction(function() use ($donHang) {
+                foreach ($donHang->chiTiets as $chiTiet) {
+                    $sach = $chiTiet->sach;
+                    if ($sach) {
+                        $sach->increment('so_luong_ton', $chiTiet->so_luong);
+                    }
+                }
+            });
+        }
+
         $donHang->update(['trang_thai' => $request->trang_thai]);
 
         return back()->with('success', 'Đã cập nhật trạng thái đơn hàng #' . str_pad($id, 6, '0', STR_PAD_LEFT) . '!');
+    }
+
+    /**
+     * In hóa đơn cho Admin
+     */
+    public function printInvoice($id)
+    {
+        $donHang = DonHang::with(['user', 'chiTiets.sach.tacGia', 'maGiamGia'])
+                          ->findOrFail($id);
+        return view('admin.orders.invoice-print', compact('donHang'));
     }
 }

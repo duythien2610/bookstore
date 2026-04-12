@@ -2,6 +2,8 @@
 
 @section('title', $sach->tieu_de)
 @section('meta_description', Str::limit(strip_tags($sach->mo_ta ?? ''), 160))
+@section('og_image', $sach->file_anh_bia ? asset('uploads/books/' . $sach->file_anh_bia) : $sach->link_anh_bia)
+@section('og_type', 'product')
 
 @section('content')
     <div class="page-header">

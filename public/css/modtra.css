@@ -2162,3 +2162,28 @@ select.form-control {
         height: 52px;
     }
 }
+
+/* --- Chatbot Typing Animation --- */
+.chatbot-typing {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 15px !important;
+}
+
+.chatbot-typing .dot {
+    width: 6px;
+    height: 6px;
+    background: var(--color-text-muted);
+    border-radius: 50%;
+    opacity: 0.4;
+    animation: chatbot-blink 1.4s infinite both;
+}
+
+.chatbot-typing .dot:nth-child(2) { animation-delay: 0.2s; }
+.chatbot-typing .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes chatbot-blink {
+    0%, 80%, 100% { opacity: 0.4; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
+}

@@ -25,7 +25,9 @@ class CartController extends Controller
 
         if (Auth::check()) {
             $user = Auth::user();
-            $gioHang = \App\Models\GioHang::firstOrCreate(['user_id' => $user->id]);
+            $gioHang = \App\Models\GioHang::firstOrCreate(
+                ['user_id' => $user->id, 'trang_thai' => 'active']
+            );
             $gioHang->chiTiets()->delete();
             $gioHang->tong_tien = $this->getCartTotal($cart);
             $gioHang->save();

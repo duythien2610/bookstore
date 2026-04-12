@@ -34,6 +34,8 @@ class PayosController extends Controller
         }
 
         try {
+            $status = $request->query('status'); // 'cancel' or 'success' có thể từ URL
+            
             // NEVER TRUST CLIENT URL PARAMS -> Gọi trực tiếp qua Server-to-Server API của PayOS để check
             $paymentInfo = $this->payOS->getPaymentLinkInformation($orderCode);
             
@@ -47,12 +49,26 @@ class PayosController extends Controller
                 return redirect()->route('order.success', ['order_id' => $donHang->id])
                     ->with('success', 'Thanh toán PayOS thành công!');
             } else {
-                $donHang->update(['trang_thai_tt' => 'chua_thanh_toan']);
+                // Nếu status = CANCELLED (hoặc user tự back về URL có status=cancel)
+                $donHang->update([
+                    'trang_thai_tt' => 'that_bai', 
+                    'trang_thai'    => 'huy'
+                ]);
                 return redirect()->route('order.tracking', ['id' => $donHang->id])
-                    ->with('error', 'Thanh toán đã bị hủy hoặc chưa hoàn tất.');
+                    ->with('error', 'Thanh toán đã bị hủy hoặc chưa hoàn tất. Đơn hàng đã bị huỷ.');
             }
         } catch (\Exception $e) {
             Log::error('Lỗi khi verify PayOS return: ' . $e->getMessage());
+            // Fallback: nếu gọi API lỗi và URL có status=cancel thì cập nhật huỷ luôn
+            if ($request->query('status') === 'cancel') {
+                 $donHang->update([
+                    'trang_thai_tt' => 'that_bai', 
+                    'trang_thai'    => 'huy'
+                ]);
+                return redirect()->route('order.tracking', ['id' => $donHang->id])
+                    ->with('error', 'Bạn đã huỷ giao dịch thanh toán. Đơn hàng đã chuyển sang trạng thái huỷ.');
+            }
+
             return redirect()->route('order.tracking', ['id' => $donHang->id])
                 ->with('error', 'Đang chờ xác nhận thanh toán hoặc có lỗi xảy ra.');
         }

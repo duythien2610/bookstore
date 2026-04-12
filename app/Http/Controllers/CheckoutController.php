@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\ShippingService;
+use App\Jobs\SendOrderConfirmationEmail;
 
 class CheckoutController extends Controller
 {
@@ -33,39 +35,72 @@ class CheckoutController extends Controller
 
     public function show()
     {
-        $fullCart = session('cart', []);
-        $checkoutItems = session('checkout_items', []);
-        $discount = session('cart_discount', 0);
+        $user    = Auth::user();
+        $gioHang = GioHang::where('user_id', auth()->id())->where('trang_thai', 'active')->first();
+        $items   = $gioHang ? $gioHang->chiTiets()->with('sach')->get() : collect();
 
-        if (empty($fullCart) || empty($checkoutItems)) {
-            return redirect()->route('cart')->with('error', 'Không có sản phẩm nào được chọn để thanh toán!');
+        if ($items->isEmpty()) {
+            return redirect()->route('cart')->with('error', 'Giỏ hàng đang trống!');
         }
 
         $cart = [];
         $subtotal = 0;
-        foreach ($checkoutItems as $key) {
-            if (isset($fullCart[$key])) {
-                $cart[$key] = $fullCart[$key];
-                $subtotal += $fullCart[$key]['gia_ban'] * $fullCart[$key]['so_luong'];
+        foreach ($items as $item) {
+            $cart[] = [
+                'sach_id'      => $item->sach_id,
+                'tieu_de'      => $item->sach->tieu_de,
+                'so_luong'     => $item->so_luong,
+                'gia_ban'      => $item->don_gia,
+                'thanh_tien'   => $item->thanh_tien,
+                'link_anh_bia' => $item->sach->link_anh_bia,
+                'file_anh_bia' => $item->sach->file_anh_bia
+            ];
+            $subtotal += $item->thanh_tien;
+        }
+
+        $discount = session('cart_discount', 0);
+
+        /** @var \App\Models\User $user */
+        $userAddresses = $user ? $user->addresses()->orderBy('is_default', 'desc')->get() : collect();
+
+        // Lấy địa chỉ mặc định để tính phí ship và pre-fill
+        $defaultAddress = $userAddresses->first();
+        
+        // Nếu chưa có sổ địa chỉ nhưng có địa chỉ trong thông tin User thì tách ra
+        if (!$defaultAddress && $user && $user->dia_chi) {
+            $parts = array_map('trim', explode(',', $user->dia_chi));
+            $count = count($parts);
+            
+            $defaultAddress = new \stdClass();
+            if ($count >= 3) {
+                $defaultAddress->tinh_thanh_pho = $parts[$count - 1];
+                $defaultAddress->quan_huyen     = $parts[$count - 2];
+                $defaultAddress->phuong_xa      = $parts[$count - 3];
+                $defaultAddress->dia_chi        = $count > 3 ? implode(', ', array_slice($parts, 0, $count - 3)) : '';
+            } else {
+                $defaultAddress->tinh_thanh_pho = '';
+                $defaultAddress->quan_huyen     = '';
+                $defaultAddress->phuong_xa      = '';
+                $defaultAddress->dia_chi        = $user->dia_chi;
             }
+            $defaultAddress->ho_ten = $user->ho_ten;
+            $defaultAddress->so_dien_thoai = $user->so_dien_thoai;
         }
 
-        if (empty($cart)) {
-            return redirect()->route('cart')->with('error', 'Sản phẩm đã chọn không hợp lệ hoặc đã bị xóa!');
-        }
+        $defaultCity = $defaultAddress ? $defaultAddress->tinh_thanh_pho : '';
+        $shippingService = new ShippingService();
+        $phi_ship = $shippingService->calculateFee($defaultCity, $subtotal);
 
-        $phi_ship   = $subtotal >= 300000 ? 0 : 30000;
-        $total      = max(0, $subtotal - $discount) + $phi_ship;
-        $user       = Auth::user();
+        $total = max(0, $subtotal - $discount) + $phi_ship;
 
         // Thông tin Casso QR thanh toán
         $cassoInfo = [
-            'bank_name'   => config('payment.casso_bank_name', 'MB Bank'),
-            'account_no'  => config('payment.casso_account_no', ''),
-            'account_name'=> config('payment.casso_account_name', 'Modtra Books'),
+            'bank_name'    => config('payment.casso_bank_name', 'MB Bank'),
+            'account_no'   => config('payment.casso_account_no', ''),
+            'account_name' => config('payment.casso_account_name', 'Modtra Books'),
         ];
 
-        return view('pages.checkout', compact('cart', 'subtotal', 'discount', 'phi_ship', 'total', 'user', 'cassoInfo'));
+        return view('pages.checkout', compact('cart', 'subtotal', 'discount', 'phi_ship', 'total', 'user', 'cassoInfo', 'userAddresses', 'defaultAddress'));
     }
 
     // =========================================================================
@@ -74,43 +109,45 @@ class CheckoutController extends Controller
 
     public function store(Request $request)
     {
-        $fullCart = session('cart', []);
-        $checkoutItems = session('checkout_items', []);
+        $gioHang = GioHang::where('user_id', auth()->id())->where('trang_thai', 'active')->first();
+        $items = $gioHang ? $gioHang->chiTiets()->with('sach')->get() : collect();
 
-        if (empty($fullCart) || empty($checkoutItems)) {
-            return redirect()->route('cart')->with('error', 'Không có sản phẩm hợp lệ để thanh toán!');
+        if ($items->isEmpty()) {
+            return redirect()->route('cart')->with('error', 'Không có sản phẩm để thanh toán!');
         }
 
         $cart = [];
         $subtotal = 0;
-        foreach ($checkoutItems as $key) {
-            if (isset($fullCart[$key])) {
-                $cart[$key] = $fullCart[$key];
-                $subtotal += $fullCart[$key]['gia_ban'] * $fullCart[$key]['so_luong'];
-            }
-        }
-
-        if (empty($cart)) {
-            return redirect()->route('cart')->with('error', 'Sản phẩm đã chọn không tồn tại trong giỏ hàng!');
+        foreach ($items as $item) {
+            $cart[] = [
+                'sach_id' => $item->sach_id,
+                'tieu_de' => $item->sach->tieu_de,
+                'so_luong' => $item->so_luong,
+                'gia_ban' => $item->don_gia,
+                'thanh_tien' => $item->thanh_tien
+            ];
+            $subtotal += $item->thanh_tien;
         }
 
         $request->validate([
             'ho_ten'         => 'required|string|max:100',
             'so_dien_thoai'  => 'required|string|max:15',
-            'dia_chi'        => 'required|string|max:500',
-            'phuong_thuc_tt' =>'required|in:cod,payos',
+            'dia_chi'        => 'nullable|string|max:500',
+            'city'           => 'nullable|string',
+            'district'       => 'nullable|string',
+            'ward'           => 'nullable|string',
+            'phuong_thuc_tt' => 'required|in:cod,payos',
             'idempotency_key'=> 'required|string',
-            'website_url'    => 'nullable|string|max:0', // HONEYPOT (Phải rỗng)
+            'website_url'    => 'nullable|string|max:0', // HONEYPOT
         ], [
             'ho_ten.required'         => 'Vui lòng nhập họ và tên.',
             'so_dien_thoai.required'  => 'Vui lòng nhập số điện thoại.',
-            'dia_chi.required'        => 'Vui lòng nhập địa chỉ giao hàng.',
             'phuong_thuc_tt.required' => 'Vui lòng chọn phương thức thanh toán.',
-            'website_url.max'         => 'Hành vi đánh giá là SPAM BOT. Yêu cầu bị từ chối!',
+            'website_url.max'         => 'Hành vi SPAM BOT. Yêu cầu bị từ chối!',
         ]);
 
         // CHỐNG ORDER FRAUD (Giới hạn 1 tài khoản tối đa 5 đơn hàng đang chờ xử lý)
-        $pendingOrders = \App\Models\DonHang::where('user_id', \Illuminate\Support\Facades\Auth::id())
+        $pendingOrders = DonHang::where('user_id', Auth::id())
             ->whereIn('trang_thai', ['cho_xac_nhan', 'cho_thanh_toan', 'dang_xu_ly'])
             ->count();
             
@@ -119,7 +156,7 @@ class CheckoutController extends Controller
         }
 
         // CHỐNG SPAM THEO SỐ LƯỢNG ĐƠN / NGÀY TỪ 1 USER
-        $dailyOrders = \App\Models\DonHang::where('user_id', \Illuminate\Support\Facades\Auth::id())
+        $dailyOrders = DonHang::where('user_id', Auth::id())
             ->whereDate('created_at', \Illuminate\Support\Carbon::today())
             ->count();
             
@@ -128,7 +165,9 @@ class CheckoutController extends Controller
         }
 
         $discount   = session('cart_discount', 0);
-        $phi_ship   = $subtotal >= 300000 ? 0 : 30000;
+        
+        $shippingService = new ShippingService();
+        $phi_ship   = $shippingService->calculateFee($request->input('city', ''), $subtotal);
         $tong_tien  = $subtotal + $phi_ship - $discount;
 
         // XỬ LÝ IDEMPOTENCY KEY (Chống Double Click bằng Atomic Cache Lock)
@@ -149,7 +188,7 @@ class CheckoutController extends Controller
                         throw new \Exception('Mã giảm giá đã hết lượt sử dụng trong tích tắc. Vui lòng thanh toán cập nhật giá mới!');
                     }
                     if (Auth::check()) {
-                        $userUsed = \App\Models\DonHang::where('user_id', Auth::id())
+                        $userUsed = DonHang::where('user_id', Auth::id())
                             ->where('ma_giam_gia_id', $maCheck->id)
                             ->where('trang_thai', '!=', 'huy')->exists();
                         if ($userUsed) {
@@ -162,14 +201,30 @@ class CheckoutController extends Controller
                 }
             }
 
+            // Ghép địa chỉ đầy đủ từ các thành phần
+            // Lấy Tỉnh/Huyện/Xã từ form hoặc fallback từ UserAddress trong DB
+            /** @var \App\Models\User $authUser */
+            $authUser = Auth::user();
+            $dbAddress = $authUser ? $authUser->addresses()->orderBy('is_default','desc')->first() : null;
+
+            $city     = $request->input('city')     ?: ($dbAddress->tinh_thanh_pho ?? '');
+            $district = $request->input('district') ?: ($dbAddress->quan_huyen     ?? '');
+            $ward     = $request->input('ward')     ?: ($dbAddress->phuong_xa      ?? '');
+            $diaChiNhap = $request->input('dia_chi') ?: ($dbAddress->dia_chi       ?? '');
+
+            // Ghép địa chỉ đầy đủ
+            $addressParts = array_filter([$diaChiNhap, $ward, $district, $city]);
+            $fullAddress  = implode(', ', $addressParts) ?: 'Chưa cập nhật';
+
             // Tạo đơn hàng
             $donHang = DonHang::create([
                 'user_id'           => Auth::id(),
                 'ho_ten'            => $request->ho_ten,
                 'so_dien_thoai'     => $request->so_dien_thoai,
-                'dia_chi_giao'      => $request->dia_chi,
+                'dia_chi_giao'      => $fullAddress,
                 'ghi_chu'           => $request->ghi_chu,
                 'phuong_thuc_tt'    => $request->phuong_thuc_tt,
+                'ngay_dat'          => now(),
                 'tong_tien'         => $subtotal,
                 'giam_gia'          => $discount,
                 'phi_van_chuyen'    => $phi_ship,
@@ -177,6 +232,23 @@ class CheckoutController extends Controller
                 'trang_thai'        => $request->phuong_thuc_tt === 'cod' ? 'cho_xac_nhan' : 'cho_thanh_toan',
                 'ma_giam_gia_id'    => session('cart_ma_id'),
             ]);
+
+            // LƯU SCỔ ĐỊA CHỈ NẾU CHỌN
+            if ($request->has('save_address') && Auth::check()) {
+                \App\Models\UserAddress::updateOrCreate(
+                    [
+                        'user_id' => Auth::id(),
+                        'dia_chi' => $request->dia_chi,
+                    ],
+                    [
+                        'ho_ten' => $request->ho_ten,
+                        'so_dien_thoai' => $request->so_dien_thoai,
+                        'tinh_thanh_pho' => $request->city ?? null,
+                        'quan_huyen' => $request->district ?? null,
+                        'phuong_xa' => $request->ward ?? null,
+                    ]
+                );
+            }
 
             // Tạo chi tiết đơn hàng + trừ tồn kho
             foreach ($cart as $item) {
@@ -201,41 +273,78 @@ class CheckoutController extends Controller
 
             DB::commit();
 
-            // Xóa những sản phẩm đã thanh toán khỏi session cart
-            $currentCart = session('cart', []);
-            foreach ($checkoutItems as $key) {
-                unset($currentCart[$key]);
+            // Đóng giỏ hàng sau khi thanh toán xong
+            $gioHang->trang_thai = 'completed';
+            $gioHang->save();
+
+            // Gửi email xác nhận (Queue)
+            try {
+                SendOrderConfirmationEmail::dispatch($donHang);
+            } catch (\Exception $e) {
+                Log::error('Lỗi khi gửi email xác nhận: ' . $e->getMessage());
             }
-            session(['cart' => $currentCart]);
-            
-            // Xóa session checkout và discount
+
+            // Xóa session discount
             session()->forget(['checkout_items', 'cart_discount', 'cart_coupon', 'cart_ma_id']);
 
-            if ($request->phuong_thuc_tt === 'payos') {
-                $payOS = new \PayOS\PayOS(
-                    config('services.payos.client_id'),
-                    config('services.payos.api_key'),
-                    config('services.payos.checksum_key')
-                );
+            // Giải phóng lock ngay sau khi đơn hàng thành công
+            $lock->release();
 
-                $orderCode = intval($donHang->id . rand(1000, 9999));
+            if ($request->phuong_thuc_tt === 'payos') {
+                error_log("\n========== [DEBUG] ===========\n-> ĐÃ VÀO LUỒNG XỬ LÝ PAYOS!\n=============================\n");
+
+                // Tạo orderCode đảm bảo trong phạm vi INT hợp lệ (max ~2 tỷ)
+                // Dùng timestamp + phần đuôi id để tránh trùng
+                $orderCode = (int) (time() . substr(str_pad($donHang->id, 4, '0', STR_PAD_LEFT), -4));
+                // Đảm bảo không vượt quá PHP_INT_MAX / MySQL INT
+                if ($orderCode > 2147483647) {
+                    $orderCode = (int) substr((string)$orderCode, -9);
+                }
+
                 $donHang->update(['payos_order_code' => $orderCode]);
 
-                $data = [
-                    "orderCode" => $orderCode,
-                    "amount" => $tong_tien,
-                    "description" => substr("DH" . $donHang->id, 0, 25),
-                    "returnUrl" => route('payos.return'),
-                    "cancelUrl" => route('payos.return') // PayOS uses same return url but with status=CANCELLED
-                ];
-
                 try {
-                    $response = $payOS->createPaymentLink($data);
-                    return redirect($response['checkoutUrl']);
+                    error_log("-> Sắp gọi hàm createPaymentLink() của thư viện PayOS\n");
+                    $payOS = new \PayOS\PayOS(
+                        config('services.payos.client_id'),
+                        config('services.payos.api_key'),
+                        config('services.payos.checksum_key')
+                    );
+
+                    // description tối đa 25 ký tự, không dấu
+                    $description = 'DH' . $donHang->id . ' ModtraBooks';
+                    $description = substr(preg_replace('/[^a-zA-Z0-9 ]/', '', $description), 0, 25);
+
+                    $paymentData = [
+                        'orderCode'   => $orderCode,
+                        'amount'      => (int) max(1000, $tong_tien), // PayOS yêu cầu tối thiểu 1000đ
+                        'description' => $description,
+                        'returnUrl'   => route('payos.return'),
+                        'cancelUrl'   => route('payos.return') . '?status=cancel',
+                        'buyerName'   => $request->ho_ten,
+                        'buyerPhone'  => $request->so_dien_thoai,
+                    ];
+
+                    Log::info('PayOS createPaymentLink request', $paymentData);
+
+                    $response = $payOS->createPaymentLink($paymentData);
+
+                    Log::info('PayOS createPaymentLink response', $response);
+
+                    if (!isset($response['checkoutUrl'])) {
+                        throw new \Exception('PayOS không trả về checkoutUrl. Response: ' . json_encode($response));
+                    }
+
+                    return redirect()->away($response['checkoutUrl']);
                 } catch (\Throwable $th) {
-                    Log::error('Lỗi khi tạo thanh toán PayOS: ' . $th->getMessage());
-                    $lock->release(); // Giải phóng lock nếu có lỗi xảy ra
-                    return back()->with('error', 'Lỗi tạo thanh toán PayOS. Vui lòng thử lại sau.');
+                    Log::error('Lỗi khi tạo thanh toán PayOS: ' . $th->getMessage(), [
+                        'orderCode' => $orderCode,
+                        'donHangId' => $donHang->id,
+                        'amount'    => $tong_tien,
+                    ]);
+                    // Huỷ trạng thái đơn để người dùng có thể đặt lại
+                    $donHang->update(['trang_thai' => 'huy']);
+                    return back()->with('error', 'Lỗi tạo thanh toán PayOS: ' . $th->getMessage());
                 }
             }
 
@@ -247,6 +356,7 @@ class CheckoutController extends Controller
             if (isset($lock)) {
                 $lock->release();
             }
+            Log::error('Order creation failed: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
             return back()->with('error', 'Có lỗi xảy ra khi đặt hàng: ' . $e->getMessage());
         }
     }
@@ -330,5 +440,28 @@ class CheckoutController extends Controller
             ->firstOrFail();
 
         return view('pages.order-tracking', compact('donHang'));
+    }
+
+    // =========================================================================
+    //  API Tính Phí Vận Chuyển Động
+    // =========================================================================
+    public function calculateShipping(Request $request)
+    {
+        $city = $request->input('city');
+        $gioHang = GioHang::where('user_id', auth()->id())->where('trang_thai', 'active')->first();
+        $subtotal = $gioHang ? $gioHang->tong_tien : 0;
+
+        $shippingService = new ShippingService();
+        $fee = $shippingService->calculateFee($city, $subtotal);
+        
+        $discount = session('cart_discount', 0);
+        $total = max(0, $subtotal - $discount) + $fee;
+
+        return response()->json([
+            'fee' => $fee,
+            'fee_formatted' => $fee == 0 ? 'Miễn phí' : number_format($fee, 0, ',', '.') . 'đ',
+            'total' => $total,
+            'total_formatted' => number_format($total, 0, ',', '.') . 'đ'
+        ]);
     }
 }

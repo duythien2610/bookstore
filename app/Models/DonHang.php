@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class DonHang extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'don_hang';
     protected $fillable = [
         'user_id', 'ma_giam_gia_id', 'ngay_dat', 'trang_thai', 'payos_order_code',

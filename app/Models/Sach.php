@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Sach extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'sach';
     protected $fillable = [
         'tieu_de', 'tac_gia_id', 'nha_xuat_ban_id', 'nha_cung_cap_id',

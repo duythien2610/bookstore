@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Sach;
 use App\Models\TheLoai;
-use App\Services\GeminiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -12,11 +11,6 @@ use Illuminate\Support\Str;           // ✅ BUG FIX: import Str facade cho norm
 
 class ChatbotController extends Controller
 {
-    public function __construct(private readonly GeminiService $geminiService)
-    {
-        //
-    }
-
     // ─── __invoke: Delegate sang sendMessage (dùng khi route trỏ thẳng vào Controller) ─────
     public function __invoke(Request $request)
     {

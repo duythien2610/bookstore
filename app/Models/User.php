@@ -8,9 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, SoftDeletes;
 
     protected $table = 'users';
 
@@ -71,6 +73,11 @@ class User extends Authenticatable
     }
 
     // ===== Helper =====
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class, 'user_id');
+    }
+
     public function isAdmin(): bool
     {
         return $this->role->ten_vai_tro === 'admin';

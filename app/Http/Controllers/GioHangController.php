@@ -34,18 +34,23 @@ class GioHangController extends Controller
             })
             ->orderBy('gia_tri', 'desc')
             ->first();
+            
+        $missingAmount = 0;
+        if ($suggestedCoupon && $gioHang && $suggestedCoupon->don_hang_toi_thieu > $gioHang->tong_tien) {
+            $missingAmount = $suggestedCoupon->don_hang_toi_thieu - $gioHang->tong_tien;
+        }
         
-        return view('pages.cart', compact('items', 'gioHang', 'discount', 'couponCode', 'suggestedCoupon'));
+        return view('pages.cart', compact('items', 'gioHang', 'discount', 'couponCode', 'suggestedCoupon', 'missingAmount'));
     }
 
     public function add(Request $request)
     {
         $sachId = $request->input('sach_id');
-        $soLuong = $request->input('so_luong' ?: 1, 1);
+        $soLuong = (int) $request->input('so_luong', 1);
         $sach = Sach::findOrFail($sachId);
 
         if (!$sach->conHang()) {
-            if ($request->ajax()) {
+            if ($request->wantsJson()) {
                 return response()->json(['error' => 'Sách này hiện đang hết hàng!'], 400);
             }
             return redirect()->back()->with('error', 'Sách này hiện đang hết hàng!');
@@ -76,7 +81,7 @@ class GioHangController extends Controller
         $gioHang->tong_tien = $gioHang->chiTiets()->sum('thanh_tien');
         $gioHang->save();
 
-        if ($request->ajax()) {
+        if ($request->wantsJson()) {
             $totalQty = $gioHang->chiTiets()->sum('so_luong');
             return response()->json([
                 'success' => true,
@@ -106,7 +111,7 @@ class GioHangController extends Controller
         $gioHang->tong_tien = $gioHang->chiTiets()->sum('thanh_tien');
         $gioHang->save();
 
-        if ($request->ajax()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'thanh_tien' => number_format($chiTiet->thanh_tien, 0, ',', '.') . 'đ',
                 'tong_tien' => number_format($gioHang->tong_tien, 0, ',', '.') . 'đ'

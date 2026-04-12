@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Load chat history from DB
     function loadMessages() {
-        fetch('{{ url("/chat/messege") }}')
+        fetch('{{ url("/chat/messages") }}')
             .then(res => res.json())
             .then(data => {
                 // Clear current messages (except initial bot greeting if you want)
@@ -116,6 +116,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Show typing indicator
         const typingId = showTyping();
 
+        // Setup Timeout (15s)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         fetch('{{ url("/chatbot/send") }}', {
             method: 'POST',
             headers: {
@@ -123,16 +127,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 'X-CSRF-TOKEN': csrfToken,
                 'Accept': 'application/json',
             },
+            signal: controller.signal,
             body: JSON.stringify({ message: text }),
         })
-        .then(res => res.json())
+        .then(res => {
+            clearTimeout(timeoutId);
+            return res.json();
+        })
         .then(data => {
             removeTyping(typingId);
-            appendMessage('bot', data.reply || 'Xin lỗi, không thể trả lời.');
+            appendMessage('bot', data.reply || 'Xin lỗi, tôi chưa hiểu ý bạn. Bạn có thể nhắc lại không?');
         })
-        .catch(() => {
+        .catch((err) => {
+            clearTimeout(timeoutId);
             removeTyping(typingId);
-            appendMessage('bot', 'Lỗi kết nối. Vui lòng thử lại.');
+            
+            if (err.name === 'AbortError') {
+                appendMessage('bot', 'Hệ thống đang bận xử lý (Timeout). Vui lòng thử lại sau giây lát!');
+            } else {
+                appendMessage('bot', 'Rất tiếc, đã có lỗi kết nối xảy ra. Bạn vui lòng kiểm tra mạng và thử lại nhé.');
+            }
         })
         .finally(() => {
             input.disabled = false;

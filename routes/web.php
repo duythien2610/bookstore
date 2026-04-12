@@ -98,8 +98,9 @@ Route::middleware('verified')->group(function () {
     Route::post('/cart/coupon', [App\Http\Controllers\CartController::class, 'applyCoupon'])->name('cart.coupon');
     Route::get('/cart/coupons-available', [CouponController::class, 'availableForCart'])->name('cart.coupons.available');
 
-    Route::get('/checkout', [App\Http\Controllers\GioHangController::class, 'showCheckout'])->name('checkout');
-    Route::post('/checkout', [App\Http\Controllers\GioHangController::class, 'processCheckout'])->name('checkout.process');
+    Route::get('/checkout', [\App\Http\Controllers\CheckoutController::class, 'show'])->name('checkout');
+    Route::post('/checkout', [\App\Http\Controllers\CheckoutController::class, 'store'])->name('checkout.process');
+    Route::post('/api/shipping-fee', [\App\Http\Controllers\CheckoutController::class, 'calculateShipping'])->name('api.shipping.fee');
 
     Route::get('/order-success', [App\Http\Controllers\CheckoutController::class, 'success'])->name('order.success');
 
@@ -158,8 +159,12 @@ Route::post('/contact', function (\Illuminate\Http\Request $request) {
     return redirect()->route('contact')->with('success', 'Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi trong thời gian sớm nhất.');
 })->name('contact.send');
 
+// ─── PayOS Payment Routes ────────────────────────────────────────────────
+Route::get('/payos/return', [App\Http\Controllers\PayosController::class, 'handlePayosReturn'])->name('payos.return');
+Route::post('/payos/webhook', [App\Http\Controllers\PayosController::class, 'handleWebhook'])->name('payos.webhook');
+
 // ─── Chatbot AI ──────────────────────────────────────────────────────────
-Route::get('/chat/messege', [ChatbotController::class, 'fetchMessage'])->name('chatbot.fetchMessage');
+Route::get('/chat/messages', [ChatbotController::class, 'fetchMessage'])->name('chatbot.fetchMessage');
 Route::post('/chatbot/send', [ChatbotController::class, 'sendMessage'])->name('chatbot.send');
 
 
@@ -173,6 +178,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     // Quản lý đơn hàng
     Route::get('/orders', [OrderController::class, 'index'])->name('admin.orders');
     Route::get('/orders/{id}', [OrderController::class, 'show'])->name('admin.orders.show');
+    Route::get('/orders/{id}/print', [OrderController::class, 'printInvoice'])->name('admin.orders.print');
     Route::put('/orders/{id}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.updateStatus');
 
     Route::get('/books/create', [App\Http\Controllers\SachController::class, 'create'])->name('admin.books.create');

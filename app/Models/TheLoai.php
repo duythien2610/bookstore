@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class TheLoai extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'the_loai';
     protected $fillable = ['parent_id', 'ten_the_loai', 'loai_sach'];
 

@@ -9,6 +9,9 @@
                 <span class="material-icons">arrow_back</span>
             </a>
             <h1>Chi tiết Đơn hàng #MB{{ str_pad($donHang->id, 6, '0', STR_PAD_LEFT) }}</h1>
+            <a href="{{ route('admin.orders.print', $donHang->id) }}" target="_blank" class="btn btn-outline btn-sm" style="margin-left: 10px;">
+                <span class="material-icons" style="font-size: 16px;">print</span> In hóa đơn
+            </a>
         </div>
         <div style="display:flex; gap: var(--space-2);">
             <form action="{{ route('admin.orders.updateStatus', $donHang->id) }}" method="POST" style="display:flex; gap:var(--space-2);">

@@ -6,6 +6,13 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Modtra Books') — Modtra Books</title>
     <meta name="description" content="@yield('meta_description', 'Khám phá thế giới tri thức cùng Modtra Books — Nhà sách trực tuyến hàng đầu.')">
+    
+    {{-- Open Graph Meta Tags --}}
+    <meta property="og:title" content="@yield('title', 'Modtra Books')">
+    <meta property="og:description" content="@yield('meta_description', 'Khám phá thế giới tri thức cùng Modtra Books — Nhà sách trực tuyến hàng đầu.')">
+    <meta property="og:image" content="@yield('og_image', asset('images/default-social-image.jpg'))">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="@yield('og_type', 'website')">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
