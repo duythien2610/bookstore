@@ -44,6 +44,13 @@
             <div style="background: var(--color-white); border-radius: var(--radius-xl); padding: var(--space-8); border: 1px solid var(--color-border-light);">
                 <h3 style="margin-bottom: var(--space-6);">Gửi tin nhắn cho chúng tôi</h3>
 
+                @if(session('success'))
+                <div style="display:flex; align-items:center; gap:var(--space-3); background:linear-gradient(135deg,#d1fae5,#a7f3d0); border:1px solid #34d399; border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5); margin-bottom:var(--space-6);">
+                    <span class="material-icons" style="color:#065f46; font-size:22px;">check_circle</span>
+                    <span style="color:#065f46; font-weight:500;">{{ session('success') }}</span>
+                </div>
+                @endif
+
                 <form method="POST" action="{{ url('/contact') }}" id="contact-form">
                     @csrf
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4);">

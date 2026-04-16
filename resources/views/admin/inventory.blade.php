@@ -116,14 +116,21 @@
         color: var(--color-text-secondary);
     }
 
-    @media (max-width: 768px) {
-        .filter-grid {
-            grid-template-columns: 1fr 1fr;
+    /* ── New Filter Grid ─────────────────────────────────── */
+    .filter-grid-new {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+
+    @media (max-width: 992px) {
+        .filter-grid-new {
+            grid-template-columns: repeat(2, 1fr);
         }
     }
 
-    @media (max-width: 480px) {
-        .filter-grid {
+    @media (max-width: 600px) {
+        .filter-grid-new {
             grid-template-columns: 1fr;
         }
     }
@@ -138,7 +145,13 @@
             <form action="{{ route('admin.inventory') }}" method="GET" style="max-width: 300px;" class="header-search">
                 {{-- Preserve existing filters in search --}}
                 @foreach(request()->except(['search', 'page']) as $key => $val)
-                    @if($val) <input type="hidden" name="{{ $key }}" value="{{ $val }}"> @endif
+                    @if(is_array($val))
+                        @foreach($val as $v)
+                            <input type="hidden" name="{{ $key }}[]" value="{{ $v }}">
+                        @endforeach
+                    @elseif($val)
+                        <input type="hidden" name="{{ $key }}" value="{{ $val }}">
+                    @endif
                 @endforeach
                 <span class="material-icons search-icon">search</span>
                 <input type="text" name="search" placeholder="Tìm kiếm sách..." value="{{ request('search') }}" id="inventory-search">
@@ -156,83 +169,118 @@
         </div>
     @endif
 
-    {{-- ═══════════ BỘ LỌC ═══════════ --}}
-    <div class="filter-panel">
-        <div class="filter-toggle" id="filter-toggle">
-            <h3>
-                <span class="material-icons">tune</span>
-                Bộ lọc nâng cao
+    @if($errors->any())
+        <div style="padding: var(--space-4) var(--space-5); border-radius: var(--radius-lg); font-size: var(--font-size-sm); margin-bottom: var(--space-6); background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;">
+            <div style="display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-2);">
+                <span class="material-icons" style="font-size: 20px;">error</span>
+                <strong>Thông báo lỗi:</strong>
+            </div>
+            <ul style="padding-left: 28px; list-style: disc; font-size: 13px;">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
+    {{-- ═══════════ BỘ LỌC NÂNG CAO ═══════════ --}}
+    <div class="filter-panel" style="background: white; border: 1px solid #e5e7eb; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+        <div class="filter-toggle" id="filter-toggle" style="padding: 4px 0; border-bottom: 1px solid transparent; transition: all 0.3s;">
+            <h3 style="font-size: 15px; color: #111827; display: flex; align-items: center; gap: 10px;">
+                <span class="material-icons" style="color: #4f46e5; background: #eef2ff; padding: 6px; border-radius: 8px; font-size: 20px;">tune</span>
+                Bộ lọc tìm kiếm
                 @if(request()->hasAny(['the_loai_id', 'trang_thai', 'gia_min', 'gia_max', 'sap_xep']))
-                    <span class="badge badge-primary" style="font-size: 11px; padding: 2px 8px;">Đang lọc</span>
+                    <span style="background: #4f46e5; color: white; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500;">Đang hoạt động</span>
                 @endif
             </h3>
-            <span class="material-icons toggle-icon {{ request()->hasAny(['the_loai_id', 'trang_thai', 'gia_min', 'gia_max']) ? 'open' : '' }}" id="toggle-icon">expand_more</span>
+            <span class="material-icons toggle-icon {{ request()->hasAny(['the_loai_id', 'trang_thai', 'gia_min', 'gia_max']) ? 'open' : '' }}" style="color: #6b7280;">expand_more</span>
         </div>
 
-        <div class="filter-body {{ request()->hasAny(['the_loai_id', 'trang_thai', 'gia_min', 'gia_max']) ? 'show' : '' }}" id="filter-body">
+        <div class="filter-body {{ request()->hasAny(['the_loai_id', 'trang_thai', 'gia_min', 'gia_max']) ? 'show' : '' }}" id="filter-body" style="margin-top: 15px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
             <form action="{{ route('admin.inventory') }}" method="GET" id="filter-form">
-                {{-- Preserve search query --}}
-                @if(request('search'))
-                    <input type="hidden" name="search" value="{{ request('search') }}">
-                @endif
+                @if(request('search')) <input type="hidden" name="search" value="{{ request('search') }}"> @endif
 
-                <div class="filter-grid">
-                    {{-- Thể loại --}}
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="the_loai_id" style="font-size: var(--font-size-xs); margin-bottom: var(--space-1);">Thể loại</label>
-                        <select name="the_loai_id" id="the_loai_id" class="form-control" style="font-size: var(--font-size-sm);">
-                            <option value="">Tất cả thể loại</option>
-                            @foreach($theLoais as $tl)
-                                <option value="{{ $tl->id }}" {{ request('the_loai_id') == $tl->id ? 'selected' : '' }}>
-                                    {{ $tl->ten_the_loai }}
-                                </option>
+                <div class="filter-grid-new">
+                    {{-- Cột 1: Thể loại (Dạng Scroll Checkbox) --}}
+                    <div class="filter-col">
+                        <label class="form-label" style="font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-icons" style="font-size: 16px;">category</span> Thể loại sách
+                        </label>
+                        <div style="max-height: 200px; overflow-y: auto; border: 1px solid #e5e7eb; border-radius: 10px; padding: 10px; background: #f9fafb;">
+                            @foreach($theLoais as $parent)
+                                {{-- Thể loại cha --}}
+                                <div class="parent-category" style="margin-bottom: 4px;">
+                                    <label style="display: flex; align-items: center; gap: 10px; padding: 6px; cursor: pointer; border-radius: 6px; font-size: 13px; font-weight: 600; background: #eaebf033;">
+                                        <input type="checkbox" name="the_loai_id[]" value="{{ $parent->id }}" 
+                                               {{ in_array($parent->id, (array)request('the_loai_id')) ? 'checked' : '' }}
+                                               style="width: 16px; height: 16px; accent-color: #4f46e5;">
+                                        <span style="color: #111827;">{{ $parent->ten_the_loai }}</span>
+                                    </label>
+                                    
+                                    {{-- Thể loại con --}}
+                                    @foreach($parent->children as $child)
+                                        <label style="display: flex; align-items: center; gap: 10px; padding: 4px 6px 4px 30px; cursor: pointer; border-radius: 6px; font-size: 12px; transition: background 0.2s;">
+                                            <input type="checkbox" name="the_loai_id[]" value="{{ $child->id }}" 
+                                                   {{ in_array($child->id, (array)request('the_loai_id')) ? 'checked' : '' }}
+                                                   style="width: 14px; height: 14px; accent-color: #4f46e5;">
+                                            <span style="color: #4b5563;">{{ $child->ten_the_loai }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
                             @endforeach
-                        </select>
+                        </div>
                     </div>
 
-                    {{-- Trạng thái --}}
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="trang_thai" style="font-size: var(--font-size-xs); margin-bottom: var(--space-1);">Trạng thái</label>
-                        <select name="trang_thai" id="trang_thai" class="form-control" style="font-size: var(--font-size-sm);">
-                            <option value="">Tất cả</option>
-                            <option value="con_hang" {{ request('trang_thai') == 'con_hang' ? 'selected' : '' }}>Còn hàng</option>
-                            <option value="het_hang" {{ request('trang_thai') == 'het_hang' ? 'selected' : '' }}>Hết hàng</option>
-                        </select>
+                    {{-- Cột 2: Trạng thái & Sắp xếp --}}
+                    <div class="filter-col" style="display: flex; flex-direction: column; gap: 15px;">
+                        <div>
+                            <label class="form-label" style="font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-icons" style="font-size: 16px;">bolt</span> Trạng thái kho
+                            </label>
+                            <select name="trang_thai" class="form-control" style="background: #f9fafb; border-radius: 8px; height: 42px;">
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="con_hang" {{ request('trang_thai') == 'con_hang' ? 'selected' : '' }}>Còn hàng</option>
+                                <option value="het_hang" {{ request('trang_thai') == 'het_hang' ? 'selected' : '' }}>Hết hàng</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                <span class="material-icons" style="font-size: 16px;">sort</span> Thứ tự sắp xếp
+                            </label>
+                            <select name="sap_xep" class="form-control" style="background: #f9fafb; border-radius: 8px; height: 42px;">
+                                <option value="moi_nhat" {{ request('sap_xep', 'moi_nhat') == 'moi_nhat' ? 'selected' : '' }}>Mới nhất</option>
+                                <option value="gia_tang" {{ request('sap_xep') == 'gia_tang' ? 'selected' : '' }}>Giá: Thấp → Cao</option>
+                                <option value="gia_giam" {{ request('sap_xep') == 'gia_giam' ? 'selected' : '' }}>Giá: Cao → Thấp</option>
+                                <option value="ten_az" {{ request('sap_xep') == 'ten_az' ? 'selected' : '' }}>Tên sách: A → Z</option>
+                            </select>
+                        </div>
                     </div>
 
-                    {{-- Giá từ --}}
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="gia_min" style="font-size: var(--font-size-xs); margin-bottom: var(--space-1);">Giá từ (VNĐ)</label>
-                        <input type="number" name="gia_min" id="gia_min" class="form-control" style="font-size: var(--font-size-sm);"
-                               placeholder="VD: 50000" min="0" step="1" value="{{ request('gia_min') }}">
-                    </div>
-
-                    {{-- Giá đến --}}
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="gia_max" style="font-size: var(--font-size-xs); margin-bottom: var(--space-1);">Giá đến (VNĐ)</label>
-                        <input type="number" name="gia_max" id="gia_max" class="form-control" style="font-size: var(--font-size-sm);"
-                               placeholder="VD: 300000" min="0" step="1" value="{{ request('gia_max') }}">
-                    </div>
-
-                    {{-- Sắp xếp --}}
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label class="form-label" for="sap_xep" style="font-size: var(--font-size-xs); margin-bottom: var(--space-1);">Sắp xếp</label>
-                        <select name="sap_xep" id="sap_xep" class="form-control" style="font-size: var(--font-size-sm);">
-                            <option value="moi_nhat" {{ request('sap_xep', 'moi_nhat') == 'moi_nhat' ? 'selected' : '' }}>Mới nhất</option>
-                            <option value="gia_tang" {{ request('sap_xep') == 'gia_tang' ? 'selected' : '' }}>Giá tăng dần</option>
-                            <option value="gia_giam" {{ request('sap_xep') == 'gia_giam' ? 'selected' : '' }}>Giá giảm dần</option>
-                            <option value="ten_az" {{ request('sap_xep') == 'ten_az' ? 'selected' : '' }}>Tên A → Z</option>
-                        </select>
+                    {{-- Cột 3: Khoảng giá --}}
+                    <div class="filter-col">
+                        <label class="form-label" style="font-weight: 600; font-size: 13px; color: #374151; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                            <span class="material-icons" style="font-size: 16px;">payments</span> Khoảng giá bán (VNĐ)
+                        </label>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 12px;">Từ</span>
+                                <input type="number" name="gia_min" class="form-control" style="padding-left: 40px; background: #f9fafb; border-radius: 8px; height: 42px;" 
+                                       placeholder="0" value="{{ request('gia_min') }}">
+                            </div>
+                            <div style="position: relative;">
+                                <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af; font-size: 12px;">Đến</span>
+                                <input type="number" name="gia_max" class="form-control" style="padding-left: 40px; background: #f9fafb; border-radius: 8px; height: 42px;" 
+                                       placeholder="∞" value="{{ request('gia_max') }}">
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="filter-actions">
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        <span class="material-icons" style="font-size: 16px;">filter_list</span> Áp dụng lọc
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 12px;">
+                    <a href="{{ route('admin.inventory') }}" class="btn btn-ghost" style="color: #6b7280; font-weight: 500;">Xóa trắng</a>
+                    <button type="submit" class="btn btn-primary" style="padding: 0 30px; border-radius: 10px; background: #4f46e5;">
+                        <span class="material-icons" style="font-size: 18px; margin-right: 6px;">search</span> Áp dụng bộ lọc
                     </button>
-                    <a href="{{ route('admin.inventory') }}" class="btn btn-ghost btn-sm">
-                        <span class="material-icons" style="font-size: 16px;">clear_all</span> Xóa lọc
-                    </a>
                 </div>
             </form>
         </div>
@@ -247,13 +295,15 @@
                     </span>
                 @endif
                 @if(request('the_loai_id'))
-                    @php $selectedTL = $theLoais->firstWhere('id', request('the_loai_id')); @endphp
-                    @if($selectedTL)
-                        <span class="active-filter-tag">
-                            Thể loại: {{ $selectedTL->ten_the_loai }}
-                            <a href="{{ route('admin.inventory', request()->except('the_loai_id')) }}"><span class="material-icons">close</span></a>
-                        </span>
-                    @endif
+                    @foreach((array)request('the_loai_id') as $tid)
+                        @php $selectedTL = $theLoais->firstWhere('id', $tid); @endphp
+                        @if($selectedTL)
+                            <span class="active-filter-tag">
+                                Thể loại: {{ $selectedTL->ten_the_loai }}
+                                <a href="{{ route('admin.inventory', array_merge(request()->all(), ['the_loai_id' => array_diff((array)request('the_loai_id'), [$tid])])) }}"><span class="material-icons">close</span></a>
+                            </span>
+                        @endif
+                    @endforeach
                 @endif
                 @if(request('trang_thai'))
                     <span class="active-filter-tag">

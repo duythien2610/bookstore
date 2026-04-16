@@ -15,6 +15,7 @@ class Authenticate extends Middleware
     protected function redirectTo($request)
     {
         if (! $request->expectsJson()) {
+            session()->flash('error', 'Hết phiên làm việc (10 phút). Vui lòng đăng nhập lại!');
             return route('login');
         }
     }

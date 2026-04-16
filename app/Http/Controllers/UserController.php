@@ -20,6 +20,20 @@ class UserController extends Controller
     }
 
     /**
+     * Danh sách đơn hàng của tôi.
+     */
+    public function orders()
+    {
+        $user = Auth::user();
+        $orders = \App\Models\DonHang::where('user_id', $user->id)
+            ->with(['chiTiets.sach'])
+            ->orderByDesc('created_at')
+            ->paginate(10);
+            
+        return view('pages.orders', compact('user', 'orders'));
+    }
+
+    /**
      * Cập nhật thông tin cá nhân.
      */
     public function update(Request $request)

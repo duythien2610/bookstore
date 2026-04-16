@@ -5,11 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class TheLoai extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
     protected $table = 'the_loai';
-    protected $fillable = ['parent_id', 'ten_the_loai'];
+    protected $fillable = ['parent_id', 'ten_the_loai', 'loai_sach'];
+
+    // Giá trị loai_sach
+    const TRONG_NUOC  = 'trong_nuoc';
+    const NUOC_NGOAI  = 'nuoc_ngoai';
+    const TAT_CA      = 'tat_ca';
 
     // Danh mục cha
     public function parent()
@@ -39,5 +46,17 @@ class TheLoai extends Model
     public function scopeCon($query)
     {
         return $query->whereNotNull('parent_id');
+    }
+
+    // Lấy thể loại dành cho sách trong nước
+    public function scopeTrongNuoc($query)
+    {
+        return $query->whereIn('loai_sach', [self::TRONG_NUOC, self::TAT_CA]);
+    }
+
+    // Lấy thể loại dành cho sách nước ngoài
+    public function scopeNuocNgoai($query)
+    {
+        return $query->whereIn('loai_sach', [self::NUOC_NGOAI, self::TAT_CA]);
     }
 }
