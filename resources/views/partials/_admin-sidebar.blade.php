@@ -1,56 +1,72 @@
-{{-- Admin Sidebar Navigation --}}
+{{-- Admin Sidebar Navigation — modernised v2 --}}
 <aside class="admin-sidebar" id="admin-sidebar">
     <div class="sidebar-logo">
-        <span class="logo-icon">M</span>
-        <span>Admin Panel</span>
+        <img src="{{ asset('images/bookverse-logo.png') }}" alt="Bookverse" class="sidebar-logo__img">
+        <div class="sidebar-logo__text">
+            <span class="sidebar-logo__sub">Admin Console</span>
+        </div>
     </div>
 
     <nav class="sidebar-nav">
+        <div class="sidebar-group-label">Tổng quan</div>
         <a href="{{ url('/admin') }}" class="{{ request()->is('admin') ? 'active' : '' }}" id="nav-dashboard">
-            <span class="material-icons">dashboard</span>
-            Dashboard
+            <span class="sidebar-nav__icon"><span class="material-icons">dashboard</span></span>
+            <span>Dashboard</span>
         </a>
+
+        <div class="sidebar-group-label">Bán hàng</div>
         <a href="{{ url('/admin/inventory') }}" class="{{ request()->is('admin/inventory*') || request()->is('admin/books*') ? 'active' : '' }}" id="nav-inventory">
-            <span class="material-icons">inventory_2</span>
-            Quản lý sách
+            <span class="sidebar-nav__icon"><span class="material-icons">inventory_2</span></span>
+            <span>Quản lý sách</span>
         </a>
         <a href="{{ url('/admin/orders') }}" class="{{ request()->is('admin/orders*') ? 'active' : '' }}" id="nav-orders">
-            <span class="material-icons">receipt_long</span>
-            Đơn hàng
+            <span class="sidebar-nav__icon"><span class="material-icons">receipt_long</span></span>
+            <span>Đơn hàng</span>
+        </a>
+        <a href="{{ route('admin.coupons.index') }}" class="{{ request()->is('admin/coupons*') ? 'active' : '' }}" id="nav-coupons">
+            <span class="sidebar-nav__icon"><span class="material-icons">local_offer</span></span>
+            <span>Mã giảm giá</span>
         </a>
 
-        {{-- Danh mục --}}
-        <div style="padding: var(--space-3) var(--space-4) var(--space-1); font-size: 10px; font-weight: var(--font-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: var(--space-2);">
-            Danh mục
-        </div>
+        <div class="sidebar-group-label">Danh mục</div>
         <a href="{{ route('admin.the-loai.index') }}" class="{{ request()->is('admin/the-loai*') ? 'active' : '' }}" id="nav-the-loai">
-            <span class="material-icons">category</span>
-            Thể loại
+            <span class="sidebar-nav__icon"><span class="material-icons">category</span></span>
+            <span>Thể loại</span>
         </a>
         <a href="{{ route('admin.partners') }}" class="{{ request()->is('admin/partners*') || request()->is('admin/tac-gia*') || request()->is('admin/nha-xuat-ban*') || request()->is('admin/nha-cung-cap*') ? 'active' : '' }}" id="nav-partners">
-            <span class="material-icons">handshake</span>
-            Đối tác
+            <span class="sidebar-nav__icon"><span class="material-icons">handshake</span></span>
+            <span>Đối tác</span>
         </a>
 
-        {{-- Hệ thống --}}
-        <div style="padding: var(--space-3) var(--space-4) var(--space-1); font-size: 10px; font-weight: var(--font-semibold); color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: var(--space-2);">
-            Hệ thống
-        </div>
+        <div class="sidebar-group-label">Hệ thống</div>
         <a href="{{ route('admin.customers.index') }}" class="{{ request()->is('admin/customers*') ? 'active' : '' }}" id="nav-customers">
-            <span class="material-icons">group</span>
-            Khách hàng
+            <span class="sidebar-nav__icon"><span class="material-icons">group</span></span>
+            <span>Khách hàng</span>
         </a>
         <a href="{{ route('admin.admins.index') }}" class="{{ request()->is('admin/admins*') ? 'active' : '' }}" id="nav-admins">
-            <span class="material-icons">admin_panel_settings</span>
-            Quản trị viên
+            <span class="sidebar-nav__icon"><span class="material-icons">admin_panel_settings</span></span>
+            <span>Quản trị viên</span>
         </a>
         <a href="{{ route('admin.blogs.index') }}" class="{{ request()->is('admin/blogs*') ? 'active' : '' }}" id="nav-blog">
-            <span class="material-icons">article</span>
-            Blog
+            <span class="sidebar-nav__icon"><span class="material-icons">article</span></span>
+            <span>Blog</span>
         </a>
-        <a href="{{ url('/admin/settings') }}" id="nav-settings">
-            <span class="material-icons">settings</span>
-            Cài đặt
+        <a href="{{ route('admin.banners.index') }}" class="{{ request()->is('admin/banners*') ? 'active' : '' }}" id="nav-banners">
+            <span class="sidebar-nav__icon"><span class="material-icons">view_carousel</span></span>
+            <span>Banner</span>
+        </a>
+        <a href="{{ url('/admin/settings') }}" class="{{ request()->is('admin/settings*') ? 'active' : '' }}" id="nav-settings">
+            <span class="sidebar-nav__icon"><span class="material-icons">settings</span></span>
+            <span>Cài đặt</span>
         </a>
     </nav>
+
+    <a href="{{ url('/') }}" class="sidebar-footer-card" target="_blank" rel="noopener">
+        <span class="material-icons sidebar-footer-card__icon">storefront</span>
+        <div class="sidebar-footer-card__text">
+            <strong>Xem cửa hàng</strong>
+            <span>Mở trang khách hàng</span>
+        </div>
+        <span class="material-icons sidebar-footer-card__arrow">north_east</span>
+    </a>
 </aside>

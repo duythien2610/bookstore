@@ -21,7 +21,7 @@ class PasswordResetCodeMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Đặt lại mật khẩu — Modtra Books')
+        return $this->subject('Đặt lại mật khẩu — Bookverse')
                     ->view('emails.password-reset-code');
     }
 }

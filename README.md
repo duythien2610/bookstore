@@ -1,4 +1,4 @@
-# 📚 Website Quản Lý Nhà Sách (Modtrabook) 
+# 📚 Website Quản Lý Nhà Sách (Bookverse) 
 Đây là một dự án **Website Nhà Sách** đơn giản, cho phép người dùng quản lý và tương tác với danh sách sách.
 
 ## 🚀 Chức năng chính
@@ -12,7 +12,7 @@
 - (Thêm vào nếu có: React / Node.js / Database)  
 - Git & GitHub  
 
-## 📌 Modtrabook - Version 1.0  
+## 📌 Bookverse - Version 1.0  
 ### 🔧 Các chức năng cần cải tiến
 ---
 ## 🏠 Trang chủ (Home Page)

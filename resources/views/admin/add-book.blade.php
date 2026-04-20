@@ -240,6 +240,26 @@
         </div>
     @endif
 
+    {{-- Nhập sách nhanh từ JSON --}}
+    <div class="form-section" style="border: 2px dashed var(--color-primary); background: #f0f9ff; padding: var(--space-6); border-radius: var(--radius-xl); margin-bottom: var(--space-8);">
+        <div class="form-section-title">
+            <span class="material-icons" style="color: var(--color-primary);">upload_file</span>
+            Thêm sách nhanh bằng file JSON
+        </div>
+        <form action="{{ route('admin.books.import-json') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div style="display: flex; align-items: flex-end; gap: var(--space-4); flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 250px; margin-bottom: 0;">
+                    <label class="form-label" for="json_files">Chọn các file dữ liệu (.json)</label>
+                    <input type="file" name="json_files[]" id="json_files" accept=".json,.txt" class="form-control" multiple required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="height: 48px; display: inline-flex; align-items: center; gap: 8px;">
+                    <span class="material-icons" style="font-size: 20px;">publish</span> Bắt đầu nhập sách
+                </button>
+            </div>
+        </form>
+    </div>
+
     <form id="add-book-form" action="{{ route('admin.books.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
         <div class="add-book-form">

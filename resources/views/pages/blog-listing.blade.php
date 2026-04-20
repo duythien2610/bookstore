@@ -10,7 +10,7 @@
                 <span class="separator">›</span>
                 <span>Blog</span>
             </div>
-            <h1>Blog Modtra Books</h1>
+            <h1>Blog Bookverse</h1>
         </div>
     </div>
 
@@ -35,7 +35,7 @@
                     {{ \Illuminate\Support\Str::limit(strip_tags($featuredPost->content), 160) }}
                 </p>
                 <div style="display: flex; align-items: center; gap: var(--space-3); font-size: var(--font-size-sm); color: var(--color-text-muted);">
-                    <span>{{ $featuredPost->user->ho_ten ?? 'Modtra Books' }}</span>
+                    <span>{{ $featuredPost->user->ho_ten ?? 'Bookverse' }}</span>
                     <span>·</span>
                     <span>{{ $featuredPost->created_at->format('d/m/Y') }}</span>
                     <span>·</span>
@@ -82,7 +82,7 @@
                 </div>
                 <div class="card-body">
                     <div class="card-meta">
-                        <span class="badge badge-primary" style="font-size: 10px;">{{ $post->user->ho_ten ?? 'Modtra' }}</span>
+                        <span class="badge badge-primary" style="font-size: 10px;">{{ $post->user->ho_ten ?? 'Bookverse' }}</span>
                         <span>{{ $post->created_at->format('d/m/Y') }}</span>
                     </div>
                     <a href="{{ route('blog.show', $post->slug) }}" style="text-decoration: none; color: inherit;">

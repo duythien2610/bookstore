@@ -30,7 +30,7 @@ class VerificationCodeMail extends Mailable
      */
     public function build()
     {
-        return $this->subject('Mã xác thực tài khoản Modtra Books')
+        return $this->subject('Mã xác thực tài khoản Bookverse')
                     ->view('emails.verification-code');
     }
 }

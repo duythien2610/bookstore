@@ -5,10 +5,9 @@
             {{-- Brand --}}
             <div class="footer-brand">
                 <div class="brand-name">
-                    <span class="logo-icon">M</span>
-                    Modtra Books
+                    <img src="{{ asset('images/bookverse-logo.png') }}" alt="Bookverse" class="footer-brand__logo">
                 </div>
-                <p>Modtra Books — Nhà sách trực tuyến hàng đầu Việt Nam. Khám phá hàng ngàn đầu sách chất lượng từ trong nước và quốc tế.</p>
+                <p>Bookverse — Nhà sách trực tuyến hàng đầu Việt Nam. Khám phá hàng ngàn đầu sách chất lượng từ trong nước và quốc tế.</p>
                 <div class="footer-social">
                     <a href="#" title="Facebook"><span class="material-icons">facebook</span></a>
                     <a href="#" title="Instagram"><span class="material-icons">photo_camera</span></a>
@@ -50,7 +49,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>© {{ date('Y') }} Modtra Books. Tất cả quyền được bảo lưu.</p>
+            <p>© {{ date('Y') }} Bookverse. Tất cả quyền được bảo lưu.</p>
             <div>
                 <a href="#">Điều khoản</a> · <a href="#">Bảo mật</a>
             </div>

@@ -211,7 +211,7 @@
     {{-- Page heading --}}
     <div style="margin-bottom:1.75rem">
         <h1 style="font-size:1.75rem;font-weight:800;color:#111827;margin:0 0 .3rem">✍️ Tạo bài viết mới</h1>
-        <p style="color:#6b7280;font-size:.95rem;margin:0">Chia sẻ kiến thức, review sách hoặc câu chuyện của bạn với cộng đồng Modtra</p>
+        <p style="color:#6b7280;font-size:.95rem;margin:0">Chia sẻ kiến thức, review sách hoặc câu chuyện của bạn với cộng đồng Bookverse</p>
     </div>
 
     @if(session('success'))

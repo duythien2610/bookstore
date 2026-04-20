@@ -23,7 +23,7 @@
                 <div style="display: flex; align-items: center; justify-content: center; gap: var(--space-4); font-size: var(--font-size-sm); color: var(--color-text-muted);">
                     <div style="display: flex; align-items: center; gap: var(--space-2);">
                         <div class="author-avatar" style="width: 32px; height: 32px; font-size: var(--font-size-xs);">{{ substr($post->user->ho_ten ?? 'M', 0, 1) }}</div>
-                        <span>{{ $post->user->ho_ten ?? 'Modtra Books' }}</span>
+                        <span>{{ $post->user->ho_ten ?? 'Bookverse' }}</span>
                     </div>
                     <span>·</span>
                     <span>{{ $post->created_at->format('d/m/Y') }}</span>

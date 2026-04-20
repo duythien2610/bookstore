@@ -80,7 +80,7 @@
 <body>
     <div class="email-wrapper">
         <div class="email-header">
-            <h1>📚 Modtra Books</h1>
+            <h1>📚 Bookverse</h1>
             <p>Xác thực tài khoản của bạn</p>
         </div>
 
@@ -104,7 +104,7 @@
         </div>
 
         <div class="email-footer">
-            © {{ date('Y') }} Modtra Books. Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.
+            © {{ date('Y') }} Bookverse. Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.
         </div>
     </div>
 </body>
