@@ -249,7 +249,7 @@
                                         </div>
                                     </div>
 
-                                    <form method="POST" action="{{ route('danh-gia.store') }}" id="review-form">
+                                    <form method="POST" action="{{ route('danh-gia.store') }}" id="review-form" enctype="multipart/form-data">
                                         @csrf
                                         <input type="hidden" name="sach_id" value="{{ $sach->id }}">
 
@@ -273,6 +273,25 @@
                                         <div class="form-group">
                                             <label class="form-label" style="font-size:var(--font-size-sm);">Nội dung đánh giá</label>
                                             <textarea name="binh_luan" class="form-control" rows="4" placeholder="Chia sẻ cảm nhận của bạn về cuốn sách..." maxlength="2000">{{ old('binh_luan') }}</textarea>
+                                        </div>
+
+                                        {{-- Image upload --}}
+                                        <div class="form-group">
+                                            <label class="form-label" style="font-size:var(--font-size-sm);">
+                                                Ảnh đính kèm
+                                                <span style="color:var(--color-text-muted);font-size:var(--font-size-xs);font-weight:400;">(tối đa 3 ảnh, jpeg/png/jpg, mỗi ảnh ≤ 2MB)</span>
+                                            </label>
+                                            <div class="review-img-upload-area" id="pd-upload-area" onclick="document.getElementById('pd-img-input').click()">
+                                                <div class="review-img-upload-trigger">
+                                                    <span class="material-icons" style="font-size:22px;">add_photo_alternate</span>
+                                                    <span>Nhấn để chọn ảnh</span>
+                                                </div>
+                                            </div>
+                                            <input type="file" name="hinh_anh[]" id="pd-img-input" multiple accept="image/jpeg,image/png,image/jpg" style="display:none;">
+                                            <div class="review-img-preview-grid" id="pd-img-preview"></div>
+                                            @error('hinh_anh')   <div style="color:var(--color-danger);font-size:var(--font-size-xs);margin-top:4px;">{{ $message }}</div>@enderror
+                                            @error('hinh_anh.*') <div style="color:var(--color-danger);font-size:var(--font-size-xs);margin-top:4px;">{{ $message }}</div>@enderror
+                                            <div id="pd-img-error" style="color:var(--color-danger);font-size:var(--font-size-xs);margin-top:4px;display:none;"></div>
                                         </div>
 
                                         <div style="display:flex;justify-content:flex-end;">
@@ -344,7 +363,18 @@
                                     <div style="font-weight:var(--font-semibold);font-size:var(--font-size-sm);margin:var(--space-2) 0 var(--space-1);">{{ $dg->tieu_de }}</div>
                                 @endif
                                 @if($dg->binh_luan)
-                                    <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:1.7;margin:0;">{{ $dg->binh_luan }}</p>
+                                    <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:1.7;margin:0 0 var(--space-2);">{{ $dg->binh_luan }}</p>
+                                @endif
+                                @if(!empty($dg->hinh_anh) && is_array($dg->hinh_anh))
+                                    <div class="review-img-gallery">
+                                        @foreach($dg->hinh_anh as $img)
+                                            <img src="{{ asset('uploads/reviews/' . $img) }}"
+                                                 class="review-img-thumb"
+                                                 alt="Ảnh đánh giá"
+                                                 onclick="openLightbox(this.src)"
+                                                 loading="lazy">
+                                        @endforeach
+                                    </div>
                                 @endif
                             </div>
                         @endforeach
@@ -402,6 +432,16 @@
         @endif
     </div>
 
+@push('modals')
+{{-- Lightbox --}}
+<div id="lightbox" class="lightbox-overlay" style="display:none;" onclick="closeLightbox()">
+    <img id="lightbox-img" src="" alt="Ảnh đánh giá" onclick="event.stopPropagation()">
+    <button class="lightbox-close" onclick="closeLightbox()" title="Đóng">
+        <span class="material-icons">close</span>
+    </button>
+</div>
+@endpush
+
 @push('scripts')
 <script>
 // Quantity control
@@ -428,7 +468,6 @@ document.getElementById('btn-add-wishlist')?.addEventListener('click', function(
         if (data.success) {
             wishlistIcon.textContent = data.added ? 'favorite' : 'favorite_border';
             wishlistIcon.style.color = data.added ? 'var(--color-danger)' : 'inherit';
-            
             if (typeof showToast === 'function') {
                 showToast(data.message, 'success');
             }
@@ -436,7 +475,7 @@ document.getElementById('btn-add-wishlist')?.addEventListener('click', function(
     });
 });
 
-// ── Star Picker ─────────────────────────────────────────────────────────────
+// ── Star Picker ──────────────────────────────────────────────────────────────
 const starPicker = document.getElementById('star-picker');
 const soSaoInput = document.getElementById('so_sao_input');
 if (starPicker && soSaoInput) {
@@ -457,7 +496,7 @@ if (starPicker && soSaoInput) {
     stars.forEach((star, index) => {
         star.addEventListener('mouseenter', () => renderStars(index + 1));
         star.addEventListener('mouseleave', () => renderStars(selected));
-        star.addEventListener('click', () => renderStars(index + 1, true));
+        star.addEventListener('click',      () => renderStars(index + 1, true));
     });
 
     // Validate before submit
@@ -470,6 +509,88 @@ if (starPicker && soSaoInput) {
         }
     });
 }
+
+// ── Product Detail Image Upload ──────────────────────────────────────────────
+(function() {
+    const imgInput   = document.getElementById('pd-img-input');
+    const imgPreview = document.getElementById('pd-img-preview');
+    const imgError   = document.getElementById('pd-img-error');
+    if (!imgInput) return;
+
+    let selectedFiles = [];
+
+    imgInput.addEventListener('change', function() {
+        const newFiles = Array.from(this.files);
+        const combined = [...selectedFiles, ...newFiles];
+
+        if (combined.length > 3) {
+            imgError.textContent = 'Chỉ được tải lên tối đa 3 ảnh.';
+            imgError.style.display = 'block';
+            this.value = '';
+            return;
+        }
+        for (const f of newFiles) {
+            if (f.size > 2 * 1024 * 1024) {
+                imgError.textContent = `Ảnh "${f.name}" vượt quá 2MB.`;
+                imgError.style.display = 'block';
+                this.value = '';
+                return;
+            }
+        }
+
+        imgError.style.display = 'none';
+        selectedFiles = combined;
+        syncInput();
+        renderPreviews();
+    });
+
+    function renderPreviews() {
+        imgPreview.innerHTML = '';
+        selectedFiles.forEach((file, idx) => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const item = document.createElement('div');
+                item.className = 'review-img-preview-item';
+                item.innerHTML = `
+                    <img src="${e.target.result}" alt="preview" style="cursor:zoom-in;" onclick="openLightbox(this.src)">
+                    <button type="button" class="review-img-preview-remove" onclick="pdRemoveImage(${idx})" title="Xóa ảnh">✕</button>
+                `;
+                imgPreview.appendChild(item);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    window.pdRemoveImage = function(idx) {
+        selectedFiles.splice(idx, 1);
+        syncInput();
+        renderPreviews();
+        if (selectedFiles.length < 3) imgError.style.display = 'none';
+    };
+
+    function syncInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(f => dt.items.add(f));
+        imgInput.files = dt.files;
+    }
+})();
+
+// ── Lightbox ─────────────────────────────────────────────────────────────────
+function openLightbox(src) {
+    const lb = document.getElementById('lightbox');
+    document.getElementById('lightbox-img').src = src;
+    lb.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+});
 </script>
 @endpush
 @endsection

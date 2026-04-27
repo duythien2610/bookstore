@@ -27,30 +27,38 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title'    => 'required|string|max:255',
             'category' => 'required|string',
-            'content' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048'
+            'content'  => 'required|string',
+            'image'    => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // tăng lên 5MB
         ]);
 
-        $slug = Str::slug($request->title) . '-' . time();
+        $slug      = Str::slug($request->title) . '-' . time();
         $imagePath = null;
 
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
-            $filename = time() . '-' . $file->getClientOriginalName();
-            $file->move(public_path('uploads/blogs/thumbnails'), $filename);
+        if ($request->hasFile('image') && $request->file('image')->isValid()) {
+            $file      = $request->file('image');
+            $uploadDir = public_path('uploads/blogs/thumbnails');
+
+            // Tạo thư mục nếu chưa tồn tại
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0755, true);
+            }
+
+            $ext      = $file->getClientOriginalExtension();
+            $filename = time() . '-' . \Illuminate\Support\Str::random(8) . '.' . $ext;
+            $file->move($uploadDir, $filename);
             $imagePath = 'uploads/blogs/thumbnails/' . $filename;
         }
 
         Post::create([
-            'title' => $request->title,
-            'slug' => $slug,
+            'title'    => $request->title,
+            'slug'     => $slug,
             'category' => $request->category,
-            'image' => $imagePath,
-            'content' => clean($request->content), // Lọc bỏ mã độc từ XSS
-            'status' => 'pending', // Chờ admin duyệt
-            'user_id' => Auth::id(),
+            'image'    => $imagePath,
+            'content'  => clean($request->content),
+            'status'   => 'pending',
+            'user_id'  => Auth::id(),
         ]);
 
         return redirect()->route('blog.index')->with('success', 'Bài viết đã được gửi và đang chờ duyệt!');
@@ -94,5 +102,19 @@ class PostController extends Controller
     {
         $post->update(['status' => 'rejected']);
         return back()->with('success', 'Đã từ chối bài viết!');
+    }
+
+    public function destroy(Post $post)
+    {
+        // Xoá ảnh thumbnail nếu tồn tại (chỉ xoá file trong thư mục uploads/blogs để an toàn)
+        if ($post->image && str_starts_with($post->image, 'uploads/blogs/')) {
+            $imagePath = public_path($post->image);
+            if (file_exists($imagePath)) {
+                @unlink($imagePath);
+            }
+        }
+
+        $post->delete();
+        return back()->with('success', 'Đã xoá bài viết vĩnh viễn!');
     }
 }

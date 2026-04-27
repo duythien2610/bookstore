@@ -19,9 +19,15 @@ class SachController extends Controller
     {
         $query = Sach::with(['tacGia', 'theLoai']);
 
-        // Tìm kiếm theo tên sách
+        // Tìm kiếm theo tên sách HOẶC tên tác giả
         if ($request->filled('search')) {
-            $query->where('tieu_de', 'like', '%' . $request->search . '%');
+            $s = trim($request->search);
+            $query->where(function ($q) use ($s) {
+                $q->where('tieu_de', 'like', "%{$s}%")
+                  ->orWhereHas('tacGia', function ($q2) use ($s) {
+                      $q2->where('ten_tac_gia', 'like', "%{$s}%");
+                  });
+            });
         }
 
         // Lọc theo thể loại (hỗ trợ nhiều thể loại và tự động lấy con)
@@ -76,6 +82,15 @@ class SachController extends Controller
         $tongTatCa  = Sach::count();
         $tongConHang = Sach::where('so_luong_ton', '>', 0)->count();
         $tongHetHang = Sach::where('so_luong_ton', 0)->count();
+
+        // AJAX: trả về fragment rows + count để JS swap vào tbody.
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'count'   => $sachs->count(),
+                'html'    => view('admin._partials.inventory_rows', compact('sachs'))->render(),
+            ]);
+        }
 
         return view('admin.inventory', compact(
             'sachs', 'theLoais',
@@ -449,11 +464,7 @@ class SachController extends Controller
 
         // Lọc theo đánh giá
         if ($request->filled('rating')) {
-            $query->whereHas('danhGias', function($q) use ($request) {
-                $q->selectRaw('sach_id, avg(so_sao) as avg_star')
-                  ->groupBy('sach_id')
-                  ->having('avg_star', '>=', $request->rating);
-            }, '>=', 0); // Note: logically complex in SQL, might need a simpler check or join
+            $query->whereRaw('(SELECT AVG(so_sao) FROM danh_gia WHERE danh_gia.sach_id = sach.id) >= ?', [$request->rating]);
         }
 
         // Sắp xếp

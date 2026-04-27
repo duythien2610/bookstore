@@ -59,6 +59,10 @@
             <span class="sidebar-nav__icon"><span class="material-icons">settings</span></span>
             <span>Cài đặt</span>
         </a>
+        <a href="{{ route('admin.reviews.index') }}" class="{{ request()->is('admin/reviews*') ? 'active' : '' }}" id="nav-reviews">
+            <span class="sidebar-nav__icon"><span class="material-icons">rate_review</span></span>
+            <span>Quản lý đánh giá</span>
+        </a>
     </nav>
 
     <a href="{{ url('/') }}" class="sidebar-footer-card" target="_blank" rel="noopener">

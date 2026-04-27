@@ -104,22 +104,25 @@
                         @endif
                     </div>
                     @endif
+                    {{-- Manual input: still available for users who paste a code directly. --}}
                     <div style="display: flex; gap: 8px;">
                         <div style="flex:1; position:relative;">
                             <input type="text" id="coupon-input" value="" placeholder="Nhập mã hoặc chọn từ danh sách..." style="width:100%; height: 40px; border: 1px solid var(--color-border); border-radius: 8px; padding: 0 12px; box-sizing:border-box;" autocomplete="off">
-                            {{-- Dropdown danh sách mã --}}
-                            <div id="coupon-dropdown" style="display:none; position:absolute; top:44px; left:0; right:0; background:white; border:1px solid var(--color-border); border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.12); z-index:100; max-height:220px; overflow-y:auto;">
-                                <div id="coupon-loading" style="padding:12px; text-align:center; color:var(--color-text-muted); font-size:13px;">Đang tải...</div>
-                                <div id="coupon-list"></div>
-                            </div>
                         </div>
                         <button type="button" id="btn-apply-coupon" class="btn btn-outline" style="height: 40px; padding: 0 var(--space-4); white-space:nowrap;">Áp dụng</button>
                     </div>
-                    <div style="margin-top:6px;">
-                        <button type="button" id="btn-show-coupons" style="background:none; border:none; color:var(--color-primary); font-size:12px; cursor:pointer; padding:0; text-decoration:underline;">
-                            📋 Xem mã khuyến mãi có thể dùng
-                        </button>
-                    </div>
+
+                    {{-- Prominent voucher selector (Shopee/Lazada-style). Clicking this opens the modal. --}}
+                    <button type="button" id="btn-show-coupons" class="voucher-trigger" style="margin-top:10px;">
+                        <span class="voucher-trigger__icon material-icons">local_activity</span>
+                        <span class="voucher-trigger__main">
+                            <span class="voucher-trigger__title">Chọn mã giảm giá</span>
+                            <span class="voucher-trigger__sub" id="voucher-trigger-sub">Xem danh sách mã khả dụng cho đơn hàng này</span>
+                        </span>
+                        <span class="voucher-trigger__count" id="voucher-trigger-count" hidden>0</span>
+                        <span class="voucher-trigger__chevron material-icons">chevron_right</span>
+                    </button>
+
                     <div id="coupon-message" style="margin-top: 8px; font-size: 12px; display: none;"></div>
                 </div>
 
@@ -153,7 +156,7 @@
         @endif
     </div>
     <script>
-    (function () {
+    document.addEventListener('DOMContentLoaded', function () {
         const COUPON_URL   = '{{ route("cart.coupon") }}';
         const AVAIL_URL    = '{{ route("cart.coupons.available") }}';
         const CSRF         = '{{ csrf_token() }}';
@@ -161,81 +164,10 @@
         const inputEl      = document.getElementById('coupon-input');
         const applyBtn     = document.getElementById('btn-apply-coupon');
         const messageEl    = document.getElementById('coupon-message');
-        const dropdownEl   = document.getElementById('coupon-dropdown');
-        const couponListEl = document.getElementById('coupon-list');
-        const loadingEl    = document.getElementById('coupon-loading');
         const showBtn      = document.getElementById('btn-show-coupons');
         const removeBtn    = document.getElementById('btn-remove-coupon');
-
-        let couponsCache = null;
-
-        // ── Fetch & render danh sách mã ────────────────────────────────────
-        function loadAndShowDropdown() {
-            dropdownEl.style.display = 'block';
-            if (couponsCache !== null) { renderCoupons(couponsCache); return; }
-
-            loadingEl.style.display  = 'block';
-            couponListEl.innerHTML   = '';
-
-            fetch(AVAIL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                .then(r => r.json())
-                .then(data => {
-                    couponsCache = data;
-                    loadingEl.style.display = 'none';
-                    renderCoupons(data);
-                })
-                .catch(() => {
-                    loadingEl.textContent = 'Không thể tải danh sách mã.';
-                });
-        }
-
-        function renderCoupons(data) {
-            loadingEl.style.display = 'none';
-            couponListEl.innerHTML  = '';
-            if (!data.length) {
-                couponListEl.innerHTML = '<div style="padding:12px; text-align:center; color:var(--color-text-muted); font-size:13px;">Không có mã nào khả dụng.</div>';
-                return;
-            }
-            data.forEach(c => {
-                const row = document.createElement('div');
-                row.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:10px 14px; cursor:pointer; border-bottom:1px solid #f0f0f0; transition:background .15s;';
-                row.innerHTML = `
-                    <div>
-                        <span style="font-weight:700; color:var(--color-primary); font-size:14px;">${c.ma_code}</span>
-                        <span style="margin-left:8px; font-size:12px; color:var(--color-text-muted);">HSD: ${c.het_han}</span>
-                    </div>
-                    <span style="font-size:13px; font-weight:600; color:var(--color-danger);">${c.label}</span>`;
-                row.addEventListener('mouseenter', () => row.style.background = '#f5f5f5');
-                row.addEventListener('mouseleave', () => row.style.background = '');
-                row.addEventListener('click', () => {
-                    inputEl.value = c.ma_code;
-                    dropdownEl.style.display = 'none';
-                });
-                couponListEl.appendChild(row);
-            });
-        }
-
-        // ── Hiển thị dropdown khi focus hoặc click nút xem ─────────────────
-        if (inputEl) {
-            inputEl.addEventListener('focus', loadAndShowDropdown);
-            inputEl.addEventListener('input', () => {
-                if (inputEl.value.trim()) {
-                    const filtered = (couponsCache || []).filter(c => c.ma_code.includes(inputEl.value.toUpperCase()));
-                    renderCoupons(filtered);
-                    dropdownEl.style.display = 'block';
-                }
-            });
-        }
-        if (showBtn) {
-            showBtn.addEventListener('click', loadAndShowDropdown);
-        }
-
-        // ── Đóng dropdown khi click ngoài ───────────────────────────────────
-        document.addEventListener('click', e => {
-            if (dropdownEl && !dropdownEl.contains(e.target) && e.target !== inputEl && e.target !== showBtn) {
-                dropdownEl.style.display = 'none';
-            }
-        });
+        const triggerSubEl = document.getElementById('voucher-trigger-sub');
+        const triggerCntEl = document.getElementById('voucher-trigger-count');
 
         // ── Apply coupon ────────────────────────────────────────────────────
         if (applyBtn) {
@@ -294,6 +226,620 @@
             messageEl.textContent   = msg;
             messageEl.style.color   = success ? 'var(--color-success)' : 'var(--color-danger)';
         }
-    })();
+
+        // ═════════════════════════════════════════════════════════════
+        //  VOUCHER MODAL — chọn mã giảm giá (card list style)
+        // ═════════════════════════════════════════════════════════════
+        const modalEl        = document.getElementById('voucher-modal');
+        const modalCloseBtn  = document.getElementById('voucher-modal-close');
+        const modalApplyBtn  = document.getElementById('voucher-modal-apply');
+        const modalSearchEl  = document.getElementById('voucher-modal-search');
+        const modalListApp   = document.getElementById('voucher-list-applicable');
+        const modalListNon   = document.getElementById('voucher-list-non-applicable');
+        const modalSecApp    = document.getElementById('voucher-section-applicable');
+        const modalSecNon    = document.getElementById('voucher-section-non-applicable');
+        const modalLoadingEl = document.getElementById('voucher-modal-loading');
+
+        let voucherData   = { applicable: [], non_applicable: [] };
+        let selectedCode  = null;
+
+        function openVoucherModal() {
+            if (!modalEl) return;
+            modalEl.classList.add('is-open');
+            document.body.style.overflow = 'hidden';
+            // Nếu mã đang áp dụng → pre-select
+            selectedCode = @json($couponCode ?? null);
+            fetchVouchers();
+        }
+        function closeVoucherModal() {
+            if (!modalEl) return;
+            modalEl.classList.remove('is-open');
+            document.body.style.overflow = '';
+        }
+
+        function fetchVouchers() {
+            modalLoadingEl.style.display = 'block';
+            modalSecApp.style.display    = 'none';
+            modalSecNon.style.display    = 'none';
+            fetch(AVAIL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(data => {
+                    voucherData = {
+                        applicable:     Array.isArray(data) ? data : (data.applicable || []),
+                        non_applicable: Array.isArray(data) ? []   : (data.non_applicable || []),
+                    };
+                    updateVoucherTrigger();
+                    renderVoucherModal();
+                })
+                .catch(() => {
+                    modalLoadingEl.textContent = 'Không thể tải danh sách mã.';
+                });
+        }
+
+        // Update the Shopee-style trigger summary (count + best offer teaser).
+        function updateVoucherTrigger() {
+            const appCount = voucherData.applicable.length;
+            if (triggerCntEl) {
+                if (appCount > 0) {
+                    triggerCntEl.hidden = false;
+                    triggerCntEl.textContent = appCount + ' ưu đãi';
+                } else {
+                    triggerCntEl.hidden = true;
+                }
+            }
+            if (triggerSubEl) {
+                if (appCount === 0) {
+                    triggerSubEl.textContent = 'Hiện chưa có mã nào khả dụng cho đơn hàng này';
+                } else {
+                    const best = voucherData.applicable[0];
+                    triggerSubEl.textContent = best
+                        ? 'Ưu đãi tốt nhất: ' + (best.full_label || best.big_label || best.ma_code)
+                        : 'Có ' + appCount + ' mã khả dụng — nhấn để chọn';
+                }
+            }
+        }
+
+        // Silent refresh (no modal) — called on page load + after apply/remove.
+        function preloadVoucherTrigger() {
+            fetch(AVAIL_URL, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(r => r.json())
+                .then(data => {
+                    voucherData = {
+                        applicable:     Array.isArray(data) ? data : (data.applicable || []),
+                        non_applicable: Array.isArray(data) ? []   : (data.non_applicable || []),
+                    };
+                    updateVoucherTrigger();
+                })
+                .catch(() => { /* silent */ });
+        }
+
+        function renderVoucherModal() {
+            modalLoadingEl.style.display = 'none';
+
+            const search = (modalSearchEl.value || '').trim().toUpperCase();
+            const filterFn = c => !search || c.ma_code.includes(search);
+            const appList  = voucherData.applicable.filter(filterFn);
+            const nonList  = voucherData.non_applicable.filter(filterFn);
+
+            // Applicable section
+            if (appList.length) {
+                modalSecApp.style.display = 'block';
+                modalListApp.innerHTML    = appList.map(c => voucherCardHtml(c, false)).join('');
+            } else {
+                modalSecApp.style.display = 'block';
+                modalListApp.innerHTML    = '<div class="voucher-empty">Không có mã nào khả dụng.</div>';
+            }
+
+            // Non-applicable section
+            if (nonList.length) {
+                modalSecNon.style.display = 'block';
+                modalListNon.innerHTML    = nonList.map(c => voucherCardHtml(c, true)).join('');
+            } else {
+                modalSecNon.style.display = 'none';
+            }
+
+            // Bind click
+            modalEl.querySelectorAll('.voucher-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    if (card.classList.contains('is-disabled')) return;
+                    selectedCode = card.dataset.code;
+                    modalEl.querySelectorAll('.voucher-card').forEach(x => x.classList.remove('is-selected'));
+                    card.classList.add('is-selected');
+                    modalApplyBtn.disabled = false;
+                });
+            });
+
+            // Nếu có pre-selected → đánh dấu
+            if (selectedCode) {
+                const target = modalEl.querySelector(`.voucher-card[data-code="${selectedCode}"]:not(.is-disabled)`);
+                if (target) {
+                    target.classList.add('is-selected');
+                    modalApplyBtn.disabled = false;
+                }
+            }
+            modalApplyBtn.disabled = !selectedCode;
+        }
+
+        function voucherCardHtml(c, disabled) {
+            const badge = c.is_best && !disabled
+                ? '<span class="voucher-best-badge">Đề xuất tốt nhất</span>' : '';
+            const condsHtml = (c.conditions || []).map(t => `<div class="voucher-cond">• ${escapeHtml(t)}</div>`).join('');
+            const reasonHtml = disabled && c.reason
+                ? `<div class="voucher-reason">${escapeHtml(c.reason)}</div>` : '';
+            const usageHtml = c.usage_pct > 0
+                ? `<div class="voucher-usage"><div class="voucher-usage-bar" style="width:${c.usage_pct}%"></div></div>
+                   <div class="voucher-usage-text">Đã dùng ${c.usage_pct}% lượt</div>`
+                : `<div class="voucher-usage-text" style="margin-top:4px">Đã dùng 0% lượt</div>`;
+
+            return `
+                <div class="voucher-card ${disabled ? 'is-disabled' : ''}" data-code="${escapeHtml(c.ma_code)}">
+                    <div class="voucher-left">
+                        <div class="voucher-big">${escapeHtml(c.big_label)}</div>
+                        <div class="voucher-small">GIẢM GIÁ</div>
+                    </div>
+                    <div class="voucher-body">
+                        ${badge}
+                        <div class="voucher-title">${escapeHtml(c.full_label)}</div>
+                        <div class="voucher-code">Mã: <strong>${escapeHtml(c.ma_code)}</strong></div>
+                        <div class="voucher-conds">${condsHtml}</div>
+                        ${usageHtml}
+                        <div class="voucher-expiry">${escapeHtml(c.het_han_text || '')}</div>
+                        ${reasonHtml}
+                    </div>
+                    <div class="voucher-radio" aria-hidden="true"></div>
+                </div>`;
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, m =>
+                ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+
+        // Open modal when clicking the prominent "Chọn mã giảm giá" trigger.
+        if (showBtn) {
+            showBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                openVoucherModal();
+            });
+        }
+
+        // Per the UX spec: focusing the input field should ALSO open the picker.
+        // We still allow manual typing — clicking the input first opens the modal
+        // once; users can then close the modal and type. We avoid focus-loop by
+        // only opening while modal is closed AND we haven't just returned from it.
+        if (inputEl) {
+            let justClosedAt = 0;
+            inputEl.addEventListener('focus', function () {
+                if (!modalEl) return;
+                if (modalEl.classList.contains('is-open')) return;
+                if (Date.now() - justClosedAt < 400) return; // debounce after close
+                openVoucherModal();
+                inputEl.blur(); // surface the modal instead of keyboard
+            });
+            // Track when modal closes so we don't immediately re-open on blur/focus cycle.
+            if (modalEl) {
+                const observer = new MutationObserver(() => {
+                    if (!modalEl.classList.contains('is-open')) justClosedAt = Date.now();
+                });
+                observer.observe(modalEl, { attributes: true, attributeFilter: ['class'] });
+            }
+            // Allow Enter in the input to apply.
+            inputEl.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') { e.preventDefault(); applyBtn && applyBtn.click(); }
+            });
+        }
+
+        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeVoucherModal);
+        if (modalEl) {
+            modalEl.addEventListener('click', e => {
+                if (e.target === modalEl) closeVoucherModal();
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modalEl.classList.contains('is-open')) closeVoucherModal();
+            });
+        }
+        if (modalSearchEl) {
+            modalSearchEl.addEventListener('input', renderVoucherModal);
+        }
+        if (modalApplyBtn) {
+            modalApplyBtn.addEventListener('click', function () {
+                if (!selectedCode) return;
+                if (inputEl) inputEl.value = selectedCode;
+                closeVoucherModal();
+                if (applyBtn) applyBtn.click();
+            });
+        }
+
+        // Preload the count / best-offer teaser on the trigger once the page is ready.
+        preloadVoucherTrigger();
+    });
     </script>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         VOUCHER MODAL HTML
+         ═══════════════════════════════════════════════════════════════ --}}
+    <div id="voucher-modal" class="voucher-modal" role="dialog" aria-modal="true" aria-labelledby="voucher-modal-title">
+        <div class="voucher-modal__panel" role="document">
+            <div class="voucher-modal__header">
+                <div>
+                    <h2 id="voucher-modal-title" class="voucher-modal__title">
+                        <span class="material-icons" style="color:#dc2626">local_activity</span>
+                        Chọn Voucher
+                    </h2>
+                    <p class="voucher-modal__subtitle">Chọn mã phù hợp nhất với đơn hàng của bạn</p>
+                </div>
+                <button type="button" id="voucher-modal-close" class="voucher-modal__close" aria-label="Đóng">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <div class="voucher-modal__search">
+                <span class="material-icons">search</span>
+                <input type="text" id="voucher-modal-search" placeholder="Tìm mã giảm giá..." autocomplete="off">
+            </div>
+
+            <div class="voucher-modal__body">
+                <div id="voucher-modal-loading" class="voucher-loading">Đang tải danh sách mã giảm giá...</div>
+
+                <section id="voucher-section-applicable" class="voucher-section" style="display:none">
+                    <h3 class="voucher-section__title">
+                        <span class="voucher-section__dot" style="background:#16a34a"></span>
+                        Mã có thể dùng
+                    </h3>
+                    <div id="voucher-list-applicable" class="voucher-list"></div>
+                </section>
+
+                <section id="voucher-section-non-applicable" class="voucher-section" style="display:none">
+                    <h3 class="voucher-section__title">
+                        <span class="voucher-section__dot" style="background:#9ca3af"></span>
+                        Mã không thể áp dụng
+                    </h3>
+                    <div id="voucher-list-non-applicable" class="voucher-list"></div>
+                </section>
+            </div>
+
+            <div class="voucher-modal__footer">
+                <button type="button" id="voucher-modal-apply" class="voucher-modal__apply-btn" disabled>
+                    Áp dụng
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         VOUCHER MODAL STYLES
+         ═══════════════════════════════════════════════════════════════ --}}
+    <style>
+    /* ═══════════════════════════════════════════════════════════════
+       VOUCHER TRIGGER (the "Chọn mã giảm giá" button in order summary)
+       ═══════════════════════════════════════════════════════════════ */
+    .voucher-trigger {
+        width: 100%;
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 14px;
+        background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 100%);
+        border: 1.5px dashed #f97316;
+        border-radius: 10px;
+        cursor: pointer;
+        text-align: left;
+        transition: transform .12s ease, box-shadow .18s ease, border-color .15s;
+        position: relative;
+    }
+    .voucher-trigger:hover {
+        border-color: #ea580c;
+        box-shadow: 0 6px 16px rgba(249, 115, 22, .18);
+        transform: translateY(-1px);
+    }
+    .voucher-trigger:active { transform: translateY(0); }
+    .voucher-trigger__icon {
+        flex-shrink: 0;
+        color: #ea580c;
+        font-size: 26px;
+        background: #fff;
+        border-radius: 50%;
+        padding: 6px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .voucher-trigger__main {
+        flex: 1; min-width: 0;
+        display: flex; flex-direction: column; gap: 2px;
+    }
+    .voucher-trigger__title {
+        font-size: 14px; font-weight: 700; color: #9a3412;
+    }
+    .voucher-trigger__sub {
+        font-size: 12px; color: #b45309;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .voucher-trigger__count {
+        flex-shrink: 0;
+        background: #ef4444;
+        color: #fff;
+        font-size: 11px; font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 999px;
+        letter-spacing: .2px;
+    }
+    .voucher-trigger__chevron {
+        flex-shrink: 0;
+        color: #ea580c;
+        font-size: 22px;
+        transition: transform .15s ease;
+    }
+    .voucher-trigger:hover .voucher-trigger__chevron { transform: translateX(3px); }
+
+    .voucher-modal {
+        position: fixed; inset: 0;
+        background: rgba(15, 23, 42, .55);
+        display: none;
+        align-items: center; justify-content: center;
+        z-index: 10000;
+        padding: 20px;
+        animation: voucherFadeIn .2s ease;
+    }
+    .voucher-modal.is-open { display: flex; }
+    @keyframes voucherFadeIn {
+        from { opacity: 0; } to { opacity: 1; }
+    }
+    .voucher-modal__panel {
+        background: #fff;
+        width: min(520px, 100%);
+        max-height: 90vh;
+        border-radius: 14px;
+        display: flex; flex-direction: column;
+        box-shadow: 0 25px 60px rgba(0,0,0,.25);
+        overflow: hidden;
+        animation: voucherSlideUp .25s ease;
+    }
+    @keyframes voucherSlideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    /* Header */
+    .voucher-modal__header {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 18px 20px 12px;
+        border-bottom: 1px solid #f0f0f2;
+    }
+    .voucher-modal__title {
+        margin: 0;
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 1.15rem; font-weight: 800; color: #111827;
+    }
+    .voucher-modal__subtitle {
+        margin: 4px 0 0; font-size: .82rem; color: #6b7280;
+    }
+    .voucher-modal__close {
+        background: none; border: none; cursor: pointer;
+        padding: 4px; border-radius: 6px; color: #6b7280;
+    }
+    .voucher-modal__close:hover { background: #f3f4f6; color: #111827; }
+
+    /* Search */
+    .voucher-modal__search {
+        position: relative;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f0f0f2;
+    }
+    .voucher-modal__search .material-icons {
+        position: absolute;
+        left: 30px; top: 50%;
+        transform: translateY(-50%);
+        color: #9ca3af; font-size: 20px;
+    }
+    .voucher-modal__search input {
+        width: 100%;
+        padding: 9px 12px 9px 38px;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        font-size: .88rem;
+        background: #f9fafb;
+        outline: none;
+        transition: border-color .15s, background .15s;
+    }
+    .voucher-modal__search input:focus {
+        border-color: #dc2626; background: #fff;
+    }
+
+    /* Body */
+    .voucher-modal__body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 10px 20px 20px;
+    }
+    .voucher-loading, .voucher-empty {
+        padding: 30px 0;
+        text-align: center;
+        color: #9ca3af;
+        font-size: .9rem;
+    }
+    .voucher-section { margin-top: 14px; }
+    .voucher-section__title {
+        margin: 0 0 10px;
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: .8rem; font-weight: 700;
+        color: #374151;
+        text-transform: uppercase; letter-spacing: .5px;
+    }
+    .voucher-section__dot {
+        width: 8px; height: 8px; border-radius: 50%;
+    }
+    .voucher-list { display: flex; flex-direction: column; gap: 12px; }
+
+    /* Voucher card */
+    .voucher-card {
+        display: flex; align-items: stretch;
+        background: #fff;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color .15s, box-shadow .15s, transform .1s;
+        position: relative;
+    }
+    .voucher-card:hover:not(.is-disabled) {
+        border-color: #dc2626;
+        box-shadow: 0 6px 18px rgba(220,38,38,.12);
+    }
+    .voucher-card.is-selected {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220,38,38,.15);
+    }
+    .voucher-card.is-disabled {
+        cursor: not-allowed;
+        opacity: .62;
+        filter: grayscale(.35);
+    }
+    .voucher-left {
+        flex: 0 0 96px;
+        background: linear-gradient(135deg, #dc2626, #b91c1c);
+        color: #fff;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 12px 6px;
+        position: relative;
+    }
+    .voucher-left::after {
+        /* zig-zag divider dotted line */
+        content: "";
+        position: absolute;
+        right: -6px; top: 0; bottom: 0;
+        width: 12px;
+        background:
+            radial-gradient(circle at 6px 6px, #fff 5px, transparent 5.5px) 0 0/12px 12px repeat-y;
+    }
+    .voucher-big {
+        font-size: 1.35rem; font-weight: 800;
+        line-height: 1.1; letter-spacing: .5px;
+        text-align: center;
+    }
+    .voucher-small {
+        font-size: .62rem; font-weight: 700;
+        letter-spacing: 1.5px;
+        margin-top: 3px;
+        opacity: .95;
+    }
+    .voucher-body {
+        flex: 1;
+        padding: 12px 40px 12px 18px;
+        display: flex; flex-direction: column;
+        gap: 3px;
+        min-width: 0;
+    }
+    .voucher-title {
+        font-size: .95rem; font-weight: 700; color: #111827;
+    }
+    .voucher-code {
+        font-size: .78rem; color: #6b7280;
+    }
+    .voucher-code strong {
+        color: #dc2626;
+        letter-spacing: .5px;
+    }
+    .voucher-conds {
+        margin-top: 3px;
+    }
+    .voucher-cond {
+        font-size: .76rem; color: #6b7280; line-height: 1.4;
+    }
+    .voucher-usage {
+        margin-top: 6px;
+        height: 4px;
+        background: #f3f4f6;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+    .voucher-usage-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #fca5a5, #dc2626);
+        border-radius: 999px;
+        transition: width .3s;
+    }
+    .voucher-usage-text {
+        font-size: .72rem; color: #9ca3af;
+        margin-top: 2px;
+    }
+    .voucher-expiry {
+        margin-top: 4px;
+        font-size: .74rem;
+        color: #9ca3af;
+        font-weight: 500;
+    }
+    .voucher-reason {
+        margin-top: 6px;
+        padding: 4px 8px;
+        background: #fef2f2;
+        color: #b91c1c;
+        font-size: .72rem; font-weight: 600;
+        border-radius: 6px;
+        display: inline-block;
+        align-self: flex-start;
+    }
+    .voucher-best-badge {
+        position: absolute;
+        top: 10px; right: 42px;
+        background: linear-gradient(90deg, #f59e0b, #d97706);
+        color: #fff;
+        padding: 3px 9px;
+        font-size: .65rem;
+        font-weight: 800;
+        letter-spacing: .3px;
+        border-radius: 999px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 4px rgba(0,0,0,.12);
+    }
+    .voucher-radio {
+        position: absolute;
+        right: 14px; top: 50%;
+        transform: translateY(-50%);
+        width: 20px; height: 20px;
+        border-radius: 50%;
+        border: 2px solid #d1d5db;
+        background: #fff;
+        transition: border-color .15s, background .15s;
+        flex-shrink: 0;
+    }
+    .voucher-card.is-selected .voucher-radio {
+        border-color: #dc2626;
+        background: #dc2626;
+        box-shadow: inset 0 0 0 3px #fff;
+    }
+
+    /* Footer */
+    .voucher-modal__footer {
+        padding: 14px 20px;
+        border-top: 1px solid #f0f0f2;
+        background: #fff;
+    }
+    .voucher-modal__apply-btn {
+        width: 100%;
+        padding: 12px 20px;
+        background: linear-gradient(90deg, #16a34a, #15803d);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: .95rem; font-weight: 700;
+        cursor: pointer;
+        transition: opacity .15s, transform .1s, box-shadow .15s;
+    }
+    .voucher-modal__apply-btn:not(:disabled):hover {
+        box-shadow: 0 6px 16px rgba(22,163,74,.3);
+    }
+    .voucher-modal__apply-btn:not(:disabled):active { transform: scale(.98); }
+    .voucher-modal__apply-btn:disabled {
+        background: #9ca3af;
+        cursor: not-allowed;
+        opacity: .75;
+    }
+
+    /* Mobile */
+    @media (max-width: 520px) {
+        .voucher-modal { padding: 0; }
+        .voucher-modal__panel {
+            width: 100%; height: 100vh; max-height: 100vh;
+            border-radius: 0;
+        }
+    }
+    </style>
 @endsection

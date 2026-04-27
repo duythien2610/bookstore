@@ -21,14 +21,6 @@
         </div>
     </div>
 
-    <div class="admin-navbar__center">
-        <label class="admin-navbar__search">
-            <span class="material-icons">search</span>
-            <input type="text" placeholder="Tìm sách, đơn hàng, khách hàng..." aria-label="Tìm kiếm">
-            <kbd>Ctrl&nbsp;+&nbsp;K</kbd>
-        </label>
-    </div>
-
     <div class="admin-navbar__right">
         <a href="{{ url('/') }}" class="admin-navbar__icon-btn" title="Xem cửa hàng">
             <span class="material-icons">storefront</span>

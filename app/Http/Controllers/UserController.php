@@ -29,8 +29,13 @@ class UserController extends Controller
             ->with(['chiTiets.sach'])
             ->orderByDesc('created_at')
             ->paginate(10);
-            
-        return view('pages.orders', compact('user', 'orders'));
+
+        // IDs sách mà user đã đánh giá (để biết nút nào disabled)
+        $reviewedSachIds = \App\Models\DanhGia::where('user_id', $user->id)
+            ->pluck('sach_id')
+            ->toArray();
+
+        return view('pages.orders', compact('user', 'orders', 'reviewedSachIds'));
     }
 
     /**

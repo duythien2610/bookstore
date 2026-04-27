@@ -21,46 +21,134 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
 
     <style>
-        /* CSS cho Toast Notification */
+        /* ═══════════════════════════════════════════════════════════
+           TOAST NOTIFICATION
+           ─── Fixed to top-right corner as requested
+           ═══════════════════════════════════════════════════════════ */
         #toast-container {
             position: fixed;
-            bottom: 30px;
-            left: 30px;
+            top: 80px;
+            right: 30px;
             z-index: 9999;
             display: flex;
-            flex-direction: column-reverse;
+            flex-direction: column;
             gap: 10px;
+            pointer-events: none;
         }
         .v-toast {
-            min-width: 250px;
-            background-color: var(--color-white);
-            color: var(--color-text);
-            padding: 15px 20px;
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            border-left: 4px solid var(--color-primary);
+            pointer-events: auto;
+            min-width: 260px;
+            max-width: 380px;
+            background-color: #ffffff;
+            color: #1f2937;
+            padding: 14px 18px;
+            border-radius: 10px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, .16), 0 2px 6px rgba(0, 0, 0, .06);
+            border-left: 4px solid #16a34a;
             display: flex;
             align-items: center;
             gap: 10px;
-            transform: translateX(-120%);
+            transform: translateX(120%);
             transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease;
             opacity: 0;
-            font-size: var(--font-size-sm);
+            font-size: 14px;
             font-weight: 500;
+            line-height: 1.35;
         }
         .v-toast.show {
             transform: translateX(0);
             opacity: 1;
         }
         .v-toast.error {
-            border-left-color: var(--color-danger);
+            border-left-color: #dc2626;
         }
         .v-toast-icon {
-            font-size: 20px;
-            color: var(--color-primary);
+            font-size: 22px;
+            color: #16a34a;
+            flex-shrink: 0;
         }
         .v-toast.error .v-toast-icon {
-            color: var(--color-danger);
+            color: #dc2626;
+        }
+        @media (max-width: 480px) {
+            #toast-container {
+                top: 70px; right: 12px; left: 12px;
+            }
+            .v-toast { min-width: 0; width: 100%; }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           ADD-TO-CART ANIMATIONS
+           ─── Flying image arcs from product card to cart icon,
+               cart icon bumps on arrival, and badge pops in scale.
+           ═══════════════════════════════════════════════════════════════ */
+
+        /* Cloned image that flies toward cart.
+           position is set inline via JS; transforms are handled by WAAPI. */
+        .fly-to-cart-img {
+            position: fixed;
+            z-index: 10000;
+            pointer-events: none;
+            border-radius: 10px;
+            box-shadow: 0 14px 40px rgba(220, 38, 38, 0.35), 0 4px 12px rgba(0,0,0,0.18);
+            object-fit: cover;
+            will-change: transform, opacity;
+            transform-origin: center center;
+        }
+
+        /* Soft shockwave ring that emanates from the flying item when it lands. */
+        .cart-land-ring {
+            position: fixed;
+            z-index: 9998;
+            pointer-events: none;
+            border-radius: 50%;
+            border: 2px solid rgba(220, 38, 38, 0.55);
+            transform: translate(-50%, -50%) scale(0.2);
+            opacity: 0.9;
+            will-change: transform, opacity;
+        }
+
+        /* Cart icon "bump" — a quick squash + rotate + settle wobble. */
+        @keyframes cartBump {
+            0%   { transform: translateY(0)      rotate(0)   scale(1); }
+            25%  { transform: translateY(-5px)   rotate(-8deg) scale(1.15); }
+            45%  { transform: translateY(0)      rotate(6deg)  scale(0.92); }
+            65%  { transform: translateY(-2px)   rotate(-3deg) scale(1.05); }
+            100% { transform: translateY(0)      rotate(0)   scale(1); }
+        }
+        #btn-cart.cart-bump .material-icons {
+            display: inline-block;
+            animation: cartBump 0.65s cubic-bezier(.36,.07,.19,.97) both;
+            color: var(--color-primary, #dc2626);
+        }
+
+        /* Badge number pop — scale up with bounce, tinted brighter. */
+        @keyframes badgePop {
+            0%   { transform: scale(1);   box-shadow: 0 0 0 0 rgba(220,38,38,0.6); }
+            30%  { transform: scale(1.65); box-shadow: 0 0 0 8px rgba(220,38,38,0); }
+            60%  { transform: scale(0.9); }
+            100% { transform: scale(1);   box-shadow: 0 0 0 0 rgba(220,38,38,0); }
+        }
+        #cart-badge.badge-pop {
+            animation: badgePop 0.55s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        /* Small glow pulse on the clicked add-to-cart button while request flies. */
+        @keyframes atcBtnPulse {
+            0%   { box-shadow: 0 0 0 0   rgba(220,38,38,0.55); }
+            100% { box-shadow: 0 0 0 14px rgba(220,38,38,0); }
+        }
+        .atc-btn-pulse {
+            animation: atcBtnPulse 0.6s ease-out both;
+        }
+
+        /* Respect users who prefer reduced motion. */
+        @media (prefers-reduced-motion: reduce) {
+            .fly-to-cart-img,
+            .cart-land-ring { display: none !important; }
+            #btn-cart.cart-bump .material-icons,
+            #cart-badge.badge-pop,
+            .atc-btn-pulse { animation: none !important; }
         }
     </style>
 
@@ -91,9 +179,11 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // function hiển thị toast
+            // function hiển thị toast thủ công trên góc trái/phải
             window.showToast = function(message, type = 'success') {
                 const container = document.getElementById('toast-container');
+                if (!container) return;
+                
                 const toast = document.createElement('div');
                 toast.className = `v-toast ${type}`;
                 const iconName = type === 'success' ? 'check_circle' : 'error';
@@ -101,88 +191,211 @@
                 toast.innerHTML = `<span class="material-icons v-toast-icon">${iconName}</span> <span>${message}</span>`;
                 container.appendChild(toast);
                 
-                // Kích hoạt animation
                 setTimeout(() => { toast.classList.add('show'); }, 10);
-                
-                // Tự động ẩn sau 3s
                 setTimeout(() => {
                     toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 400); // Đợi animation trượt ra ngoài
+                    setTimeout(() => toast.remove(), 400); 
                 }, 3000);
             };
 
-            // Lắng nghe tất cả các form ajax-cart-form
-            document.querySelectorAll('.ajax-cart-form').forEach(form => {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    
-                    const formData = new FormData(this);
-                    const url = this.getAttribute('action');
-                    
-                    // Thêm class loading nếu cần thiết (ví dụ vào nút submit)
-                    const btn = this.querySelector('button[type="submit"]');
-                    if(btn) {
-                        btn.style.opacity = '0.7';
-                        btn.style.pointerEvents = 'none';
+            /* ═══════════════════════════════════════════════════════════
+               SESSION FLASH → TOAST
+               ─── Fires when a controller returns back()->with('success',...)
+                   or ->with('error',...). Covers the non-AJAX add-to-cart
+                   path (e.g. CartController@store when JS is disabled or
+                   the request is redirected).
+               ═══════════════════════════════════════════════════════════ */
+            @if (session('success'))
+                window.showToast(@json(session('success')), 'success');
+            @endif
+            @if (session('error'))
+                window.showToast(@json(session('error')), 'error');
+            @endif
+
+            /* ═══════════════════════════════════════════════════════════
+               FLY-TO-CART ANIMATION HELPERS
+               ─── Clones the product image, animates it in an arc to the
+                   cart icon, then bumps the cart + pops the badge.
+               ═══════════════════════════════════════════════════════════ */
+
+            // Resolve the "product image" element to clone for the flight.
+            // Falls back gracefully: button → closest .card / .product / form → first <img>.
+            function findSourceImage(formEl) {
+                if (!formEl) return null;
+                const scope =
+                    formEl.closest('.card') ||
+                    formEl.closest('.product-card') ||
+                    formEl.closest('.product-gallery') ||
+                    formEl.closest('.product-detail') ||
+                    formEl.closest('article') ||
+                    formEl.parentElement;
+                if (!scope) return null;
+                return scope.querySelector('img.card-img, .product-gallery img, img');
+            }
+
+            // Animate a cloned <img> from `srcImg` to the cart icon (`#btn-cart`).
+            // Uses WAAPI with a 3-keyframe arc so it's smooth on all devices.
+            window.flyToCart = function (srcImg) {
+                const cartBtn = document.getElementById('btn-cart');
+                if (!srcImg || !cartBtn) return Promise.resolve();
+                if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return Promise.resolve();
+
+                const srcRect  = srcImg.getBoundingClientRect();
+                const destRect = cartBtn.getBoundingClientRect();
+                if (srcRect.width === 0 || destRect.width === 0) return Promise.resolve();
+
+                // Cap the flying image to a reasonable size (some card images are huge).
+                const MAX = 140;
+                const scaleDown = Math.min(1, MAX / Math.max(srcRect.width, srcRect.height));
+                const w = srcRect.width  * scaleDown;
+                const h = srcRect.height * scaleDown;
+
+                const clone = document.createElement('img');
+                clone.src = srcImg.currentSrc || srcImg.src;
+                clone.className = 'fly-to-cart-img';
+                clone.style.left   = (srcRect.left + (srcRect.width  - w) / 2) + 'px';
+                clone.style.top    = (srcRect.top  + (srcRect.height - h) / 2) + 'px';
+                clone.style.width  = w + 'px';
+                clone.style.height = h + 'px';
+                document.body.appendChild(clone);
+
+                // Compute start → apex → end offsets.  Apex is raised by ~30% of
+                // vertical distance for a pleasant arc.
+                const startX = 0, startY = 0;
+                const endX   = (destRect.left + destRect.width  / 2) - (srcRect.left + srcRect.width  / 2);
+                const endY   = (destRect.top  + destRect.height / 2) - (srcRect.top  + srcRect.height / 2);
+                const midX   = endX * 0.5;
+                const midY   = endY * 0.5 - Math.max(80, Math.abs(endY) * 0.35);
+
+                const anim = clone.animate([
+                    { transform: `translate3d(${startX}px, ${startY}px, 0) scale(1)      rotate(0deg)`,   opacity: 1,   offset: 0    },
+                    { transform: `translate3d(${midX}px,   ${midY}px,   0) scale(0.65)  rotate(180deg)`, opacity: 0.95, offset: 0.55 },
+                    { transform: `translate3d(${endX}px,   ${endY}px,   0) scale(0.15)  rotate(360deg)`, opacity: 0.2,  offset: 1    }
+                ], {
+                    duration: 850,
+                    easing: 'cubic-bezier(.32, .22, .32, 1)',
+                    fill: 'forwards'
+                });
+
+                return new Promise(resolve => {
+                    anim.onfinish = () => {
+                        // Shockwave ring at landing point.
+                        const ring = document.createElement('div');
+                        ring.className = 'cart-land-ring';
+                        ring.style.left = (destRect.left + destRect.width  / 2) + 'px';
+                        ring.style.top  = (destRect.top  + destRect.height / 2) + 'px';
+                        ring.style.width  = '40px';
+                        ring.style.height = '40px';
+                        document.body.appendChild(ring);
+                        ring.animate([
+                            { transform: 'translate(-50%, -50%) scale(0.2)', opacity: 0.9 },
+                            { transform: 'translate(-50%, -50%) scale(2.4)', opacity: 0   }
+                        ], { duration: 600, easing: 'ease-out', fill: 'forwards' })
+                        .onfinish = () => ring.remove();
+
+                        clone.remove();
+                        resolve();
+                    };
+                });
+            };
+
+            // Play cart bump + badge pop. Restartable (clears the class first).
+            window.bumpCart = function () {
+                const cartBtn   = document.getElementById('btn-cart');
+                const cartBadge = document.getElementById('cart-badge');
+                if (cartBtn) {
+                    cartBtn.classList.remove('cart-bump');
+                    void cartBtn.offsetWidth; // reflow — restart animation
+                    cartBtn.classList.add('cart-bump');
+                    setTimeout(() => cartBtn.classList.remove('cart-bump'), 700);
+                }
+                if (cartBadge) {
+                    cartBadge.classList.remove('badge-pop');
+                    void cartBadge.offsetWidth;
+                    cartBadge.classList.add('badge-pop');
+                    setTimeout(() => cartBadge.classList.remove('badge-pop'), 600);
+                }
+            };
+
+            /* ═══════════════════════════════════════════════════════════
+               AJAX ADD-TO-CART HANDLER — event delegation so it works
+               with cards injected dynamically (pagination, filters...).
+               ═══════════════════════════════════════════════════════════ */
+            document.addEventListener('submit', function (e) {
+                const form = e.target.closest('.ajax-cart-form');
+                if (!form) return;
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const url = form.getAttribute('action');
+                const btn = form.querySelector('button[type="submit"]');
+                const srcImg = findSourceImage(form);
+
+                // Kick off the flight IMMEDIATELY (parallel with fetch) for snappy feel.
+                if (srcImg) flyToCart(srcImg);
+                if (btn) {
+                    btn.classList.remove('atc-btn-pulse');
+                    void btn.offsetWidth;
+                    btn.classList.add('atc-btn-pulse');
+                    btn.style.opacity = '0.7';
+                    btn.style.pointerEvents = 'none';
+                }
+
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(async response => {
+                    const data = await response.json().catch(() => null);
+                    if (!response.ok) {
+                        if (response.status === 419 || response.status === 401) {
+                            throw new Error(data?.message || 'Hết phiên làm việc (10 phút). Vui lòng đăng nhập lại!');
+                        }
+                        throw new Error(data?.message || 'Mạng bị lỗi hoặc sản phẩm không tồn tại.');
+                    }
+                    return data;
+                })
+                .then(data => {
+                    if (btn) {
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = 'auto';
                     }
 
-                    fetch(url, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json' // Quan trọng: Báo cho Laravel trả về JSON
-                        }
-                    })
-                    .then(async response => {
-                        const data = await response.json().catch(() => null);
-                        if (!response.ok) {
-                            if (response.status === 419 || response.status === 401) {
-                                throw new Error(data?.message || 'Hết phiên làm việc (10 phút). Vui lòng đăng nhập lại!');
-                            }
-                            throw new Error(data?.message || 'Mạng bị lỗi hoặc sản phẩm không tồn tại.');
-                        }
-                        return data;
-                    })
-                    .then(data => {
-                        if(btn) {
-                            btn.style.opacity = '1';
-                            btn.style.pointerEvents = 'auto';
-                        }
-
-                        if (data && data.success) {
-                            // Cập nhật số lượng giỏ hàng trên header
-                            const cartBadge = document.getElementById('cart-badge');
+                    if (data && data.success) {
+                        // Sync badge with server count, and schedule the bump so it
+                        // plays right as the flying image arrives at the cart icon.
+                        const cartBadge = document.getElementById('cart-badge');
+                        const applyBump = () => {
                             if (cartBadge) {
                                 cartBadge.textContent = data.cart_count;
                                 cartBadge.style.display = data.cart_count > 0 ? 'flex' : 'none';
-                                
-                                // Hiệu ứng giật nhẹ (pulse)
-                                cartBadge.style.transition = 'transform 0.2s';
-                                cartBadge.style.transform = 'scale(1.5)';
-                                setTimeout(() => { cartBadge.style.transform = 'scale(1)'; }, 200);
                             }
-                            // Hiện thông báo
-                            showToast(data.message, 'success');
-                        } else {
-                            showToast(data?.message || 'Lỗi thêm giỏ hàng!', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Lỗi khi thao tác:', error);
-                        if(btn) {
-                            btn.style.opacity = '1';
-                            btn.style.pointerEvents = 'auto';
-                        }
-                        showToast(error.message || 'Có lỗi xảy ra, vui lòng thử lại!', 'error');
+                            bumpCart();
+                        };
+                        // 850ms = flight duration. If request finished earlier we
+                        // wait for the flight; if it's already done, bump immediately.
+                        setTimeout(applyBump, srcImg ? 800 : 0);
 
-                        // Nếu là lỗi session, tuỳ chọn chuyển trang (setTimeout 1s ròi reload)
-                        if (error.message.includes('Hết phiên làm việc') || error.message.includes('đăng nhập lại')) {
-                            setTimeout(() => {
-                                window.location.href = '/login';
-                            }, 1500);
-                        }
-                    });
+                        showToast(data.message, 'success');
+                    } else {
+                        showToast(data?.message || 'Lỗi thêm giỏ hàng!', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi thao tác:', error);
+                    if (btn) {
+                        btn.style.opacity = '1';
+                        btn.style.pointerEvents = 'auto';
+                    }
+                    showToast(error.message || 'Có lỗi xảy ra, vui lòng thử lại!', 'error');
+
+                    if (error.message.includes('Hết phiên làm việc') || error.message.includes('đăng nhập lại')) {
+                        setTimeout(() => { window.location.href = '/login'; }, 1500);
+                    }
                 });
             });
         });
@@ -450,6 +663,7 @@
     })();
     </script>
 
+    @stack('modals')
     @stack('scripts')
 </body>
 </html>

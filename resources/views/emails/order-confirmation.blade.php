@@ -75,7 +75,7 @@
 
             <div style="text-align: center;">
                 <p>Bạn có thể theo dõi trạng thái đơn hàng của mình bất cứ lúc nào tại website của chúng tôi.</p>
-                <a href="{{ route('order.tracking', ['order_id' => $donHang->id]) }}" class="btn">Theo dõi đơn hàng</a>
+                <a href="{{ route('order.tracking', ['id' => $donHang->id]) }}" class="btn">Theo dõi đơn hàng</a>
             </div>
         </div>
 

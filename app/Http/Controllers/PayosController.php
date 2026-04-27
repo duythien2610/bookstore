@@ -45,6 +45,12 @@ class PayosController extends Controller
                         'trang_thai_tt' => 'da_thanh_toan',
                         'trang_thai'    => 'cho_xac_nhan',
                     ]);
+                    
+                    try {
+                        \App\Jobs\SendOrderConfirmationEmail::dispatch($donHang);
+                    } catch (\Exception $e) {
+                         Log::error('Lỗi khi gửi email xác nhận PayOS: ' . $e->getMessage());
+                    }
                 }
                 return redirect()->route('order.success', ['order_id' => $donHang->id])
                     ->with('success', 'Thanh toán PayOS thành công!');
@@ -96,6 +102,12 @@ class PayosController extends Controller
                     'trang_thai_tt' => 'da_thanh_toan',
                     'trang_thai'    => 'cho_xac_nhan',
                 ]);
+                
+                try {
+                    \App\Jobs\SendOrderConfirmationEmail::dispatch($donHang);
+                } catch (\Exception $e) {
+                     Log::error('Lỗi khi gửi email qua Webhook PayOS: ' . $e->getMessage());
+                }
             }
 
             return response()->json(['success' => true, 'message' => 'Ok', 'code' => '00']);

@@ -68,7 +68,9 @@ class CheckoutController extends Controller
         
         // Nếu chưa có sổ địa chỉ nhưng có địa chỉ trong thông tin User thì tách ra
         if (!$defaultAddress && $user && $user->dia_chi) {
-            $parts = array_map('trim', explode(',', $user->dia_chi));
+            // UserController lưu địa chỉ theo chuẩn "tenDuong|xa|huyen|tinh" hoặc dùng dấu phẩy. Ta phân dải ưu tiên dấu '|' trước.
+            $delimiter = str_contains($user->dia_chi, '|') ? '|' : ',';
+            $parts = array_map('trim', explode($delimiter, $user->dia_chi));
             $count = count($parts);
             
             $defaultAddress = new \stdClass();
@@ -76,6 +78,7 @@ class CheckoutController extends Controller
                 $defaultAddress->tinh_thanh_pho = $parts[$count - 1];
                 $defaultAddress->quan_huyen     = $parts[$count - 2];
                 $defaultAddress->phuong_xa      = $parts[$count - 3];
+                // Lấy phần đầu làm tên đường, nếu có (chỗ này có thể trống nếu tenDuong để trống, lúc này count vẫn là 4 nếu có 3 dấu |)
                 $defaultAddress->dia_chi        = $count > 3 ? implode(', ', array_slice($parts, 0, $count - 3)) : '';
             } else {
                 $defaultAddress->tinh_thanh_pho = '';
@@ -277,11 +280,14 @@ class CheckoutController extends Controller
             $gioHang->trang_thai = 'completed';
             $gioHang->save();
 
-            // Gửi email xác nhận (Queue)
-            try {
-                SendOrderConfirmationEmail::dispatch($donHang);
-            } catch (\Exception $e) {
-                Log::error('Lỗi khi gửi email xác nhận: ' . $e->getMessage());
+            // Gửi email xác nhận (Queue) NẾU LÀ THANH TOÁN COD.
+            // (Thanh toán PAYOS sẽ chờ Webhook xác nhận thanh toán rồi mới gửi email)
+            if ($request->phuong_thuc_tt !== 'payos') {
+                try {
+                    SendOrderConfirmationEmail::dispatch($donHang);
+                } catch (\Exception $e) {
+                    Log::error('Lỗi khi gửi email xác nhận: ' . $e->getMessage());
+                }
             }
 
             // Xóa session discount
@@ -323,6 +329,7 @@ class CheckoutController extends Controller
                         'cancelUrl'   => route('payos.return') . '?status=cancel',
                         'buyerName'   => $request->ho_ten,
                         'buyerPhone'  => $request->so_dien_thoai,
+                        'expiredAt'   => time() + (15 * 60) // Giới hạn link casso hết hạn sau 15 phút
                     ];
 
                     Log::info('PayOS createPaymentLink request', $paymentData);

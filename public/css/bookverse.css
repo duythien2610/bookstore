@@ -6025,3 +6025,409 @@ body:has(.admin-wrapper) .maple-leaves,
         display: none;
     }
 }
+
+/* ============================================================
+   REVIEW SECTION — danh-gia / đánh giá
+   ============================================================ */
+
+/* ── 2-column layout: summary (left) + list/form (right) ── */
+.review-layout {
+    display: flex;
+    gap: var(--space-8);
+    align-items: flex-start;
+}
+
+/* ── Left: rating summary box ── */
+.review-summary-box {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--color-bg-alt);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    text-align: center;
+}
+
+.review-score {
+    font-size: 52px;
+    font-weight: var(--font-bold);
+    color: var(--color-text);
+    line-height: 1;
+    margin-bottom: var(--space-2);
+    font-family: var(--font-display), serif;
+}
+
+.review-stars-big {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+
+/* ── Review form card ── */
+.review-form-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    margin-bottom: var(--space-6);
+}
+
+/* ── Individual review card ── */
+.review-card {
+    background: var(--color-white);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-xl);
+    padding: var(--space-5) var(--space-6);
+    transition: box-shadow 0.2s;
+}
+.review-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.review-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-3);
+}
+
+/* ── Author info ── */
+.author-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.author-avatar {
+    border-radius: 50%;
+    background: var(--color-primary);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-bold);
+    flex-shrink: 0;
+}
+
+.author-name {
+    font-weight: var(--font-semibold);
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+}
+
+.author-role {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+
+/* ── Star picker ── */
+.star-picker {
+    display: flex;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.star-pick {
+    font-size: 30px !important;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.12s, transform 0.1s;
+    user-select: none;
+}
+
+.star-pick:hover {
+    transform: scale(1.2);
+}
+
+/* ── Image upload area (review form) ── */
+.review-img-upload-area {
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-6);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, color 0.2s;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+.review-img-upload-area:hover {
+    border-color: var(--color-primary);
+    background: #fff8f8;
+    color: var(--color-primary);
+}
+.review-img-upload-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    pointer-events: none;
+}
+
+/* ── Image preview grid (before submit) ── */
+.review-img-preview-grid {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    flex-wrap: wrap;
+}
+.review-img-preview-item {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+}
+.review-img-preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.review-img-preview-remove {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.15s;
+}
+.review-img-preview-remove:hover {
+    background: var(--color-danger);
+}
+
+/* ── Uploaded review image gallery (inside review cards) ── */
+.review-img-gallery {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    flex-wrap: wrap;
+}
+.review-img-thumb {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    cursor: zoom-in;
+    border: 1px solid var(--color-border-light);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.review-img-thumb:hover {
+    transform: scale(1.06);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* ── Lightbox ── */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.88);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    animation: lbFadeIn 0.18s ease;
+    padding: var(--space-4);
+}
+.lightbox-overlay img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
+    cursor: default;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.55);
+}
+.lightbox-close {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    z-index: 10001;
+}
+.lightbox-close:hover {
+    background: rgba(255,255,255,0.28);
+}
+@keyframes lbFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ── Review Modal (on Orders page) ── */
+.review-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.52);
+    z-index: 9998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    animation: lbFadeIn 0.18s ease;
+}
+.review-modal {
+    background: var(--color-white);
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.22);
+    position: relative;
+}
+.review-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-6);
+    gap: var(--space-3);
+}
+.review-modal-book {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+.review-modal-book img {
+    width: 48px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-light);
+    flex-shrink: 0;
+}
+.review-modal-book-title {
+    font-weight: var(--font-semibold);
+    font-size: var(--font-size-base);
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.review-modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    padding: 6px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+.review-modal-close:hover {
+    background: var(--color-bg-alt);
+    color: var(--color-text);
+}
+
+/* ── Order item row (for da_giao product list) ── */
+.order-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+.order-item-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+.order-item-thumb {
+    width: 52px;
+    height: 68px;
+    flex-shrink: 0;
+    background: var(--color-bg-alt);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid var(--color-border-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.order-item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.order-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.order-item-title {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-text);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 2px;
+}
+.order-item-meta {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+}
+.btn-reviewed {
+    flex-shrink: 0;
+    background: var(--color-bg-alt);
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-light);
+    border-radius: var(--radius-md);
+    padding: 5px 10px;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-medium);
+    cursor: not-allowed;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    line-height: 1.5;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .review-layout {
+        flex-direction: column;
+    }
+    .review-summary-box {
+        width: 100%;
+    }
+    .review-modal {
+        padding: var(--space-6);
+        max-height: 95vh;
+    }
+    .order-item-row {
+        flex-wrap: wrap;
+    }
+    .btn-reviewed,
+    .order-item-row .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

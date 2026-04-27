@@ -336,9 +336,14 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to($user->email)->send(
-            new PasswordResetCodeMail($code, $user->ho_ten)
-        );
+        try {
+            Mail::to($user->email)->send(
+                new PasswordResetCodeMail($code, $user->ho_ten)
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Mail send failed: " . $e->getMessage());
+            return back()->withErrors(['email' => 'Hệ thống gửi mail đang lỗi, vui lòng thử lại sau.'])->withInput();
+        }
 
         // Lưu email vào session (Security Lớp 1)
         $request->session()->put('password_reset_email', $user->email);
@@ -506,9 +511,14 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to($email)->send(
-            new PasswordResetCodeMail($code, $user->ho_ten)
-        );
+        try {
+            Mail::to($email)->send(
+                new PasswordResetCodeMail($code, $user->ho_ten)
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Mail send failed: " . $e->getMessage());
+            return back()->with('resend_error', 'Hệ thống gửi mail đang lỗi, vui lòng thử lại sau.');
+        }
 
         return back()->with('resend_success', 'Mã mới đã được gửi đến email của bạn!');
     }
@@ -532,8 +542,12 @@ class AuthController extends Controller
             'updated_at' => now(),
         ]);
 
-        Mail::to($user->email)->send(
-            new VerificationCodeMail($code, $user->ho_ten)
-        );
+        try {
+            Mail::to($user->email)->send(
+                new VerificationCodeMail($code, $user->ho_ten)
+            );
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Mail send failed: " . $e->getMessage());
+        }
     }
 }

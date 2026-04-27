@@ -147,6 +147,7 @@
 .btn-approve { background: #16a34a; color: #fff; }
 .btn-reject  { background: #dc2626; color: #fff; }
 .btn-view    { background: #2563eb; color: #fff; }
+.btn-delete  { background: #111827; color: #fff; }
 
 /* ── Alert ── */
 .admin-alert {
@@ -307,6 +308,15 @@
                                 </button>
                             </form>
                         @endif
+
+                        {{-- Xoá bài viết (mọi trạng thái) --}}
+                        <form action="{{ route('admin.blogs.destroy', $post) }}" method="POST" style="margin:0"
+                              onsubmit="return confirm('Bạn có chắc muốn xoá VĨNH VIỄN bài viết &quot;{{ addslashes($post->title) }}&quot;?\n\nHành động này không thể hoàn tác!');">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="btn-sm btn-delete">
+                                <span class="material-icons" style="font-size:14px">delete</span> Xoá
+                            </button>
+                        </form>
                     </div>
                 </td>
             </tr>

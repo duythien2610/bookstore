@@ -10,9 +10,27 @@ use Carbon\Carbon;
 
 class CouponController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $coupons = MaGiamGia::orderByDesc('created_at')->get();
+        $query = MaGiamGia::orderByDesc('created_at');
+
+        // Lọc theo mã code (case-insensitive, partial match).
+        if ($request->filled('search')) {
+            $s = trim($request->search);
+            $query->where('ma_code', 'like', "%{$s}%");
+        }
+
+        $coupons = $query->get();
+
+        // AJAX: trả về fragment rows + count để JS swap vào tbody.
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'count'   => $coupons->count(),
+                'html'    => view('admin._partials.coupons_rows', compact('coupons'))->render(),
+            ]);
+        }
+
         return view('admin.coupons', compact('coupons'));
     }
 
@@ -190,11 +208,24 @@ class CouponController extends Controller
 
     // =========================================================================
     //  API: Lấy danh sách mã khả dụng cho khách hàng (AJAX)
+    //  Trả về 2 nhóm:
+    //    - applicable:     mã đang có thể áp dụng cho giỏ hiện tại
+    //    - non_applicable: mã không áp được (kèm lý do)
     // =========================================================================
     public function availableForCart()
     {
-        $now = Carbon::now();
-        $userId = Auth::id();
+        $now    = Carbon::now();
+        $user   = Auth::user();
+        $userId = $user?->id;
+
+        // Tổng tiền giỏ hàng hiện tại (để tính đơn tối thiểu)
+        $total = 0;
+        if ($userId) {
+            $gh = \App\Models\GioHang::where('user_id', $userId)
+                ->where('trang_thai', 'active')
+                ->first();
+            $total = $gh ? (float)$gh->chiTiets()->sum('thanh_tien') : 0;
+        }
 
         // Lấy tất cả mã còn hạn, còn lượt, đang kích hoạt
         $coupons = MaGiamGia::where('trang_thai', 1)
@@ -206,27 +237,117 @@ class CouponController extends Controller
                 $q->whereNull('so_luong')
                   ->orWhereRaw('da_dung < so_luong');
             })
+            ->orderByDesc('gia_tri')
             ->get();
 
-        // Lọc những mã user chưa dùng
-        $usedIds = DonHang::where('user_id', $userId)
-            ->where('trang_thai', '!=', 'huy')
-            ->whereNotNull('ma_giam_gia_id')
-            ->pluck('ma_giam_gia_id')
-            ->toArray();
+        // Các mã user đã từng dùng (chưa huỷ)
+        $usedIds = $userId
+            ? DonHang::where('user_id', $userId)
+                ->where('trang_thai', '!=', 'huy')
+                ->whereNotNull('ma_giam_gia_id')
+                ->pluck('ma_giam_gia_id')
+                ->toArray()
+            : [];
 
-        $available = $coupons->filter(fn($c) => !in_array($c->id, $usedIds))->values();
+        $mapped = $coupons->map(function ($c) use ($usedIds, $user, $total) {
+            $applicable = true;
+            $reason     = null;
 
-        return response()->json($available->map(function ($c) {
+            // 1) User đã dùng rồi
+            if (in_array($c->id, $usedIds)) {
+                $applicable = false;
+                $reason     = 'Bạn đã dùng mã này';
+            }
+            // 2) Yêu cầu tài khoản mới (<30 ngày)
+            elseif ($c->dieu_kien_tai_khoan === 'new') {
+                if (!$user) {
+                    $applicable = false;
+                    $reason     = 'Chỉ dành cho tài khoản mới';
+                } elseif ($user->created_at && $user->created_at->diffInDays(now()) > 30) {
+                    $applicable = false;
+                    $reason     = 'Chỉ dành cho tài khoản đăng ký < 30 ngày';
+                }
+            }
+            // 3) Yêu cầu tài khoản đã xác thực email
+            elseif ($c->dieu_kien_tai_khoan === 'verified') {
+                if (!$user || !$user->email_verified_at) {
+                    $applicable = false;
+                    $reason     = 'Yêu cầu email đã xác thực';
+                }
+            }
+
+            // 4) Đơn hàng tối thiểu
+            if ($applicable && $c->don_hang_toi_thieu && $total < (float)$c->don_hang_toi_thieu) {
+                $applicable = false;
+                $missing    = (float)$c->don_hang_toi_thieu - $total;
+                $reason     = 'Cần mua thêm ' . number_format($missing, 0, ',', '.') . 'đ';
+            }
+
+            // Tính giá trị giảm ước lượng (để sort)
+            $discount = $c->loai === 'percent'
+                ? (int)($total * $c->gia_tri / 100)
+                : (int)$c->gia_tri;
+            if ($total > 0) $discount = min($discount, (int)$total);
+
+            // Điều kiện để show dưới dạng list
+            $conditions = [];
+            if ($c->don_hang_toi_thieu) {
+                $conditions[] = 'Đơn tối thiểu ' . number_format((float)$c->don_hang_toi_thieu, 0, ',', '.') . 'đ';
+            } else {
+                $conditions[] = 'Không yêu cầu đơn tối thiểu';
+            }
+            if ($c->dieu_kien_tai_khoan === 'new')      $conditions[] = 'Dành cho tài khoản mới';
+            if ($c->dieu_kien_tai_khoan === 'verified') $conditions[] = 'Tài khoản đã xác thực email';
+            if ($c->pham_vi === 'category')             $conditions[] = 'Áp dụng theo thể loại';
+            if ($c->pham_vi === 'book')                 $conditions[] = 'Áp dụng cho sản phẩm cụ thể';
+
+            // % lượt đã dùng
+            $usagePct = ($c->so_luong && $c->so_luong > 0)
+                ? min(100, (int) round(($c->da_dung / $c->so_luong) * 100))
+                : 0;
+
+            // Hiển thị giá trị trên thẻ voucher đỏ bên trái
+            if ($c->loai === 'percent') {
+                $giaTriStr = rtrim(rtrim(number_format((float)$c->gia_tri, 2, '.', ''), '0'), '.');
+                $bigLabel  = $giaTriStr . '%';
+                $fullLabel = 'Giảm ' . $giaTriStr . '%';
+            } else {
+                $v = (float)$c->gia_tri;
+                $bigLabel  = $v >= 1000 ? number_format($v / 1000, 0, ',', '.') . 'K' : number_format($v, 0, ',', '.');
+                $fullLabel = 'Giảm ' . number_format($v, 0, ',', '.') . 'đ';
+            }
+
             return [
-                'ma_code'  => $c->ma_code,
-                'loai'     => $c->loai,
-                'gia_tri'  => $c->gia_tri,
-                'label'    => $c->loai === 'percent'
-                    ? 'Giảm ' . $c->gia_tri . '%'
-                    : 'Giảm ' . number_format($c->gia_tri, 0, ',', '.') . 'đ',
-                'het_han'  => $c->ngay_het_han ? $c->ngay_het_han->format('d/m/Y') : 'Vĩnh viễn',
+                'id'              => $c->id,
+                'ma_code'         => $c->ma_code,
+                'loai'            => $c->loai,
+                'gia_tri'         => $c->gia_tri,
+                'discount_amount' => $discount,
+                'big_label'       => $bigLabel,
+                'full_label'      => $fullLabel,
+                'het_han'         => $c->ngay_het_han ? $c->ngay_het_han->format('d/m/Y') : null,
+                'het_han_text'    => $c->ngay_het_han ? 'HSD: ' . $c->ngay_het_han->format('d/m/Y') : 'Không giới hạn',
+                'conditions'      => $conditions,
+                'usage_pct'       => $usagePct,
+                'applicable'      => $applicable,
+                'reason'          => $reason,
             ];
-        }));
+        });
+
+        $applicable    = $mapped->where('applicable', true)->sortByDesc('discount_amount')->values();
+        $nonApplicable = $mapped->where('applicable', false)->values();
+
+        // Gắn cờ "đề xuất tốt nhất" cho mã áp được có discount cao nhất
+        if ($applicable->count() > 0) {
+            $first = $applicable->first();
+            $first['is_best'] = true;
+            $applicable[0]    = $first;
+        }
+
+        return response()->json([
+            'applicable'     => $applicable,
+            'non_applicable' => $nonApplicable,
+            'cart_total'     => $total,
+        ]);
     }
 }

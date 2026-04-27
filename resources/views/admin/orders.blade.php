@@ -5,14 +5,19 @@
 @section('content')
     <div class="admin-topbar">
         <h1>Quản lý đơn hàng ({{ $tongTatCa }})</h1>
-        <form action="{{ route('admin.orders') }}" method="GET" style="display: flex; align-items: center; gap: var(--space-3);">
-            <div class="header-search" style="max-width: 250px;">
+        <form action="{{ route('admin.orders') }}" method="GET" class="js-admin-search-form" style="display: flex; align-items: center; gap: var(--space-3);">
+            <div class="header-search" style="max-width: 280px;">
                 <span class="material-icons search-icon">search</span>
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Mã đơn, tên, SĐT..." id="order-search">
+                <input type="text" name="search" value="{{ request('search') }}"
+                       placeholder="Mã đơn, tên khách, SĐT..." id="order-search" autocomplete="off">
+                <span class="js-admin-search-spinner" aria-hidden="true"></span>
+                <button type="button" class="js-admin-search-clear" aria-label="Xoá tìm kiếm" title="Xoá">
+                    <span class="material-icons">close</span>
+                </button>
             </div>
             <div style="display: flex; align-items: center; gap: var(--space-2);">
                 <span style="font-size: 13px; color: var(--color-text-muted);">Ngày:</span>
-                <input type="date" name="date" value="{{ request('date') }}" class="form-control" style="padding: 6px 10px; font-size: 13px; width: 140px; height: 40px; border-radius: 8px;">
+                <input type="date" name="date" value="{{ request('date') }}" class="form-control js-admin-search-extra" style="padding: 6px 10px; font-size: 13px; width: 140px; height: 40px; border-radius: 8px;">
             </div>
             <button type="submit" class="btn btn-primary btn-sm" style="height: 40px; padding: 0 20px;">Lọc</button>
             @if(request()->hasAny(['search', 'date', 'trang_thai']))
@@ -53,7 +58,8 @@
     </div>
 
     {{-- Orders Table --}}
-    <div class="table-wrapper" id="orders-table">
+    <div class="table-wrapper js-admin-search-target" id="orders-table"
+         data-endpoint="{{ route('admin.orders') }}" style="position: relative;">
         <table class="table">
             <thead>
                 <tr>
@@ -66,56 +72,13 @@
                     <th>Thao tác</th>
                 </tr>
             </thead>
-            <tbody>
-                @forelse($donHangs as $dh)
-                <tr>
-                    <td style="font-weight: var(--font-semibold);">#MB{{ str_pad($dh->id, 6, '0', STR_PAD_LEFT) }}</td>
-                    <td>
-                        <div style="font-weight: var(--font-medium);">{{ $dh->ho_ten ?? ($dh->user->ho_ten ?? 'Khách vãng lai') }}</div>
-                        <div style="font-size: var(--font-size-xs); color: var(--color-text-muted);">{{ $dh->so_dien_thoai }}</div>
-                    </td>
-                    <td style="color: var(--color-text-muted);">{{ $dh->created_at->format('d/m/Y H:i') }}</td>
-                    <td style="font-weight: var(--font-semibold); color: var(--color-danger);">{{ number_format($dh->tong_tien ?? 0, 0, ',', '.') }}đ</td>
-                    <td>
-                        <span class="badge" style="background:var(--color-bg); color:var(--color-text-muted);">
-                            {{ strtoupper($dh->phuong_thuc_thanh_toan) }}
-                        </span>
-                    </td>
-                    <td>
-                        @php
-                            $st = $dh->trang_thai;
-                            if($st == 'cho_thanh_toan')      $badge = 'badge-warning';
-                            elseif($st == 'cho_xac_nhan')    $badge = 'badge-info';
-                            elseif($st == 'dang_xu_ly')      $badge = 'badge-primary';
-                            elseif($st == 'dang_giao')       $badge = 'badge-info';
-                            elseif($st == 'da_giao')         $badge = 'badge-success';
-                            else                             $badge = 'badge-danger';
-
-                            $labels = [
-                                'cho_thanh_toan' => 'Chờ TT',
-                                'cho_xac_nhan'   => 'Chờ xác nhận',
-                                'dang_xu_ly'     => 'Đang lấy hàng',
-                                'dang_giao'      => 'Đang giao',
-                                'da_giao'        => 'Hoàn thành',
-                                'huy'            => 'Đã hủy',
-                            ];
-                        @endphp
-                        <span class="badge {{ $badge }}">{{ $labels[$st] ?? $st }}</span>
-                    </td>
-                    <td>
-                        <a href="{{ route('admin.orders.show', $dh->id) }}" class="btn btn-outline btn-sm" title="Xem chi tiết">Chi tiết</a>
-                    </td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="7" style="text-align: center; padding: var(--space-10); color: var(--color-text-muted);">
-                        <span class="material-icons" style="font-size: 48px; display: block; margin-bottom: var(--space-3);">receipt_long</span>
-                        Không tìm thấy đơn hàng nào.
-                    </td>
-                </tr>
-                @endforelse
+            <tbody class="js-admin-search-rows">
+                @include('admin._partials.orders_rows')
             </tbody>
         </table>
+        <div class="js-admin-search-overlay" aria-hidden="true">
+            <div class="js-admin-search-overlay__spinner"></div>
+        </div>
     </div>
 
     @if($donHangs->hasPages())

@@ -23,6 +23,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // Fix Ngrok / Reverse Proxy HTTPS issue cho Login form:
+        if (request()->header('x-forwarded-proto') === 'https' || str_contains(request()->getHost(), 'ngrok-free.app')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         \Illuminate\Pagination\Paginator::useBootstrap();
         // Share tree category globally for Header Navigation
         view()->composer('*', function ($view) {

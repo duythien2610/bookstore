@@ -48,6 +48,15 @@ class OrderController extends Controller
                                 ->toArray();
         $tongTatCa = DonHang::count();
 
+        // AJAX: trả về fragment rows + count để JS swap vào tbody.
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'count'   => $donHangs->total(),
+                'html'    => view('admin._partials.orders_rows', compact('donHangs'))->render(),
+            ]);
+        }
+
         return view('admin.orders', compact('donHangs', 'statusCounts', 'tongTatCa'));
     }
 

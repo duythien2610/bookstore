@@ -216,6 +216,7 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/blogs', [\App\Http\Controllers\PostController::class, 'adminIndex'])->name('admin.blogs.index');
     Route::put('/blogs/{post}/approve', [\App\Http\Controllers\PostController::class, 'approve'])->name('admin.blogs.approve');
     Route::put('/blogs/{post}/reject', [\App\Http\Controllers\PostController::class, 'reject'])->name('admin.blogs.reject');
+    Route::delete('/blogs/{post}', [\App\Http\Controllers\PostController::class, 'destroy'])->name('admin.blogs.destroy');
 
     // Quản lý mã giảm giá (Coupon)
     Route::get('/coupons', [CouponController::class, 'index'])->name('admin.coupons.index');
@@ -236,6 +237,11 @@ Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/settings', function() {
         return view('admin.settings');
     })->name('admin.settings');
+
+    // Quản lý đánh giá (Reviews)
+    Route::get('/reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('admin.reviews.index');
+    Route::put('/reviews/{id}/toggle', [\App\Http\Controllers\Admin\ReviewController::class, 'toggle'])->name('admin.reviews.toggle');
+    Route::delete('/reviews/{id}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('admin.reviews.destroy');
 });
 
 
