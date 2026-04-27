@@ -13,3 +13,22 @@ npm-debug.log
 yarn-error.log
 /.idea
 /.vscode
+
+# Scratch, test, and log files
+artisan_error.txt
+artisan_migr_err.txt
+error_full.txt
+output_gemini.txt
+out_test_chat.json
+run_gemini_test.php
+test_chatbot.php
+test_lightbox.php
+
+# PHP setup tools
+composer-setup.php
+composer.phar
+
+# Exclude duplicated/older database dumps
+bookstore (1).sql
+bookstore.sql
+database_bookverse_v1.0.sql
