@@ -5,11 +5,11 @@ Modtrabook là dự án Website Nhà Sách trực tuyến. Nhánh này tập tru
 ## 🌟 Giao Diện Minh Họa
 
 ### 🏠 Trang chủ (Giao diện người dùng)
-![Trang chủ](./screenshots/homepage.png)
+![Trang chủ](./screenshots/homepage.jpeg)
 *Giao diện danh sách sách trực quan giúp người dùng dễ dàng tìm kiếm và mua sắm.*
 
 ### ⚙️ Admin Panel - Quản lý sách
-![Quản lý sách](./screenshots/admin-dashboard.png)
+![Quản lý sách](./screenshots/admin.jpeg)
 *Bảng điều khiển quản lý sách chuyên nghiệp, hỗ trợ Admin kiểm soát toàn bộ thông tin sách và hàng tồn kho.*
 
 ## 🚀 Chức năng chính (Admin Settings & Quản lý sách)
