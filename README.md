@@ -1,64 +1,39 @@
-# 📚 Website Quản Lý Nhà Sách (Modtrabook) 
-Đây là một dự án **Website Nhà Sách** đơn giản, cho phép người dùng quản lý và tương tác với danh sách sách.
+# 📚 Website Quản Lý Nhà Sách (Modtrabook)
+
+Modtrabook là một dự án **Website Thương Mại Điện Tử & Quản Lý Nhà Sách**, cung cấp giải pháp toàn diện cho việc bán sách trực tuyến và quản lý cửa hàng. Hệ thống bao gồm giao diện người dùng mua sắm trực quan và trang quản trị mạnh mẽ.
+
+## 🌟 Hình ảnh minh họa
+
+### 🏠 Trang chủ (Home Page)
+![Giao diện trang chủ - Modtrabook](./screenshots/homepage.png)
+*Giao diện trang chủ hiện đại, trực quan với banner khuyến mãi và sách nổi bật.*
+
+### ⚙️ Trang quản trị (Admin Dashboard)
+![Giao diện trang quản trị - Modtrabook](./screenshots/admin-dashboard.png)
+*Bảng điều khiển quản trị viên giúp dễ dàng theo dõi doanh thu, đơn hàng và quản lý kho sách.*
 
 ## 🚀 Chức năng chính
-- Hiển thị danh sách sách  
-- Thêm sách mới  
-- Xóa sách  
-- Quản lý thông tin sách (tên, tác giả, thể loại)  
+
+- **Dành cho Khách Hàng:**
+  - Khám phá và tìm kiếm sách dễ dàng với tính năng tìm kiếm thông minh.
+  - Xem thông tin chi tiết sách, tác giả, thể loại.
+  - Quản lý giỏ hàng, đặt hàng và áp dụng mã khuyến mãi.
+  - Giao diện đẹp mắt, tối ưu trải nghiệm người dùng.
+
+- **Dành cho Quản Trị Viên:**
+  - Bảng điều khiển (Dashboard) theo dõi thống kê doanh thu và đơn hàng.
+  - Quản lý danh mục sách, thể loại, tác giả, nhà cung cấp.
+  - Quản lý đơn hàng, người dùng và cài đặt hệ thống.
+  - Hỗ trợ thêm nhiều thể loại cho một cuốn sách và quản lý mã giảm giá.
 
 ## 🛠️ Công nghệ sử dụng
-- HTML, CSS, JavaScript  
-- (Thêm vào nếu có: React / Node.js / Database)  
-- Git & GitHub  
+- **Backend:** Laravel Framework (PHP)
+- **Frontend:** HTML, CSS, JavaScript, Blade Templates
+- **Database:** MySQL
+- **Quản lý phiên bản:** Git & GitHub
 
-## 📌 Modtrabook - Version 1.0  
-### 🔧 Các chức năng cần cải tiến
----
-## 🏠 Trang chủ (Home Page)
-
-- **Khuyến mãi**
-  - Xây dựng hệ thống mã khuyến mãi áp dụng cho từng sách  
-  - Cho phép người dùng nhập mã khi mua hàng  
-
-- **Sách nổi bật**
-  - Hiển thị các sách có số lượng đơn hàng cao  
-  - Sắp xếp theo mức độ phổ biến  
-
-- **Tìm kiếm thông minh**
-  - Hỗ trợ tìm kiếm realtime (autocomplete)  
-  - Khi nhập từ khóa → hiển thị các sách tương ứng ngay lập tức  
-
-- **Giao diện (UI/UX)**
-  - Cải thiện thiết kế trực quan, hiện đại hơn  
-  - Tối ưu trải nghiệm người dùng  
-
-- **Bộ lọc**
-  - Loại bỏ bộ lọc khỏi trang chủ  
-  - Trang chủ chỉ nên tập trung hiển thị sách nổi bật  
----
-## ⚙️ Trang quản trị (Admin)
-
-- **Cài đặt (Settings)**
-  - Thiết kế trang Settings tổng hợp  
-  - Hiển thị các tùy chọn chính mà không cần truy cập nhiều mục con  
-
-- **Quản lý sách**
-  - Cho phép chọn **nhiều thể loại** cho một cuốn sách (hiện tại chỉ chọn được 1)  
-
-- **Mã giảm giá**
-  - Hỗ trợ import mã giảm giá từ file (CSV/Excel)  
-  - Tự động lưu vào database thay vì nhập thủ công  
-
-- **Quản lý người dùng**
-  - Trang "Khách hàng" chỉ hiển thị danh sách khách hàng  
-  - Tách riêng mục **Admin** để quản lý quản trị viên  
-  - Cải thiện giao diện để dễ nhìn và dễ sử dụng hơn  
-
----
-
-## 🔥 Gợi ý nâng cấp
-
-- Thêm dashboard thống kê (doanh thu, đơn hàng)  
-- Phân quyền người dùng (Admin / Staff)  
-- Lưu lịch sử đơn hàng  
+## 📌 Hướng phát triển tương lai
+- Cải thiện tìm kiếm thời gian thực (autocomplete).
+- Thêm phân quyền người dùng (Admin / Staff).
+- Hỗ trợ import mã giảm giá từ file CSV/Excel.
+- Nâng cấp UI/UX trang quản trị và trải nghiệm trên thiết bị di động.
